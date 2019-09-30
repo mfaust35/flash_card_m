@@ -1,15 +1,13 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.PrimaryKey
+import androidx.room.*
 
 const val CardContentTableName = "card_contents"
 const val CardTableName = "cards"
 
 @Entity(
     tableName = CardContentTableName,
+    indices = [Index(value = ["card_id"], name = "card_id_idx")],
     foreignKeys = [
         ForeignKey(entity = CardEntity::class,
             parentColumns = ["card_id"],
@@ -27,6 +25,7 @@ data class CardContentEntity (
 
 @Entity(
     tableName = CardTableName,
+    indices = [Index(value = ["booklet_id"], name = "booklet_id_idx")],
     foreignKeys = [
         ForeignKey(entity = BookletEntity::class,
             parentColumns = ["booklet_id"],

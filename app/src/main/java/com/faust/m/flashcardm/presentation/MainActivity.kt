@@ -1,14 +1,20 @@
-package com.faust.m.flashcardm
+package com.faust.m.flashcardm.presentation
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import com.faust.m.core.domain.Booklet
+import com.faust.m.flashcardm.R
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.toast
+import org.koin.android.ext.android.getKoin
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), LiveDataObserver {
+
+    private lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +25,18 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
+
+        // Initialize view model
+        getKoin().get<ViewModelFactory>().let {
+            viewModel = ViewModelProvider(this, it).get(MainActivityViewModel::class.java)
+        }
+        // Setup observe data in view model
+        viewModel.getAllBooklets().observe(this, ::onBookletsChanged)
+    }
+
+    private fun onBookletsChanged(booklets: List<Booklet>) {
+        if (booklets.isEmpty())
+            toast("There is no booklet as of now")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "3c4edbb236c4f99ca75ee4ab1d89dc3a",
+    "identityHash": "8908148df6f6df50e2a09802923980ae",
     "entities": [
       {
         "tableName": "booklets",
@@ -53,7 +53,16 @@
           ],
           "autoGenerate": true
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "booklet_id_idx",
+            "unique": false,
+            "columnNames": [
+              "booklet_id"
+            ],
+            "createSql": "CREATE  INDEX `booklet_id_idx` ON `${TABLE_NAME}` (`booklet_id`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "booklets",
@@ -103,7 +112,16 @@
           ],
           "autoGenerate": true
         },
-        "indices": [],
+        "indices": [
+          {
+            "name": "card_id_idx",
+            "unique": false,
+            "columnNames": [
+              "card_id"
+            ],
+            "createSql": "CREATE  INDEX `card_id_idx` ON `${TABLE_NAME}` (`card_id`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "cards",
@@ -122,7 +140,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3c4edbb236c4f99ca75ee4ab1d89dc3a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8908148df6f6df50e2a09802923980ae')"
     ]
   }
 }
