@@ -31,6 +31,3 @@ abstract class BaseDaoTest {
         database.close()
     }
 }
-
-fun Cursor.getStringFrom(columnName: String): String = getString(getColumnIndex(columnName))
-fun Cursor.getLongFrom(columnName: String) = getLong(getColumnIndex(columnName))

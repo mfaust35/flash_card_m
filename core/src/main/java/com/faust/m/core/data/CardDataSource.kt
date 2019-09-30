@@ -4,7 +4,7 @@ import com.faust.m.core.domain.Card
 
 interface CardDataSource {
 
-    fun add(card: Card): Long
+    fun add(card: Card): Card
 
     fun getAllCardsForBooklet(bookletId: Long): List<Card>
 }

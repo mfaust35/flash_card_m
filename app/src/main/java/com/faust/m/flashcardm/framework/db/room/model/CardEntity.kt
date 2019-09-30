@@ -18,11 +18,11 @@ const val CardTableName = "cards"
     ]
 )
 data class CardContentEntity (
-    @ColumnInfo(name = "value") var value: String,
-    @ColumnInfo(name = "card_type") var type: String,
-    @ColumnInfo(name = "card_id") var cardId: Long,
+    @ColumnInfo(name = "value") val value: String,
+    @ColumnInfo(name = "card_type") val type: String,
+    @ColumnInfo(name = "card_id") val cardId: Long,
     @ColumnInfo(name = "card_content_id")
-    @PrimaryKey(autoGenerate = true) var id: Long = 0
+    @PrimaryKey(autoGenerate = true) val id: Long = 0
 )
 
 @Entity(
@@ -35,7 +35,7 @@ data class CardContentEntity (
     ]
 )
 data class CardEntity (
-    @ColumnInfo(name = "booklet_id") var bookletId: Long,
+    @ColumnInfo(name = "booklet_id") val bookletId: Long,
     @ColumnInfo(name = "card_id")
-    @PrimaryKey(autoGenerate = true) var id: Long = 0
+    @PrimaryKey(autoGenerate = true) val id: Long = 0
 )

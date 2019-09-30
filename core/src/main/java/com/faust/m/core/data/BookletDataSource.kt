@@ -4,7 +4,7 @@ import com.faust.m.core.domain.Booklet
 
 interface BookletDataSource {
 
-    fun add(booklet: Booklet): Long
+    fun add(booklet: Booklet): Booklet
 
     fun getAllBooklet(): List<Booklet>
 }
