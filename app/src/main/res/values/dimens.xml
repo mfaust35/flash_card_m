@@ -1,3 +1,14 @@
 <resources>
+
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="large_margin">16dp</dimen>
+    <dimen name="small_margin">4dp</dimen>
+
+    <dimen name="dimen_card_min_height">75dp</dimen>
+
+    <dimen name="dimen_icon_h1">48dp</dimen>
+    <dimen name="dimen_icon_h2">24dp</dimen>
+    <dimen name="dimen_icon_h3">18dp</dimen>
+
 </resources>

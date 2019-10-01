@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryLight">#6EDACC</color>
     <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
+
+    <color name="colorAccent">#D8BF1B</color>
+
+    <color name="colorWhite">#FAFAFA</color>
+
+    <color name="colorHighlight1">@color/colorPrimary</color>
+    <color name="colorHighlight2">@color/colorPrimaryLight</color>
+    <color name="colorHighlight3">@color/colorPrimaryDark</color>
+    <color name="colorHighlight4">@color/colorAccent</color>
+    <color name="colorHighlight5">#8BC34A</color>
+    <color name="colorHighlight6">#4CAF50</color>
+
 </resources>

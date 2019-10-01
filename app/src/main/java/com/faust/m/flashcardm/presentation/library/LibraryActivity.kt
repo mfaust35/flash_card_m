@@ -2,15 +2,13 @@ package com.faust.m.flashcardm.presentation.library
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.ViewModelFactory
+import com.faust.m.flashcardm.presentation.provideViewModel
 import kotlinx.android.synthetic.main.activity_library.*
 import org.jetbrains.anko.toast
-import org.koin.android.ext.android.getKoin
 
 class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
@@ -22,17 +20,17 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         setContentView(R.layout.activity_library)
 
         // Initialize adapter
-        bookletAdapter = BookletAdapter(onItemClick = ::onBookletClicked)
+        bookletAdapter = BookletAdapter(this, onItemClick = ::onBookletClicked)
         // Setup adapter in recyclerView
-        recyclerViewBooklet.layoutManager = LinearLayoutManager(this)
-        recyclerViewBooklet.adapter = bookletAdapter
+        recycler_view_booklet.layoutManager = LinearLayoutManager(this)
+        recycler_view_booklet.adapter = bookletAdapter
 
         // Initialize viewModel
-        getKoin().get<ViewModelFactory>().let {
-            viewModel = ViewModelProvider(this, it).get(LibraryViewModel::class.java)
-        }
+        viewModel = provideViewModel()
         // Setup observe data in viewModel
         viewModel.getAllBooklets().observe(this, ::onBookletsChanged)
+
+        getString(R.string.action_settings)
     }
 
     private fun onBookletClicked(booklet: Booklet) {
