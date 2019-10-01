@@ -23,7 +23,7 @@ class MainActivityViewModel: ViewModel(), KoinComponent {
 
     private fun refreshBooklets() {
         GlobalScope.launch {
-            allBooklets.postValue(bookletRepository.getAllBooklet())
+            allBooklets.postValue(bookletRepository.getAllBooklets())
         }
     }
 }
