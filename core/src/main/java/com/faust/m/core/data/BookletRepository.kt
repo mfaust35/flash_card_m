@@ -7,4 +7,6 @@ class BookletRepository(val dataSource: BookletDataSource) {
     fun add(booklet: Booklet): Booklet = dataSource.add(booklet)
 
     fun getAllBooklets() = dataSource.getAllBooklet()
+
+    fun delete(booklet: Booklet): Int = dataSource.delete(booklet)
 }

@@ -22,6 +22,19 @@ fun AlertDialog.Builder.setPositiveButton(textId: Int, listener: () -> Unit): Al
     return setPositiveButton(textId) { _, _ -> listener.invoke() }
 }
 
+open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
+
+    fun add(value: T) {
+        this.value?.add(value)
+        postValue(this.value)
+    }
+
+    fun remove(value: T) {
+        this.value?.remove(value)
+        postValue(this.value)
+    }
+}
+
 internal interface LiveDataObserver {
 
     class GenericObserver<T>(private val onChange: ((value: T) -> Unit)): Observer<T> {

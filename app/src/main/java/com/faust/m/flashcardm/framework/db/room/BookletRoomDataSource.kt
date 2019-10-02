@@ -16,6 +16,8 @@ class BookletRoomDataSource(private val bookletDao: BookletDao): BookletDataSour
     override fun getAllBooklet(): List<Booklet> =
         bookletDao.getAllBooklets().map(::toEntityModel)
 
+    override fun delete(booklet: Booklet): Int = bookletDao.delete(booklet.toEntityModel())
+
     private fun toEntityModel(bookletEntity: BookletEntity): Booklet =
         Booklet(bookletEntity.name, bookletEntity.id)
 

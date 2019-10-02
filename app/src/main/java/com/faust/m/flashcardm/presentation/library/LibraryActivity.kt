@@ -42,7 +42,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun onBookletClicked(booklet: Booklet) {
-        toast("On booklet clicked")
+        viewModel.deleteBooklet(booklet)
     }
 
     private fun onBookletsChanged(booklets: List<Booklet>) =

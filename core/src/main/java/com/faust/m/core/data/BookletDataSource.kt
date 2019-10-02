@@ -7,4 +7,6 @@ interface BookletDataSource {
     fun add(booklet: Booklet): Booklet
 
     fun getAllBooklet(): List<Booklet>
+
+    fun delete(booklet: Booklet): Int
 }
