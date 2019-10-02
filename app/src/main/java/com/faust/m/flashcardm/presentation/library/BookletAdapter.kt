@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.inflate
+import kotlin.math.abs
 
 class BookletAdapter(context: Context,
                      booklets: Collection<Booklet>? = null,
@@ -49,7 +50,7 @@ class BookletAdapter(context: Context,
         fun bindBooklet(booklet: Booklet) {
             booklet.name.subSequence(0, 1).let {
                 highlight.text = it
-                highlight.setBackgroundColor(colors[it.hashCode() % 6])
+                highlight.setBackgroundColor(colors[abs(booklet.hashCode() % 6)])
             }
 
 /*            val uniqueIdMultiplier = getHighlightLetter().hashCode().div(6)

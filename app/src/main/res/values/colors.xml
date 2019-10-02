@@ -8,11 +8,11 @@
 
     <color name="colorWhite">#FAFAFA</color>
 
-    <color name="colorHighlight1">@color/colorPrimary</color>
-    <color name="colorHighlight2">@color/colorPrimaryLight</color>
-    <color name="colorHighlight3">@color/colorPrimaryDark</color>
-    <color name="colorHighlight4">@color/colorAccent</color>
-    <color name="colorHighlight5">#8BC34A</color>
+    <color name="colorHighlight1">@color/colorAccent</color>
+    <color name="colorHighlight2">#60C34A</color>
+    <color name="colorHighlight3">#56A001</color>
+    <color name="colorHighlight4">#B4A200</color>
+    <color name="colorHighlight5">#FCF734</color>
     <color name="colorHighlight6">#4CAF50</color>
 
 </resources>

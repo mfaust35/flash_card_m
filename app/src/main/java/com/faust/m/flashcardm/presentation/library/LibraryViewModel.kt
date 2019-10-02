@@ -20,15 +20,35 @@ class LibraryViewModel: ViewModel(), KoinComponent {
     private val booklets: MLDBooklets by lazy {
         MLDBooklets().apply {
             GlobalScope.launch {
-                bookletRepository.getAllBooklets().let {
-                    //mutableListOf().addAll(it)
-                    val add = mutableListOf<Booklet>()
-                    add.add(Booklet("My first booklet", 10))
-                    booklets.postValue(add)
-                }
+                mutableListOf<Booklet>()
+                    .apply {
+                        addAll(bookletRepository.getAllBooklets())
+                    }
+                    .also {
+                        post(it)
+                    }
             }
         }
     }
 
+    private fun post(bookletsToPost: MutableList<Booklet>) {
+        bookletsToPost.sortBy(Booklet::name)
+        booklets.postValue(bookletsToPost)
+    }
+
     fun getAllBooklets(): LiveData<List<Booklet>> = booklets
+
+    fun addBookletWithName(name: String) {
+        GlobalScope.launch {
+            val newBooklet = bookletRepository.add(Booklet(name))
+            mutableListOf<Booklet>()
+                .apply {
+                    booklets.value?.let { addAll(it) }
+                    add(newBooklet)
+                }
+                .also {
+                    post(it)
+                }
+        }
+    }
 }

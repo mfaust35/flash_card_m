@@ -7,8 +7,11 @@ import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.provideViewModel
+import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
 import org.jetbrains.anko.toast
+
+const val TAG_FRAGMENT_ADD_BOOKLET = "add_booklet"
 
 class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
@@ -25,12 +28,17 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
 
-        // Initialize viewModel
+        // Init viewModel
         viewModel = provideViewModel()
         // Setup observe data in viewModel
         viewModel.getAllBooklets().observe(this, ::onBookletsChanged)
 
-        getString(R.string.action_settings)
+        // Setup click listeners
+        fab_add_booklet.setOnClickListener(::onFabAddBookletClicked)
+    }
+
+    private fun onFabAddBookletClicked() {
+        FragmentAddBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
     }
 
     private fun onBookletClicked(booklet: Booklet) {

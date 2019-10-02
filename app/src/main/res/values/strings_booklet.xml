@@ -1,0 +1,4 @@
+<resources>
+    <string name="enter_new_booklet_name">Enter new booklet name</string>
+    <string name="confirm_new_booklet">Add</string>
+</resources>

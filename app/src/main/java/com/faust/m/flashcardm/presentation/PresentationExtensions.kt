@@ -5,11 +5,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import org.koin.android.ext.android.getKoin
 
 fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean = false): View {
     return LayoutInflater.from(context).inflate(layoutRes, this, attachToRoot)
+}
+
+fun View.setOnClickListener(listener: () -> Unit) {
+    setOnClickListener {_ -> listener.invoke()}
+}
+
+fun AlertDialog.Builder.setPositiveButton(textId: Int, listener: () -> Unit): AlertDialog.Builder {
+    return setPositiveButton(textId) { _, _ -> listener.invoke() }
 }
 
 internal interface LiveDataObserver {
@@ -28,5 +38,11 @@ internal interface LiveDataObserver {
 inline fun <reified T: ViewModel> Activity.provideViewModel(): T {
     return getKoin().get<ViewModelFactory>().let {
         ViewModelProvider(this as ViewModelStoreOwner, it).get(T::class.java)
+    }
+}
+
+inline fun <reified T: ViewModel> Fragment.provideViewModel(): T {
+    return getKoin().get<ViewModelFactory>().let {
+        ViewModelProvider(this.activity as ViewModelStoreOwner, it).get(T::class.java)
     }
 }
