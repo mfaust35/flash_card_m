@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
@@ -48,13 +49,10 @@ class BookletAdapter(context: Context,
         private var name: TextView = view.findViewById(R.id.recycler_view_booklet_name)
 
         fun bindBooklet(booklet: Booklet) {
-            booklet.name.subSequence(0, 1).let {
-                highlight.text = it
-                highlight.setBackgroundColor(colors[abs(booklet.hashCode() % 6)])
-            }
-
-/*            val uniqueIdMultiplier = getHighlightLetter().hashCode().div(6)
-            val colorArrayIndex = getHighlightLetter().hashCode() - (uniqueIdMultiplier * 6)*/
+            highlight.text = booklet.name.subSequence(0, 1)
+            DrawableCompat.wrap(highlight.background)
+                .apply { setTint(colors[abs(booklet.hashCode() % 6)]) }
+                .also { highlight.background = it }
             name.text = booklet.name
             view.setOnClickListener { onItemClick?.invoke(booklet) }
         }

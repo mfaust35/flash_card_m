@@ -7,6 +7,7 @@
     <color name="colorAccent">#D8BF1B</color>
 
     <color name="colorWhite">#FAFAFA</color>
+    <color name="colorWhitePressed">#A0A0A0</color>
 
     <color name="colorHighlight1">@color/colorAccent</color>
     <color name="colorHighlight2">#60C34A</color>
