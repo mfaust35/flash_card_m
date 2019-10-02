@@ -13,7 +13,8 @@ import kotlin.math.abs
 
 class BookletAdapter(context: Context,
                      booklets: Collection<Booklet>? = null,
-                     var onItemClick: ((value: Booklet) -> Unit)? = null):
+                     var onItemClick: ((value: Booklet) -> Unit)? = null,
+                     var onItemLongClick: ((value: Booklet) -> Boolean)? = null):
     RecyclerView.Adapter<BookletAdapter.Holder>(){
 
     private val booklets: MutableList<Booklet> =
@@ -55,6 +56,7 @@ class BookletAdapter(context: Context,
                 .also { highlight.background = it }
             name.text = booklet.name
             view.setOnClickListener { onItemClick?.invoke(booklet) }
+            view.setOnLongClickListener { onItemLongClick?.invoke(booklet) ?: false }
         }
     }
 }

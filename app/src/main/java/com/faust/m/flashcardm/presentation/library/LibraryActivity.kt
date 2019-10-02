@@ -1,15 +1,16 @@
 package com.faust.m.flashcardm.presentation.library
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.LiveDataObserver
+import com.faust.m.flashcardm.presentation.add_card.AddCardActivity
 import com.faust.m.flashcardm.presentation.provideViewModel
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
-import org.jetbrains.anko.toast
 
 const val TAG_FRAGMENT_ADD_BOOKLET = "add_booklet"
 
@@ -23,7 +24,9 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         setContentView(R.layout.activity_library)
 
         // Initialize adapter
-        bookletAdapter = BookletAdapter(this, onItemClick = ::onBookletClicked)
+        bookletAdapter = BookletAdapter(this,
+            onItemClick = ::onBookletClicked,
+            onItemLongClick = ::onBookletLongClicked)
         // Setup adapter in recyclerView
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
@@ -42,7 +45,14 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun onBookletClicked(booklet: Booklet) {
+        Intent(this, AddCardActivity::class.java).also {
+            startActivity(it)
+        }
+    }
+
+    private fun onBookletLongClicked(booklet: Booklet): Boolean {
         viewModel.deleteBooklet(booklet)
+        return true
     }
 
     private fun onBookletsChanged(booklets: List<Booklet>) =
