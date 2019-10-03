@@ -18,4 +18,8 @@ data class Card (
             .getOrPut(cardContent.type) { mutableListOf() }
             .add(cardContent)
     }
+
+    fun frontAsTextOrNull() = content["front"]?.firstOrNull()?.value
+
+    fun backAsTextOrNull() = content["back"]?.firstOrNull()?.value
 }

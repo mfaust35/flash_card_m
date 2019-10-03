@@ -8,6 +8,7 @@ import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.add_card.AddCardActivity
+import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.provideViewModel
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
@@ -45,9 +46,13 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun onBookletClicked(booklet: Booklet) {
-        Intent(this, AddCardActivity::class.java).also {
-            startActivity(it)
-        }
+        Intent(this, AddCardActivity::class.java)
+            .apply {
+                putExtra(BOOKLET_ID, booklet.id)
+            }
+            .also {
+                startActivity(it)
+            }
     }
 
     private fun onBookletLongClicked(booklet: Booklet): Boolean {

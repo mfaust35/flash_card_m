@@ -58,16 +58,18 @@ open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
     }
 }
 
+fun <T> MutableLiveData<T>.notifyObserver() {
+    postValue(this.value)
+}
+
 internal interface LiveDataObserver {
 
-    class GenericObserver<T>(private val onChange: ((value: T) -> Unit)): Observer<T> {
-        override fun onChanged(t: T) {
-            onChange.invoke(t)
-        }
+    fun <T> LiveData<T>.observe(owner: LifecycleOwner, onChange: ((value: T) -> Unit)) {
+        observe(owner, Observer<T> { t -> onChange.invoke(t) })
     }
 
-    fun <T> LiveData<T>.observe(owner: LifecycleOwner, onChange: ((value: T) -> Unit)) {
-        observe(owner, GenericObserver(onChange))
+    fun <T> LiveData<T>.observe(owner: LifecycleOwner, onChange: () -> Unit) {
+        observe(owner, Observer<T> { onChange.invoke() })
     }
 }
 
