@@ -43,6 +43,10 @@ class CardRoomDataSource(private val cardDao: CardDao,
         return content
     }
 
+    override fun countCardsForBooklet(bookletId: Long): Int =
+        cardDao.countCardsForBooklet(bookletId)
+
+
     private fun toDomainModel(cardContentEntity: CardContentEntity): CardContent =
         CardContent(
             cardContentEntity.value,

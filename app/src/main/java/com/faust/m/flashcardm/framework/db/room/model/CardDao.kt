@@ -18,4 +18,7 @@ interface CardDao: BaseDao<CardEntity> {
 
     @Query("SELECT * FROM $CardTableName WHERE booklet_id = :bookletId")
     fun getAllCardsForBooklet(bookletId: Long): List<CardEntity>
+
+    @Query("SELECT COUNT(*) FROM $CardTableName WHERE booklet_id = :bookletId")
+    fun countCardsForBooklet(bookletId: Long): Int
 }

@@ -6,18 +6,17 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.inflate
 import kotlin.math.abs
 
 class BookletAdapter(context: Context,
-                     booklets: Collection<Booklet>? = null,
-                     var onItemClick: ((value: Booklet) -> Unit)? = null,
-                     var onItemLongClick: ((value: Booklet) -> Boolean)? = null):
+                     booklets: Collection<LibraryBooklet>? = null,
+                     var onItemClick: ((value: LibraryBooklet) -> Unit)? = null,
+                     var onItemLongClick: ((value: LibraryBooklet) -> Boolean)? = null):
     RecyclerView.Adapter<BookletAdapter.Holder>(){
 
-    private val booklets: MutableList<Booklet> =
+    private val booklets: MutableList<LibraryBooklet> =
         if (booklets.isNullOrEmpty()) mutableListOf() else ArrayList(booklets)
 
     private val colors = context.run { arrayOf (
@@ -38,7 +37,7 @@ class BookletAdapter(context: Context,
     override fun onBindViewHolder(holder: Holder, position: Int) =
         holder.bindBooklet(booklets[position])
 
-    fun replaceBooklets(newBooklets: List<Booklet>) {
+    fun replaceBooklets(newBooklets: List<LibraryBooklet>) {
         booklets.clear()
         booklets.addAll(newBooklets)
         notifyDataSetChanged()
@@ -49,8 +48,8 @@ class BookletAdapter(context: Context,
         private var highlight: TextView = view.findViewById(R.id.recycler_view_booklet_highlight)
         private var name: TextView = view.findViewById(R.id.recycler_view_booklet_name)
 
-        fun bindBooklet(booklet: Booklet) {
-            highlight.text = booklet.name.subSequence(0, 1)
+        fun bindBooklet(booklet: LibraryBooklet) {
+            highlight.text = booklet.cardCount.toString()
             DrawableCompat.wrap(highlight.background)
                 .apply { setTint(colors[abs(booklet.hashCode() % 6)]) }
                 .also { highlight.background = it }

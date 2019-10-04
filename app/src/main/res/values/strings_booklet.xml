@@ -2,4 +2,8 @@
     <string name="title_dialog_add_booklet">Add a booklet ?</string>
     <string name="hint_enter_new_booklet_name">"Booklet's name"</string>
     <string name="confirm_new_booklet">Add</string>
+
+
+    <string name="menu_action_delete">Delete</string>
+    <string name="menu_action_add_card">Add cards</string>
 </resources>

@@ -2,9 +2,11 @@ package com.faust.m.flashcardm.presentation.library
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.ContextMenu
+import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.faust.m.core.domain.Booklet
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.add_card.AddCardActivity
@@ -31,6 +33,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         // Setup adapter in recyclerView
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
+        registerForContextMenu(recycler_view_booklet)
 
         // Init viewModel
         viewModel = provideViewModel()
@@ -45,7 +48,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         FragmentAddBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
     }
 
-    private fun onBookletClicked(booklet: Booklet) {
+    private fun onBookletClicked(booklet: LibraryBooklet) {
         Intent(this, AddCardActivity::class.java)
             .apply {
                 putExtra(BOOKLET_ID, booklet.id)
@@ -55,11 +58,44 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
             }
     }
 
-    private fun onBookletLongClicked(booklet: Booklet): Boolean {
-        viewModel.deleteBooklet(booklet)
-        return true
+    private fun onBookletLongClicked(booklet: LibraryBooklet): Boolean {
+        viewModel.currentBooklet(booklet)
+        return false
     }
 
-    private fun onBookletsChanged(booklets: List<Booklet>) =
+    private fun onBookletsChanged(booklets: List<LibraryBooklet>) =
         bookletAdapter.replaceBooklets(booklets)
+
+
+    override fun onCreateContextMenu(menu: ContextMenu?,
+                                     v: View?,
+                                     menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menuInflater.inflate(R.menu.menu_library, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        super.onContextItemSelected(item)
+        return when (item.itemId) {
+            R.id.menu_action_delete -> {
+                viewModel.deleteCurrentBooklet()
+                true
+            }
+            R.id.menu_action_add_card -> {
+                viewModel.currentBooklet().value?.let {
+                    Intent(this, AddCardActivity::class.java)
+                        .apply {
+                            putExtra(BOOKLET_ID, it.id)
+                        }
+                        .also {
+                            startActivity(it)
+                        }
+                    true
+                }
+                false
+            }
+            else -> false
+        }
+
+    }
 }
