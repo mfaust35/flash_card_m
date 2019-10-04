@@ -1,5 +1,6 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Query
 
@@ -16,9 +17,18 @@ interface CardDao: BaseDao<CardEntity> {
     @Query("SELECT * FROM $CardTableName")
     fun getAllCards(): List<CardEntity>
 
-    @Query("SELECT * FROM $CardTableName WHERE booklet_id = :bookletId")
+    @Query("""SELECT *
+        FROM $CardTableName
+        WHERE booklet_id = :bookletId""")
     fun getAllCardsForBooklet(bookletId: Long): List<CardEntity>
 
-    @Query("SELECT COUNT(*) FROM $CardTableName WHERE booklet_id = :bookletId")
-    fun countCardsForBooklet(bookletId: Long): Int
+    @Query("""SELECT booklet_id, COUNT(DISTINCT card_id) AS count
+        FROM $CardTableName
+        WHERE booklet_id IN (:bookletIds)
+        GROUP BY booklet_id""")
+    fun countCardsForBooklets(bookletIds: List<Long>): List<CardCountEntity>
 }
+
+data class CardCountEntity(
+    @ColumnInfo(name = "booklet_id") val bookletId: Long,
+    @ColumnInfo(name = "count") val count: Int)

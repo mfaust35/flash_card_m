@@ -4,9 +4,7 @@ import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
-import com.faust.m.flashcardm.framework.db.room.model.BaseDaoTest
-import com.faust.m.flashcardm.framework.db.room.model.BookletDao
-import com.faust.m.flashcardm.framework.db.room.model.BookletEntity
+import com.faust.m.flashcardm.framework.db.room.model.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,11 +17,13 @@ class CardRoomDataSourceTest: BaseDaoTest() {
     private val card = Card(bookletId = bookletEntity.id).add(cardContent)
 
     private lateinit var cardRoomDataSource: CardRoomDataSource
+    private lateinit var cardDao: CardDao
     private lateinit var bookletDao: BookletDao
 
     override fun onDatabaseCreated(database: FlashRoomDatabase) = with(database) {
         cardRoomDataSource = CardRoomDataSource(cardDao(), cardContentDao())
         bookletDao = bookletDao()
+        cardDao = cardDao()
     }
 
     @Test
@@ -52,5 +52,24 @@ class CardRoomDataSourceTest: BaseDaoTest() {
 
     private fun givenABookletInDatabase() {
         bookletDao.add(bookletEntity)
+    }
+
+    @Test
+    fun testCountCardForBookletsReturnCount() {
+        // Given two booklets in database and 3 cards
+        bookletDao.add(BookletEntity("My first booklet", 10))
+        bookletDao.add(BookletEntity("My Second Booklet", 25))
+        cardDao.add(CardEntity(10))
+        cardDao.add(CardEntity(25))
+        cardDao.add(CardEntity(25))
+
+        // I can retrieve the card count by booklet id
+        assertThat(cardRoomDataSource.countCardsForBooklets(listOf(10)))
+            .isEqualTo(HashMap<Long, Int>().also{ it[10] = 1 })
+        assertThat(cardRoomDataSource.countCardsForBooklets(listOf(10, 25)))
+            .isEqualTo(HashMap<Long, Int>().also {
+                it[10] = 1
+                it[25] = 2
+            })
     }
 }

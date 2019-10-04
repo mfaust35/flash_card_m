@@ -8,5 +8,6 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun getAllCardsForBooklet(bookletId: Long) = dataSource.getAllCardsForBooklet(bookletId)
 
-    fun countCardForBooklet(bookletId: Long): Int = dataSource.countCardsForBooklet(bookletId)
+    fun countCardForBooklets(bookletIds: List<Long>): Map<Long, Int> =
+        dataSource.countCardsForBooklets(bookletIds)
 }

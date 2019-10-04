@@ -60,4 +60,23 @@ class CardDaoTest: BaseDaoTest() {
                 .isEqualTo(cardContentEntity)
         }
     }
+
+
+    @Test
+    fun testCountCardForBookletsReturnCount() {
+        // Given booklets in the database
+        bookletDao.add(BookletEntity("", 2))
+        bookletDao.add(BookletEntity("", 3))
+
+        // When inserting 3 cards in the database
+        cardDao.add(CardEntity(bookletId = 2))
+        cardDao.add(CardEntity(bookletId = 3))
+        cardDao.add(CardEntity(bookletId = 3))
+
+        // The counts can be retrieved
+        assertThat(cardDao.countCardsForBooklets(listOf(2)))
+            .isEqualTo(listOf(CardCountEntity(2, 1)))
+        assertThat(cardDao.countCardsForBooklets(listOf(2, 3)))
+            .isEqualTo(listOf(CardCountEntity(2, 1), CardCountEntity(3, 2)))
+    }
 }

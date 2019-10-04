@@ -13,8 +13,8 @@ class BookletDaoTest: BaseDaoTest() {
 
     private lateinit var bookletDao: BookletDao
 
-    override fun onDatabaseCreated(database: FlashRoomDatabase) {
-        bookletDao = database.bookletDao()
+    override fun onDatabaseCreated(database: FlashRoomDatabase) = with(database) {
+        bookletDao = bookletDao()
     }
 
     @Test

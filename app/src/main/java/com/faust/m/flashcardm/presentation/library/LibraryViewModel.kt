@@ -22,19 +22,21 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val booklets:  MutableLiveList<LibraryBooklet> by lazy {
         MutableLiveList<LibraryBooklet>().apply {
             GlobalScope.launch {
-                mutableListOf<LibraryBooklet>()
-                    .apply {
-                        addAll(
-                            bookletRepository.getAllBooklets().map {
-                                LibraryBooklet(it.name, cardRepository.countCardForBooklet(it.id), it.id)
-                            }
-                        )
-                        sortBy(LibraryBooklet::name)
-                    }
-                    .also { booklets.postValue(it) }
+                booklets.postValue(loadLibraryBooklets())
             }
         }
     }
+
+    private fun loadLibraryBooklets(): MutableList<LibraryBooklet> =
+        mutableListOf<LibraryBooklet>().apply {
+            val tBooklets = bookletRepository.getAllBooklets()
+            val cardCounts =
+                cardRepository.countCardForBooklets(tBooklets.map(Booklet::id))
+            tBooklets.forEach {
+                this.add(LibraryBooklet(it.name, cardCounts[it.id] ?: 0, it.id))
+            }
+            sortBy(LibraryBooklet::name)
+        }
 
     private val currentBooklet: MutableLiveData<LibraryBooklet> = MutableLiveData()
 

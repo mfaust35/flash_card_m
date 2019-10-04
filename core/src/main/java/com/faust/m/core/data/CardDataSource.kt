@@ -8,5 +8,5 @@ interface CardDataSource {
 
     fun getAllCardsForBooklet(bookletId: Long): List<Card>
 
-    fun countCardsForBooklet(bookletId: Long): Int
+    fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> // booklet_id -> count
 }
