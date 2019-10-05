@@ -8,6 +8,7 @@
 
     <color name="colorWhite">#FAFAFA</color>
     <color name="colorWhitePressed">#CFCFCF</color>
+    <color name="colorWhiteSelected">#FFFC54</color>
 
     <color name="colorHighlight1">@color/colorAccent</color>
     <color name="colorHighlight2">#60C34A</color>

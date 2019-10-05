@@ -38,7 +38,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         // Init viewModel
         viewModel = provideViewModel()
         // Setup observe data in viewModel
-        viewModel.getAllBooklets().observe(this, ::onBookletsChanged)
+        viewModel.booklets().observe(this, ::onBookletsChanged)
+        viewModel.addBookletState().observe(this, ::onAddBookletStateChanged)
 
         // Setup click listeners
         fab_add_booklet.setOnClickListener(::onFabAddBookletClicked)
@@ -66,6 +67,9 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     private fun onBookletsChanged(booklets: List<LibraryBooklet>) =
         bookletAdapter.replaceBooklets(booklets)
 
+    private fun onAddBookletStateChanged(addedBooklet: AddedBooklet?) {
+        bookletAdapter.setSelected(addedBooklet?.id)
+    }
 
     override fun onCreateContextMenu(menu: ContextMenu?,
                                      v: View?,

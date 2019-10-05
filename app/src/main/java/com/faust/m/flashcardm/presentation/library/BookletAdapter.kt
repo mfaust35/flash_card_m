@@ -19,6 +19,8 @@ class BookletAdapter(context: Context,
     private val booklets: MutableList<LibraryBooklet> =
         if (booklets.isNullOrEmpty()) mutableListOf() else ArrayList(booklets)
 
+    private var selected: Long? = null
+
     private val colors = context.run { arrayOf (
         getColor(R.color.colorHighlight1),
         getColor(R.color.colorHighlight2),
@@ -43,6 +45,11 @@ class BookletAdapter(context: Context,
         notifyDataSetChanged()
     }
 
+    fun setSelected(bookletId: Long?) {
+        selected = bookletId
+        notifyDataSetChanged()
+    }
+
     inner class Holder(private val view: View): RecyclerView.ViewHolder(view) {
 
         private var highlight: TextView = view.findViewById(R.id.recycler_view_booklet_highlight)
@@ -54,6 +61,12 @@ class BookletAdapter(context: Context,
                 .apply { setTint(colors[abs(booklet.hashCode() % 6)]) }
                 .also { highlight.background = it }
             name.text = booklet.name
+
+            when(booklet.id) {
+                selected -> view.isSelected = true
+                else -> view.isSelected = false
+            }
+
             view.setOnClickListener { onItemClick?.invoke(booklet) }
             view.setOnLongClickListener { onItemLongClick?.invoke(booklet) ?: false }
         }
