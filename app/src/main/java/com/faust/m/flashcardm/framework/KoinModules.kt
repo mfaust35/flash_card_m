@@ -7,8 +7,8 @@ import com.faust.m.core.data.CardRepository
 import com.faust.m.flashcardm.framework.db.room.BookletRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.CardRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
-import com.faust.m.flashcardm.presentation.ViewModelFactory
-import com.faust.m.flashcardm.presentation.add_card.AddCardViewModel
+import com.faust.m.flashcardm.presentation.BaseViewModelFactory
+import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -35,7 +35,7 @@ val roomDatabaseModule = module {
 
 val viewModelModule = module {
 
-    factory { ViewModelFactory() }
-    factory { (bookletId: Long) -> AddCardViewModel.Factory(bookletId) }
+    factory { BaseViewModelFactory() }
+    factory { (bookletId: Long) -> BookletViewModelFactory(bookletId) }
 
 }

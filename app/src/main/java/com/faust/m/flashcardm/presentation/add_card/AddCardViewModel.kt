@@ -40,18 +40,4 @@ class AddCardViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
             }
         }
     }
-
-    class Factory(private val bookletId: Long): ViewModelProvider.Factory {
-
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            try {
-                return AddCardViewModel(bookletId) as T
-            } catch (e: InstantiationException) {
-                throw RuntimeException("Cannot create an instance of $modelClass", e)
-            } catch (e: IllegalAccessException) {
-                throw RuntimeException("Cannot create an instance of $modelClass", e)
-            }
-        }
-
-    }
 }
