@@ -91,3 +91,9 @@ inline fun <reified T: ViewModel> Activity.provideBookletViewModel(bookletId: Lo
         ViewModelProvider(this as ViewModelStoreOwner, it).get(T::class.java)
     }
 }
+
+inline fun <reified T: ViewModel> Fragment.provideBookletViewModel(bookletId: Long): T {
+    return getKoin().get<BookletViewModelFactory>{ parametersOf(bookletId) }.let {
+        ViewModelProvider(this.activity as ViewModelStoreOwner, it).get(T::class.java)
+    }
+}

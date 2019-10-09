@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Card
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
+import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.koin.core.KoinComponent
@@ -27,29 +28,41 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent {
 
     fun getCurrentCard(): LiveData<CurrentCard> = currentCard
 
+    fun switchCurrent() {
+        currentCard.postValue(nextCard())
+    }
+
     private fun loadQueue() {
         cardRepository
             .getAllCardsForBooklet(bookletId)
             .forEach { cardQueue.add(it) }
-        if (cardQueue.isNotEmpty()) {
-            cardQueue.remove()
-                .let {
-                    CurrentCard(
+        currentCard.postValue(nextCard())
+    }
+
+    private fun nextCard(): CurrentCard {
+        if (currentCard.value == null || currentCard.value?.state == RATING) {
+            if (cardQueue.isNotEmpty())
+                cardQueue.remove().let {
+                    return CurrentCard(
                         it.frontAsTextOrNull() ?: "??",
                         it.backAsTextOrNull() ?: "??",
                         ASKING)
                 }
-                .run {
-                    currentCard.postValue(this)
-                }
+            else {
+                return CurrentCard.EMPTY
+            }
         }
         else {
-            currentCard.postValue(CurrentCard("???", "???", ASKING))
+            return currentCard.value?.copy(state = RATING) ?: CurrentCard.EMPTY
         }
     }
 }
 
 data class CurrentCard(val front: String, val back: String, val state: State) {
+
+    companion object {
+        val EMPTY = CurrentCard("--", "--", ASKING)
+    }
 
     enum class State { ASKING, RATING }
 }

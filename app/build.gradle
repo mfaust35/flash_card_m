@@ -40,10 +40,11 @@ dependencies {
     // Anko implementation
     implementation "org.jetbrains.anko:anko-commons:$anko_version"
     implementation "org.jetbrains.anko:anko-design:$anko_version"
+    // Layout constraint implementation
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     // Room implementation
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     // Koin implementation
     implementation "org.koin:koin-android:$koin_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
