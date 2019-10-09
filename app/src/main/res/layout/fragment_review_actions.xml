@@ -1,8 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<Button
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/bt_actions"
+    android:orientation="horizontal"
+    android:gravity="center"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:text="ACTIONS"/>
+    android:layout_height="match_parent">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bt_show_answer"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/show_card_answer" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bt_ask_again"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/large_margin"
+        android:text="@string/ask_again" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bt_i_knew"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/i_knew" />
+</LinearLayout>

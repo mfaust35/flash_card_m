@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.fragment.app.Fragment
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.LiveDataObserver
+import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
+import com.faust.m.flashcardm.presentation.setOnClickListener
+import kotlinx.android.synthetic.main.fragment_review_actions.*
 
 class FragmentReviewActions: Fragment(), LiveDataObserver {
 
@@ -23,15 +25,33 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
         activity?.let { viewModel = ReviewActivity.initViewModel(it) }
         // Setup observe data in viewModel
         viewModel.getCurrentCard().observe(this.viewLifecycleOwner, ::onCurrentCardChanged)
-
-
-        result.findViewById<Button>(R.id.bt_actions).setOnClickListener {
-            viewModel.switchCurrent()
-        }
         return result
     }
 
-    private fun onCurrentCardChanged(currentCard: CurrentCard) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
+        // Setup button click listener
+        bt_show_answer.setOnClickListener(::onShowAnswerClicked)
+        bt_ask_again.setOnClickListener(::onShowAnswerClicked)
+        bt_i_knew.setOnClickListener(::onShowAnswerClicked)
+    }
+
+    private fun onCurrentCardChanged(currentCard: CurrentCard) {
+        if (currentCard.state == ASKING) {
+            view?.setBackgroundResource(R.color.colorAccent)
+            bt_show_answer.visibility = View.VISIBLE
+            bt_ask_again.visibility = View.GONE
+            bt_i_knew.visibility = View.GONE
+        } else {
+            view?.setBackgroundResource(R.color.colorWhite)
+            bt_show_answer.visibility = View.GONE
+            bt_ask_again.visibility = View.VISIBLE
+            bt_i_knew.visibility = View.VISIBLE
+        }
+    }
+
+    private fun onShowAnswerClicked() {
+        viewModel.switchCurrent()
     }
 }

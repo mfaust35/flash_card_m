@@ -49,7 +49,6 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
                             constraint: (constraintSet: ConstraintSet) -> Unit) {
         (view as ConstraintLayout).let {
             val transition = AutoTransition().apply {
-                duration = 250
                 listener?.let { l -> addListener(l) }
             }
             TransitionManager.beginDelayedTransition(it, transition)

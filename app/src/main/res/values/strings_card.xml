@@ -3,4 +3,9 @@
     <string name="hint_enter_card_front">Front</string>
     <string name="hint_enter_card_back">Back</string>
     <string name="confirm_new_card">Add</string>
+
+    <string name="show_card_answer">Show answer</string>
+    <string name="ask_again">Ask again</string>
+    <string name="i_knew">I knew</string>
+
 </resources>
