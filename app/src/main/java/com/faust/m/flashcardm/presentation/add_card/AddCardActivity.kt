@@ -47,14 +47,24 @@ class AddCardActivity: AppCompatActivity(), LiveDataObserver {
     private fun onAddCardClicked() {
         et_card_front.clearFocus()
         et_card_back.clearFocus()
+        saveFront()
+        saveBack()
         viewModel.addCard()
+    }
+
+    private fun saveFront() {
+        viewModel.updateCardFront(et_card_front.text.toString())
+    }
+
+    private fun saveBack() {
+        viewModel.updateCardBack(et_card_back.text.toString())
     }
 
     private fun onFocusChanged(view: View, hasFocus: Boolean) {
         if (hasFocus) return
         when(view) {
-            et_card_front -> viewModel.updateCardFront(et_card_front.text.toString())
-            et_card_back -> viewModel.updateCardBack(et_card_back.text.toString())
+            et_card_front -> saveFront()
+            et_card_back -> saveBack()
         }
     }
 }
