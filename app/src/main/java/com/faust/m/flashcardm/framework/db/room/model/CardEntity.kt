@@ -1,6 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
 import androidx.room.*
+import java.util.*
 
 const val CardContentTableName = "card_contents"
 const val CardTableName = "cards"
@@ -23,6 +24,10 @@ data class CardContentEntity (
     @PrimaryKey(autoGenerate = true) val id: Long = 0
 )
 
+/**
+ * Rating is a int between 0..5 indicating how much this card is know: 0 means the user haven't
+ * learned this card, 5 means the user know this card perfectly
+ */
 @Entity(
     tableName = CardTableName,
     indices = [Index(value = ["booklet_id"], name = "booklet_id_idx")],
@@ -34,6 +39,8 @@ data class CardContentEntity (
     ]
 )
 data class CardEntity (
+    @ColumnInfo(name = "rating") val rating: Int,
+    @ColumnInfo(name = "last_seen") val lastSeen: Date,
     @ColumnInfo(name = "booklet_id") val bookletId: Long,
     @ColumnInfo(name = "card_id")
     @PrimaryKey(autoGenerate = true) val id: Long = 0

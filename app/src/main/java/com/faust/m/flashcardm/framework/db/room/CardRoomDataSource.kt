@@ -7,6 +7,7 @@ import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
 import com.faust.m.flashcardm.framework.db.room.model.CardDao
 import com.faust.m.flashcardm.framework.db.room.model.CardEntity
+import java.util.*
 
 class CardRoomDataSource(private val cardDao: CardDao,
                          private val cardContentDao: CardContentDao): CardDataSource {
@@ -55,7 +56,7 @@ class CardRoomDataSource(private val cardDao: CardDao,
         )
 
     private fun Card.toEntityModel(): CardEntity =
-        CardEntity(bookletId, id)
+        CardEntity(0, Date(0), bookletId, id)
 
     private fun CardContent.toEntityModelWithCardId(newCardId: Long): CardContentEntity =
         CardContentEntity(value, type, newCardId, id)

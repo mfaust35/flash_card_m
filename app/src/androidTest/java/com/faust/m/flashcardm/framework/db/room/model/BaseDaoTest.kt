@@ -1,6 +1,5 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
-import android.database.Cursor
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase

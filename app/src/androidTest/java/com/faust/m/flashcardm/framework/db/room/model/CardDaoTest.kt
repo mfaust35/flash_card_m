@@ -5,12 +5,13 @@ import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 @RunWith(AndroidJUnit4ClassRunner::class)
 class CardDaoTest: BaseDaoTest() {
 
     private val bookletEntity = BookletEntity("First Booklet", 42)
-    private val cardEntity = CardEntity(42, 10)
+    private val cardEntity = CardEntity(1, Date(30), 42, 10)
     private val cardContentEntity =
         CardContentEntity("Learn it", "text", 10, 25)
 
@@ -69,9 +70,9 @@ class CardDaoTest: BaseDaoTest() {
         bookletDao.add(BookletEntity("", 3))
 
         // When inserting 3 cards in the database
-        cardDao.add(CardEntity(bookletId = 2))
-        cardDao.add(CardEntity(bookletId = 3))
-        cardDao.add(CardEntity(bookletId = 3))
+        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2))
+        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 3))
+        cardDao.add(CardEntity(rating = 3, lastSeen = Date(30), bookletId = 3))
 
         // The counts can be retrieved
         assertThat(cardDao.countCardsForBooklets(listOf(2)))

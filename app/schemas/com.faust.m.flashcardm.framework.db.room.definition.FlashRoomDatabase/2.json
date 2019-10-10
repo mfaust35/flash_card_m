@@ -1,0 +1,158 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "75e6f4aa4cec31b175fc8e0101fea88f",
+    "entities": [
+      {
+        "tableName": "booklets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `booklet_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "booklet_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "booklet_id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "cards",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rating` INTEGER NOT NULL, `last_seen` INTEGER NOT NULL, `booklet_id` INTEGER NOT NULL, `card_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, FOREIGN KEY(`booklet_id`) REFERENCES `booklets`(`booklet_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeen",
+            "columnName": "last_seen",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bookletId",
+            "columnName": "booklet_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "card_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "card_id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "booklet_id_idx",
+            "unique": false,
+            "columnNames": [
+              "booklet_id"
+            ],
+            "createSql": "CREATE  INDEX `booklet_id_idx` ON `${TABLE_NAME}` (`booklet_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "booklets",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "booklet_id"
+            ],
+            "referencedColumns": [
+              "booklet_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "card_contents",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`value` TEXT NOT NULL, `card_type` TEXT NOT NULL, `card_id` INTEGER NOT NULL, `card_content_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, FOREIGN KEY(`card_id`) REFERENCES `cards`(`card_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "card_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cardId",
+            "columnName": "card_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "card_content_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "card_content_id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "card_id_idx",
+            "unique": false,
+            "columnNames": [
+              "card_id"
+            ],
+            "createSql": "CREATE  INDEX `card_id_idx` ON `${TABLE_NAME}` (`card_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "cards",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "card_id"
+            ],
+            "referencedColumns": [
+              "card_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '75e6f4aa4cec31b175fc8e0101fea88f')"
+    ]
+  }
+}

@@ -8,6 +8,7 @@ import com.faust.m.flashcardm.framework.db.room.model.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 @RunWith(AndroidJUnit4ClassRunner::class)
 class CardRoomDataSourceTest: BaseDaoTest() {
@@ -59,9 +60,9 @@ class CardRoomDataSourceTest: BaseDaoTest() {
         // Given two booklets in database and 3 cards
         bookletDao.add(BookletEntity("My first booklet", 10))
         bookletDao.add(BookletEntity("My Second Booklet", 25))
-        cardDao.add(CardEntity(10))
-        cardDao.add(CardEntity(25))
-        cardDao.add(CardEntity(25))
+        cardDao.add(CardEntity(5, Date(30),10))
+        cardDao.add(CardEntity(5, Date(30),25))
+        cardDao.add(CardEntity(5, Date(30),25))
 
         // I can retrieve the card count by booklet id
         assertThat(cardRoomDataSource.countCardsForBooklets(listOf(10)))
