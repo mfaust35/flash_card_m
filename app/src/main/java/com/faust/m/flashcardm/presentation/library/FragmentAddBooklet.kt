@@ -6,11 +6,12 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.EditorAction
-import com.faust.m.flashcardm.presentation.provideViewModel
 import com.faust.m.flashcardm.presentation.setEditorActionListener
 import com.faust.m.flashcardm.presentation.setPositiveButton
 import com.google.android.material.textfield.TextInputEditText
+import org.koin.android.ext.android.getKoin
 
 class FragmentAddBooklet : DialogFragment() {
 
@@ -20,8 +21,7 @@ class FragmentAddBooklet : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Init viewModel
-        viewModel = provideViewModel()
+        viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

@@ -8,13 +8,14 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.add_card.AddCardActivity
 import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
-import com.faust.m.flashcardm.presentation.provideViewModel
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
+import org.koin.android.ext.android.getKoin
 
 const val TAG_FRAGMENT_ADD_BOOKLET = "add_booklet"
 
@@ -36,9 +37,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         recycler_view_booklet.adapter = bookletAdapter
         registerForContextMenu(recycler_view_booklet)
 
-        // Init viewModel
-        viewModel = provideViewModel()
-        // Setup observe data in viewModel
+        viewModel =
+                getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
         viewModel.booklets().observe(this, ::onBookletsChanged)
         viewModel.addBookletState().observe(this, ::onAddBookletStateChanged)
 

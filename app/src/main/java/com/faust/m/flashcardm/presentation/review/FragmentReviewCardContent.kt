@@ -7,13 +7,13 @@ import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionListenerAdapter
 import androidx.transition.TransitionManager
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
 import kotlinx.android.synthetic.main.fragment_review_card_content.*
+import org.koin.android.ext.android.getKoin
 
 class FragmentReviewCardContent: Fragment(), LiveDataObserver {
 
@@ -25,15 +25,17 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
         val result =
             inflater.inflate(R.layout.fragment_review_card_content, container, false)
 
-        // Init View Model
-        activity?.let { viewModel = ReviewActivity.initViewModel(it) }
-        // Setup observe data in viewModel
+        viewModel =
+            getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         viewModel.getCurrentCard().observe(this.viewLifecycleOwner, ::onCurrentCardChanged)
 
         return result
     }
 
     private fun onCurrentCardChanged(currentCard: CurrentCard) {
+        if (currentCard == CurrentCard.EMPTY) {
+            return
+        }
         if (currentCard.state == RATING) {
             animateView { it.setVisibility(R.id.tv_card_back, View.VISIBLE) }
         } else {
@@ -45,13 +47,9 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
         }
     }
 
-    private fun animateView(listener: TransitionListenerAdapter? = null,
-                            constraint: (constraintSet: ConstraintSet) -> Unit) {
+    private fun animateView(constraint: (constraintSet: ConstraintSet) -> Unit) {
         (view as ConstraintLayout).let {
-            val transition = AutoTransition().apply {
-                listener?.let { l -> addListener(l) }
-            }
-            TransitionManager.beginDelayedTransition(it, transition)
+            TransitionManager.beginDelayedTransition(it)
             ConstraintSet().apply {
                 clone(it)
                 constraint.invoke(this)

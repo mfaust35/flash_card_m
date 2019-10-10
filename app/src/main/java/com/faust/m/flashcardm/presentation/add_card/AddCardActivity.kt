@@ -6,10 +6,11 @@ import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.faust.m.core.domain.Card
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.provideBookletViewModel
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_add_card.*
+import org.koin.android.ext.android.getKoin
 
 const val BOOKLET_ID = "booklet_id"
 
@@ -21,10 +22,8 @@ class AddCardActivity: AppCompatActivity(), LiveDataObserver {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_card)
 
-        // Init viewModel
-        val bookletId = intent.getLongExtra(BOOKLET_ID, 0)
-        viewModel = provideBookletViewModel(bookletId)
-        // Setup observe data in viewModel
+        viewModel =
+            getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         viewModel.getCard().observe(this, ::onCardChanged)
 
         // Setup view listeners

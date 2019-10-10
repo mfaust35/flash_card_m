@@ -25,10 +25,16 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent {
                 loadQueue()
             }
         }
+    private var card: Card? = null
 
     fun getCurrentCard(): LiveData<CurrentCard> = currentCard
 
     fun switchCurrent() {
+        currentCard.postValue(nextCard())
+    }
+
+    fun repeatCurrentCard() {
+        card?.let { cardQueue.add(it) }
         currentCard.postValue(nextCard())
     }
 
@@ -41,13 +47,17 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent {
 
     private fun nextCard(): CurrentCard {
         if (currentCard.value == null || currentCard.value?.state == RATING) {
-            if (cardQueue.isNotEmpty())
-                cardQueue.remove().let {
+            if (cardQueue.isNotEmpty()) {
+                val nextCard = cardQueue.remove()
+                card = nextCard
+                nextCard.let {
                     return CurrentCard(
                         it.frontAsTextOrNull() ?: "??",
                         it.backAsTextOrNull() ?: "??",
-                        ASKING)
+                        ASKING
+                    )
                 }
+            }
             else {
                 return CurrentCard.EMPTY
             }

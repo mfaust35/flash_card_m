@@ -36,6 +36,6 @@ val roomDatabaseModule = module {
 val viewModelModule = module {
 
     factory { BaseViewModelFactory() }
-    factory { (bookletId: Long) -> BookletViewModelFactory(bookletId) }
+    factory { BookletViewModelFactory() }
 
 }
