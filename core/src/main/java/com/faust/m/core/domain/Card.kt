@@ -1,5 +1,7 @@
 package com.faust.m.core.domain
 
+import java.util.*
+
 data class CardContent (
     val value: String,
     val type: String,
@@ -8,6 +10,8 @@ data class CardContent (
 )
 
 data class Card (
+    val rating: Int = 0,
+    val lastSeen: Date,
     val content: HashMap<String, MutableList<CardContent>> = HashMap(),
     val bookletId: Long = 0,
     val id: Long = 0

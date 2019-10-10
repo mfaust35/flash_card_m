@@ -15,7 +15,8 @@ class CardRoomDataSourceTest: BaseDaoTest() {
 
     private val bookletEntity = BookletEntity("My Second Booklet", 25)
     private val cardContent = CardContent("content", "recto")
-    private val card = Card(bookletId = bookletEntity.id).add(cardContent)
+    private val card =
+        Card(rating = 0, lastSeen = Date(), bookletId = bookletEntity.id).add(cardContent)
 
     private lateinit var cardRoomDataSource: CardRoomDataSource
     private lateinit var cardDao: CardDao
