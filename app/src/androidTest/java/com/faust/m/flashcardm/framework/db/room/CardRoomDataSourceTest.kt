@@ -58,12 +58,7 @@ class CardRoomDataSourceTest: BaseDaoTest() {
 
     @Test
     fun testCountCardForBookletsReturnCount() {
-        // Given two booklets in database and 3 cards
-        bookletDao.add(BookletEntity("My first booklet", 10))
-        bookletDao.add(BookletEntity("My Second Booklet", 25))
-        cardDao.add(CardEntity(5, Date(30),10))
-        cardDao.add(CardEntity(5, Date(30),25))
-        cardDao.add(CardEntity(5, Date(30),25))
+        given2BookletsAnd3CardsInDatabase()
 
         // I can retrieve the card count by booklet id
         assertThat(cardRoomDataSource.countCardsForBooklets(listOf(10)))
@@ -73,5 +68,45 @@ class CardRoomDataSourceTest: BaseDaoTest() {
                 it[10] = 1
                 it[25] = 2
             })
+    }
+
+    private fun given2BookletsAnd3CardsInDatabase() {
+        bookletDao.add(BookletEntity("My first booklet", 10))
+        bookletDao.add(BookletEntity("My Second Booklet", 25))
+        cardDao.add(CardEntity(5, Date(20),10, 1))
+        cardDao.add(CardEntity(5, Date(1000),25, 3))
+        cardDao.add(CardEntity(5, Date(30000),25, 5))
+    }
+
+    @Test
+    fun getAllCardShellsForBookletIdsShouldReturnCardShellForAllBooklets() {
+        given2BookletsAnd3CardsInDatabase()
+
+        // When I get all cardShells for 2 different booklets
+        cardRoomDataSource.getAllCardShellsForBooklets(listOf(10, 25)).let {
+            // The map contains a list of cardShell for each booklet
+            assertThat(it[10])
+                .`as`("CardShells for bookletId = 10")
+                .containsExactly(
+                    Card(5, Date(20), bookletId = 10, id = 1)
+                )
+            assertThat(it[25])
+                .`as`("CardShells for bookletId = 25")
+                .containsExactlyInAnyOrder(
+                    Card(5, Date(1000), bookletId = 25, id = 3),
+                    Card(5, Date(30000), bookletId = 25, id = 5)
+                )
+        }
+    }
+
+    @Test
+    fun getAllCardShellsForBookletIdsShouldNoEntryIfCardListIsEmpty() {
+        given2BookletsAnd3CardsInDatabase()
+
+        // When I get all cardShells for a non existing booklet
+        cardRoomDataSource.getAllCardShellsForBooklets(listOf(20)).let {
+            // There is no entry in the map for non existing booklet
+            assertThat(it[20]).isNull()
+        }
     }
 }

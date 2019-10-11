@@ -54,13 +54,15 @@ class BookletAdapter(context: Context,
 
         private var highlight: TextView = view.findViewById(R.id.recycler_view_booklet_highlight)
         private var name: TextView = view.findViewById(R.id.recycler_view_booklet_name)
+        private var count: TextView = view.findViewById(R.id.recycler_view_booklet_count)
 
         fun bindBooklet(booklet: LibraryBooklet) {
-            highlight.text = booklet.cardCount.toString()
+            highlight.text = booklet.totalCardCount.toString()
             DrawableCompat.wrap(highlight.background)
                 .apply { setTint(colors[abs(booklet.hashCode() % 6)]) }
                 .also { highlight.background = it }
             name.text = booklet.name
+            count.text = booklet.cardToReviewCount.toString()
 
             when(booklet.id) {
                 selected -> view.isSelected = true

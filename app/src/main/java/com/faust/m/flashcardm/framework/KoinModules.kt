@@ -4,6 +4,10 @@ import com.faust.m.core.data.BookletDataSource
 import com.faust.m.core.data.BookletRepository
 import com.faust.m.core.data.CardDataSource
 import com.faust.m.core.data.CardRepository
+import com.faust.m.core.usecase.AddBooklet
+import com.faust.m.core.usecase.DeleteBooklet
+import com.faust.m.core.usecase.GetBooklets
+import com.faust.m.core.usecase.GetBookletsOutlines
 import com.faust.m.flashcardm.framework.db.room.BookletRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.CardRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
@@ -37,5 +41,15 @@ val viewModelModule = module {
 
     factory { BaseViewModelFactory() }
     factory { BookletViewModelFactory() }
+
+}
+
+val useCases = module {
+
+    single { GetBookletsOutlines(get()) }
+    single { AddBooklet(get()) }
+    single { DeleteBooklet(get()) }
+    single { GetBooklets(get()) }
+    single { UseCases(get(), get(), get(), get()) }
 
 }

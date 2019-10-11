@@ -1,24 +1,27 @@
 package com.faust.m.flashcardm.presentation.library
 
+import androidx.collection.LongSparseArray
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.faust.m.core.data.BookletRepository
-import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Booklet
+import com.faust.m.core.usecase.BookletOutline
+import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.verbose
+import org.jetbrains.anko.warn
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 
 class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
-    private val bookletRepository: BookletRepository by inject()
-    private val cardRepository: CardRepository by inject()
+    private val useCases: UseCases by inject()
+
 
     private val booklets: MutableLiveBooklet by lazy {
         MutableLiveBooklet().apply {
@@ -43,8 +46,9 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     fun addBookletWithName(name: String) {
         addBookletState.postValue(AddedBooklet(state = ONGOING))
         GlobalScope.launch {
-            bookletRepository.add(Booklet(name)).let {
-                booklets.add(LibraryBooklet(it, 0))
+            useCases.addBooklet(Booklet(name)).let {
+                verbose { "Booklet $it added" }
+                booklets.add(LibraryBooklet(it, BookletOutline.EMPTY))
                 addBookletState.postValue(AddedBooklet(it.id, SUCCESS))
             }
         }
@@ -56,28 +60,35 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     fun deleteCurrentBooklet() {
-        currentBooklet.value?.let {
+        currentBooklet.value?.let { libraryBooklet ->
             GlobalScope.launch {
-                when {
-                    bookletRepository.delete(it.toBooklet()) != 0 -> booklets.remove(it)
+                useCases.deleteBooklet(libraryBooklet.toBooklet()).let {result: Int ->
+                    when(result) {
+                        0 -> warn { "Booklet $libraryBooklet not deleted" }
+                        else -> {
+                            verbose { "Booklet $libraryBooklet deleted" }
+                            booklets.remove(libraryBooklet)
+                        }
+                    }
                 }
             }
-        }
+        } ?: warn { "Could not find booklet to delete" }
     }
 
-    private fun loadLibraryBooklets() =
-        mutableListOf<LibraryBooklet>()
-            .apply {
-                val tBooklets = bookletRepository.getAllBooklets()
-                val cardCounts =
-                    cardRepository.countCardForBooklets(tBooklets.map(Booklet::id))
-                tBooklets.forEach {
-                    this.add(LibraryBooklet(it, cardCounts[it.id] ?: 0))
-                }
+    private fun loadLibraryBooklets() = mutableListOf<LibraryBooklet>()
+        .apply {
+            val tBooklets: List<Booklet> = useCases.getBooklets()
+            val tBookletsOutlines: LongSparseArray<BookletOutline> =
+                useCases.getBookletsOutlines(tBooklets)
+
+            for (tBooklet: Booklet in tBooklets) {
+                val tOutline = tBookletsOutlines[tBooklet.id] ?: BookletOutline.EMPTY
+                add(LibraryBooklet(tBooklet, tOutline))
             }
-            .also {
-                booklets.postValue(it)
-            }
+        }
+        .also {
+            booklets.postValue(it)
+        }
 }
 
 /**
@@ -92,11 +103,19 @@ class MutableLiveBooklet: MutableLiveList<LibraryBooklet>() {
 }
 
 /**
- * Wrapper data class for easy access to the card count of a booklet
+ * Wrapper data class for easy access to the summary of cards linked to a booklet
  */
-data class LibraryBooklet(val name: String, val cardCount: Int = 0, val id: Long = 0) {
+data class LibraryBooklet(val name: String,
+                          val cardToReviewCount: Int,
+                          val totalCardCount: Int,
+                          val id: Long = 0) {
 
-    constructor(booklet: Booklet, cardCount: Int): this(booklet.name, cardCount, booklet.id)
+    constructor(booklet: Booklet, bookletOutline: BookletOutline): this(
+        booklet.name,
+        bookletOutline.cardToReviewCount,
+        bookletOutline.cardTotalCount,
+        booklet.id
+    )
 
     fun toBooklet() = Booklet(name, id)
 }

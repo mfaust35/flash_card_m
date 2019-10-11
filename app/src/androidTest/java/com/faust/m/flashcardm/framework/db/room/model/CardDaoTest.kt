@@ -65,19 +65,43 @@ class CardDaoTest: BaseDaoTest() {
 
     @Test
     fun testCountCardForBookletsReturnCount() {
-        // Given booklets in the database
-        bookletDao.add(BookletEntity("", 2))
-        bookletDao.add(BookletEntity("", 3))
-
-        // When inserting 3 cards in the database
-        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2))
-        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 3))
-        cardDao.add(CardEntity(rating = 3, lastSeen = Date(30), bookletId = 3))
+        given2BookletsAnd3CardsInDatabase()
 
         // The counts can be retrieved
         assertThat(cardDao.countCardsForBooklets(listOf(2)))
-            .isEqualTo(listOf(CardCountEntity(2, 1)))
+            .containsExactly(
+                CardCountEntity(2, 1)
+            )
         assertThat(cardDao.countCardsForBooklets(listOf(2, 3)))
-            .isEqualTo(listOf(CardCountEntity(2, 1), CardCountEntity(3, 2)))
+            .containsExactlyInAnyOrder(
+                CardCountEntity(2, 1),
+                CardCountEntity(3, 2)
+            )
+    }
+
+    private fun given2BookletsAnd3CardsInDatabase() {
+        bookletDao.add(BookletEntity("", 2))
+        bookletDao.add(BookletEntity("", 3))
+
+        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2, id = 2))
+        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 3, id = 3))
+        cardDao.add(CardEntity(rating = 3, lastSeen = Date(30), bookletId = 3, id = 4))
+    }
+
+    @Test
+    fun testGetAllCardShellForBookletIds() {
+        given2BookletsAnd3CardsInDatabase()
+
+        // The card shells can be retrieved
+        assertThat(cardDao.getAllCardsShellsForBooklets(listOf(2)))
+            .containsExactly(
+                CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2, id = 2)
+            )
+        assertThat(cardDao.getAllCardsShellsForBooklets(listOf(2, 3)))
+            .containsExactlyInAnyOrder(
+                CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2, id = 2),
+                CardEntity(rating = 2, lastSeen = Date(30), bookletId = 3, id = 3),
+                CardEntity(rating = 3, lastSeen = Date(30), bookletId = 3, id = 4)
+            )
     }
 }

@@ -22,6 +22,13 @@ interface CardDao: BaseDao<CardEntity> {
         WHERE booklet_id = :bookletId""")
     fun getAllCardsForBooklet(bookletId: Long): List<CardEntity>
 
+    @Query("""SELECT *
+        FROM $CardTableName
+        WHERE booklet_id IN (:bookletIds)
+        ORDER BY card_id ASC
+    """)
+    fun getAllCardsShellsForBooklets(bookletIds: List<Long>): List<CardEntity>
+
     @Query("""SELECT booklet_id, COUNT(DISTINCT card_id) AS count
         FROM $CardTableName
         WHERE booklet_id IN (:bookletIds)
@@ -31,4 +38,5 @@ interface CardDao: BaseDao<CardEntity> {
 
 data class CardCountEntity(
     @ColumnInfo(name = "booklet_id") val bookletId: Long,
-    @ColumnInfo(name = "count") val count: Int)
+    @ColumnInfo(name = "count") val count: Int
+)

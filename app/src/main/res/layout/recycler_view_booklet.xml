@@ -21,9 +21,17 @@
 
     <TextView
         android:id="@+id/recycler_view_booklet_name"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:paddingRight="@dimen/large_margin"
         android:textSize="@dimen/font_size_h2" />
+
+    <TextView
+        android:id="@+id/recycler_view_booklet_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="@dimen/large_margin"
+        android:textSize="@dimen/font_size_h3" />
 
 </LinearLayout>

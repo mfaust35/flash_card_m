@@ -13,7 +13,7 @@ class FlashApplication: Application() {
         startKoin {
             androidLogger()
             androidContext(this@FlashApplication)
-            modules(listOf(roomDatabaseModule, viewModelModule))
+            modules(listOf(roomDatabaseModule, viewModelModule, useCases))
         }
     }
 }

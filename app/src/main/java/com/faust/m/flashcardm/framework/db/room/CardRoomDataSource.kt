@@ -1,5 +1,6 @@
 package com.faust.m.flashcardm.framework.db.room
 
+import com.faust.m.core.LongSparseArrayList
 import com.faust.m.core.data.CardDataSource
 import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
@@ -7,7 +8,6 @@ import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
 import com.faust.m.flashcardm.framework.db.room.model.CardDao
 import com.faust.m.flashcardm.framework.db.room.model.CardEntity
-import java.util.*
 
 class CardRoomDataSource(private val cardDao: CardDao,
                          private val cardContentDao: CardContentDao): CardDataSource {
@@ -39,24 +39,30 @@ class CardRoomDataSource(private val cardDao: CardDao,
         for (cardContentEntity in cardContentEntities) {
             content
                 .getOrPut(cardContentEntity.type) { mutableListOf() }
-                .add(toDomainModel(cardContentEntity))
+                .add(cardContentEntity.toDomainModel())
         }
         return content
     }
 
+    override fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArrayList<Card> =
+        LongSparseArrayList<Card>(bookletIds.size).apply {
+            cardDao.getAllCardsShellsForBooklets(bookletIds).forEach { cardShell ->
+                addOrPutInEmptyList(cardShell.bookletId, cardShell.toDomainModel())
+            }
+        }
+
     override fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> =
         cardDao.countCardsForBooklets(bookletIds).map { it.bookletId to it.count }.toMap()
 
-    private fun toDomainModel(cardContentEntity: CardContentEntity): CardContent =
-        CardContent(
-            cardContentEntity.value,
-            cardContentEntity.type,
-            cardContentEntity.cardId,
-            cardContentEntity.id
-        )
+
+    private fun CardEntity.toDomainModel(): Card =
+        Card(rating, lastSeen, bookletId = bookletId, id = id)
+
+    private fun CardContentEntity.toDomainModel(): CardContent =
+        CardContent(value, type, cardId, id)
 
     private fun Card.toEntityModel(): CardEntity =
-        CardEntity(0, Date(0), bookletId, id)
+        CardEntity(rating, lastSeen, bookletId, id)
 
     private fun CardContent.toEntityModelWithCardId(newCardId: Long): CardContentEntity =
         CardContentEntity(value, type, newCardId, id)
