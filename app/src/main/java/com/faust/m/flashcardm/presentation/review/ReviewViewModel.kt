@@ -5,17 +5,23 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Card
+import com.faust.m.flashcardm.framework.FlashViewModel
+import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.warn
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import java.util.*
 
-class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent {
+class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
     private val cardRepository: CardRepository by inject()
+    private val flashViewModel: FlashViewModel by inject()
+    private val useCases: UseCases by inject()
 
     private val currentCard: MutableLiveData<CurrentCard> = MutableLiveData()
 
@@ -29,7 +35,20 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent {
 
     fun getCurrentCard(): LiveData<CurrentCard> = currentCard
 
-    fun switchCurrent() {
+    fun switchCurrentCard() {
+        currentCard.postValue(nextCard())
+    }
+
+    fun validateCurrentCard() {
+        card?.let {
+            val cardToUpdate = it.copy(rating = it.rating + 1, lastSeen = Date())
+            GlobalScope.launch {
+                useCases.updateCard(cardToUpdate).also { updatedCard: Card ->
+                    warn { "Card updated $updatedCard" }
+                    flashViewModel.bookletsStateChanged()
+                }
+            }
+        }
         currentCard.postValue(nextCard())
     }
 

@@ -43,7 +43,7 @@ class BookletViewModelFactory: ViewModelProvider.Factory {
                         .get(T::class.java)
                 }
                 else ->
-                    throw IllegalStateException("Activity must have a BOOKLET_ID Long Extra")}
+                    throw IllegalStateException("Activity must have a $BOOKLET_ID Long Extra")}
         }
     }
 

@@ -1,6 +1,5 @@
 package com.faust.m.flashcardm.presentation.library
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.ContextMenu
 import android.view.MenuItem
@@ -15,6 +14,7 @@ import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
+import org.jetbrains.anko.startActivity
 import org.koin.android.ext.android.getKoin
 
 const val TAG_FRAGMENT_ADD_BOOKLET = "add_booklet"
@@ -69,9 +69,9 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
 
     private fun onBookletClicked(booklet: LibraryBooklet) {
-        Intent(this, ReviewActivity::class.java)
-            .apply { putExtra(BOOKLET_ID, booklet.id) }
-            .also { startActivity(it) }
+        startActivity<ReviewActivity>(
+            BOOKLET_ID to booklet.id
+        )
     }
 
     private fun onBookletLongClicked(booklet: LibraryBooklet): Boolean {
@@ -88,10 +88,9 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun onEvenAddCardToBooklet(bookletId: Long) {
-        Intent(this, AddCardActivity::class.java).run {
-            putExtra(BOOKLET_ID, bookletId)
-            startActivity(this)
-        }
+        startActivity<AddCardActivity>(
+            BOOKLET_ID to bookletId
+        )
     }
 
     private fun onFabAddBookletClicked() {

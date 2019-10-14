@@ -70,7 +70,7 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
     }
 
     private fun onShowAnswerClicked() {
-        viewModel.switchCurrent()
+        viewModel.switchCurrentCard()
     }
 
     private fun onAskAgainClicked() {
@@ -78,6 +78,6 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
     }
 
     private fun onIKnewClicked() {
-        viewModel.switchCurrent()
+        viewModel.validateCurrentCard()
     }
 }

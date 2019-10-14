@@ -5,6 +5,7 @@ import androidx.collection.forEach
 import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Booklet
 import com.faust.m.core.domain.Card
+import java.util.*
 
 class GetBookletsOutlines(private val cardRepository: CardRepository) {
 
@@ -20,7 +21,20 @@ class GetBookletsOutlines(private val cardRepository: CardRepository) {
                 }
         }
 
-    private fun List<Card>.cardToReviewCount() = filter { it.rating < 5 }.size
+    private fun List<Card>.cardToReviewCount() =
+        filter { it.rating < 5 && it.needReviewToday() }.size
+
+    private fun Card.needReviewToday(): Boolean {
+        Calendar.getInstance().let { today: Calendar ->
+            today.set(Calendar.HOUR, 0)
+            today.set(Calendar.MINUTE, 0)
+            today.set(Calendar.SECOND, 0)
+            today.set(Calendar.MILLISECOND, 0)
+            println { "Today's date = ${today.time}" }
+            println { "LastSeen's date = ${this.lastSeen}" }
+            return today.after(Calendar.getInstance().apply { time = lastSeen })
+        }
+    }
 }
 
 data class BookletOutline(val cardTotalCount: Int, val cardToReviewCount: Int) {

@@ -27,6 +27,9 @@ class CardRoomDataSource(private val cardDao: CardDao,
         return cardCopy
     }
 
+    override fun update(card: Card): Card =
+        cardDao.update(card.toEntityModel()).let { card.copy(id = it.toLong()) }
+
     override fun getAllCardsForBooklet(bookletId: Long): List<Card> =
         cardDao.getAllCardsForBooklet(bookletId).map {
             Card(it.rating, it.lastSeen, buildCardEntities(it.id), it.bookletId, it.id)

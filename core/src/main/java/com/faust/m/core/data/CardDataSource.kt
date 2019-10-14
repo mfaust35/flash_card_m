@@ -7,6 +7,8 @@ interface CardDataSource {
 
     fun add(card: Card): Card
 
+    fun update(card: Card): Card
+
     fun getAllCardsForBooklet(bookletId: Long): List<Card>
 
     /**
