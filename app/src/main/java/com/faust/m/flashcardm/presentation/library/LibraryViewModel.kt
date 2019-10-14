@@ -3,11 +3,13 @@ package com.faust.m.flashcardm.presentation.library
 import androidx.collection.LongSparseArray
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Booklet
 import com.faust.m.core.usecase.BookletOutline
+import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.framework.UseCases
-import com.faust.m.flashcardm.presentation.MutableLiveList
+import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
 import kotlinx.coroutines.GlobalScope
@@ -23,56 +25,59 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val useCases: UseCases by inject()
 
 
-    private val booklets: MutableLiveBooklet by lazy {
-        MutableLiveBooklet().apply {
+    private val _booklets: MutableLibraryBooklets = MutableLibraryBooklets()
+    val booklets: LiveData<MutableList<LibraryBooklet>> =
+        Transformations.switchMap(getKoin().get<FlashViewModel>().bookletsState) {
             GlobalScope.launch {
                 loadLibraryBooklets()
             }
+            _booklets
         }
-    }
 
-    private val currentBooklet: MutableLiveData<LibraryBooklet?> = MutableLiveData()
+    private val _stateAddBooklet: MutableLiveData<AddedBooklet?> = MutableLiveData()
+    val stateAddBooklet: LiveData<AddedBooklet?> = _stateAddBooklet
 
-    private val addBookletState: MutableLiveData<AddedBooklet?> = MutableLiveData()
+    private val _eventAddCardToBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
+    val eventAddCardToBooklet: LiveData<Event<Long>> = _eventAddCardToBooklet
 
-
-    fun booklets(): LiveData<out List<LibraryBooklet>> = booklets
-
-    fun currentBooklet(): LiveData<LibraryBooklet?> = currentBooklet
-
-    fun addBookletState(): LiveData<AddedBooklet?> = addBookletState
+    var selectedBooklet: LibraryBooklet? = null
+        set(value) {
+            _stateAddBooklet.postValue(null)
+            field = value
+        }
 
 
     fun addBookletWithName(name: String) {
-        addBookletState.postValue(AddedBooklet(state = ONGOING))
+        _stateAddBooklet.postValue(AddedBooklet(state = ONGOING))
         GlobalScope.launch {
             useCases.addBooklet(Booklet(name)).let {
                 verbose { "Booklet $it added" }
-                booklets.add(LibraryBooklet(it, BookletOutline.EMPTY))
-                addBookletState.postValue(AddedBooklet(it.id, SUCCESS))
+                _booklets.add(LibraryBooklet(it, BookletOutline.EMPTY))
+                _stateAddBooklet.postValue(AddedBooklet(it.id, SUCCESS))
             }
         }
     }
 
-    fun currentBooklet(booklet: LibraryBooklet) {
-        currentBooklet.postValue(booklet)
-        addBookletState.postValue(null)
-    }
-
     fun deleteCurrentBooklet() {
-        currentBooklet.value?.let { libraryBooklet ->
+        selectedBooklet?.let { libraryBooklet ->
             GlobalScope.launch {
                 useCases.deleteBooklet(libraryBooklet.toBooklet()).let {result: Int ->
                     when(result) {
                         0 -> warn { "Booklet $libraryBooklet not deleted" }
                         else -> {
                             verbose { "Booklet $libraryBooklet deleted" }
-                            booklets.remove(libraryBooklet)
+                            _booklets.remove(libraryBooklet)
                         }
                     }
                 }
             }
         } ?: warn { "Could not find booklet to delete" }
+    }
+
+    fun addCardsToCurrentBooklet() {
+        selectedBooklet?.let {
+            _eventAddCardToBooklet.postValue(Event(it.id))
+        } ?: warn { "Could not find booklet to add cards to" }
     }
 
     private fun loadLibraryBooklets() = mutableListOf<LibraryBooklet>()
@@ -87,18 +92,25 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
             }
         }
         .also {
-            booklets.postValue(it)
+            _booklets.postValue(it)
         }
 }
 
-/**
- * This class ensure that the list is sorted before being posted
- */
-class MutableLiveBooklet: MutableLiveList<LibraryBooklet>() {
+class MutableLibraryBooklets: MutableLiveData<MutableList<LibraryBooklet>>() {
 
     override fun postValue(value: MutableList<LibraryBooklet>?) {
         value?.sortBy(LibraryBooklet::name)
         super.postValue(value)
+    }
+
+    fun add(value: LibraryBooklet) {
+        this.value?.add(value)
+        postValue(this.value)
+    }
+
+    fun remove(value: LibraryBooklet) {
+        this.value?.remove(value)
+        postValue(this.value)
     }
 }
 

@@ -37,35 +37,12 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         recycler_view_booklet.adapter = bookletAdapter
         registerForContextMenu(recycler_view_booklet)
 
-        viewModel =
-                getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
-        viewModel.booklets().observe(this, ::onBookletsChanged)
-        viewModel.addBookletState().observe(this, ::onAddBookletStateChanged)
+        viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
+        viewModel.booklets.observeData(this, ::onBookletsChanged)
+        viewModel.stateAddBooklet.observeData(this, ::onStateAddedBookletChanged)
+        viewModel.eventAddCardToBooklet.observeEvent(this, ::onEvenAddCardToBooklet)
 
-        // Setup click listeners
         fab_add_booklet.setOnClickListener(::onFabAddBookletClicked)
-    }
-
-    private fun onFabAddBookletClicked() {
-        FragmentAddBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
-    }
-
-    private fun onBookletClicked(booklet: LibraryBooklet) {
-        Intent(this, ReviewActivity::class.java)
-            .apply { putExtra(BOOKLET_ID, booklet.id) }
-            .also { startActivity(it) }
-    }
-
-    private fun onBookletLongClicked(booklet: LibraryBooklet): Boolean {
-        viewModel.currentBooklet(booklet)
-        return false
-    }
-
-    private fun onBookletsChanged(booklets: List<LibraryBooklet>) =
-        bookletAdapter.replaceBooklets(booklets)
-
-    private fun onAddBookletStateChanged(addedBooklet: AddedBooklet?) {
-        bookletAdapter.setSelected(addedBooklet?.id)
     }
 
     override fun onCreateContextMenu(menu: ContextMenu?,
@@ -83,20 +60,41 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
                 true
             }
             R.id.menu_action_add_card -> {
-                viewModel.currentBooklet().value?.let {
-                    Intent(this, AddCardActivity::class.java)
-                        .apply {
-                            putExtra(BOOKLET_ID, it.id)
-                        }
-                        .also {
-                            startActivity(it)
-                        }
-                    true
-                }
-                false
+                viewModel.addCardsToCurrentBooklet()
+                true
             }
             else -> false
         }
+    }
 
+
+    private fun onBookletClicked(booklet: LibraryBooklet) {
+        Intent(this, ReviewActivity::class.java)
+            .apply { putExtra(BOOKLET_ID, booklet.id) }
+            .also { startActivity(it) }
+    }
+
+    private fun onBookletLongClicked(booklet: LibraryBooklet): Boolean {
+        viewModel.selectedBooklet = booklet
+        return false
+    }
+
+    private fun onBookletsChanged(booklets: MutableList<LibraryBooklet>) {
+        bookletAdapter.replaceBooklets(booklets)
+    }
+
+    private fun onStateAddedBookletChanged(addedBooklet: AddedBooklet?) {
+        bookletAdapter.setSelected(addedBooklet?.id)
+    }
+
+    private fun onEvenAddCardToBooklet(bookletId: Long) {
+        Intent(this, AddCardActivity::class.java).run {
+            putExtra(BOOKLET_ID, bookletId)
+            startActivity(this)
+        }
+    }
+
+    private fun onFabAddBookletClicked() {
+        FragmentAddBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
     }
 }

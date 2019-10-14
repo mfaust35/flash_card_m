@@ -45,30 +45,40 @@ class EditorAction(private val actionId: Int, private val keyEvent: KeyEvent?) {
     fun isDone(): Boolean = isActionDone() || isEnterKeyDownEvent()
 }
 
-open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
-
-    fun add(value: T) {
-        this.value?.add(value)
-        postValue(this.value)
-    }
-
-    fun remove(value: T) {
-        this.value?.remove(value)
-        postValue(this.value)
-    }
-}
-
 fun <T> MutableLiveData<T>.notifyObserver() {
     postValue(this.value)
 }
 
 internal interface LiveDataObserver {
 
-    fun <T> LiveData<T>.observe(owner: LifecycleOwner, onChange: ((value: T) -> Unit)) {
+    fun <T> LiveData<T>.observeData(owner: LifecycleOwner, onChange: ((value: T) -> Unit)) {
         observe(owner, Observer<T> { t -> onChange.invoke(t) })
     }
 
-    fun <T> LiveData<T>.observe(owner: LifecycleOwner, onChange: () -> Unit) {
-        observe(owner, Observer<T> { onChange.invoke() })
+    fun <Y, Z:Event<Y>> LiveData<Z>.observeEvent(owner: LifecycleOwner, onChange: ((value: Y) -> Unit)) {
+        observe(owner, Observer<Z> { z -> z.getContentIfNotHandled()?.let { onChange.invoke(it) } })
     }
+}
+
+/**
+ * Used as a wrapper for data that is exposed via a LiveData that represents an event.
+ */
+class Event<out T>(private val content: T) {
+
+    private var hasBeenHandled = false
+
+    /**
+     * Returns the content and prevents its use again.
+     * This method should only be called if you intend to handle the content in case it hasn't been
+     */
+    fun getContentIfNotHandled(): T? {
+        val result: T? = if (hasBeenHandled) null else content
+        hasBeenHandled = true
+        return result
+    }
+
+    /**
+     * Returns the content, even if it's already been handled.
+     */
+    fun peekContent(): T = content
 }

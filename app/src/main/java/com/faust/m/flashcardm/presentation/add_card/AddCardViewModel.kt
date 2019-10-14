@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
+import com.faust.m.flashcardm.framework.FlashViewModel
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -17,6 +18,7 @@ import java.util.*
 class AddCardViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
     private val cardRepository: CardRepository by inject()
+    private val flashViewModel: FlashViewModel by inject()
 
     private val card: MutableLiveData<Card> = MutableLiveData(
         Card(lastSeen = Date(), bookletId = bookletId)
@@ -38,6 +40,7 @@ class AddCardViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
                 cardRepository.addCard(it).also { newCard ->
                     verbose { "Created a new card: $newCard" }
                     card.postValue(Card(lastSeen = Date(), bookletId = bookletId))
+                    flashViewModel.bookletsStateChanged()
                 }
             }
         }

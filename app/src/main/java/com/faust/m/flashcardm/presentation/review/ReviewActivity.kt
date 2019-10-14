@@ -18,7 +18,7 @@ class ReviewActivity: AppCompatActivity(), LiveDataObserver {
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        viewModel.getCurrentCard().observe(this, ::onCurrentCardChanged)
+        viewModel.getCurrentCard().observeData(this, ::onCurrentCardChanged)
     }
 
     private fun onCurrentCardChanged(currentCard: CurrentCard) {

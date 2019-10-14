@@ -24,7 +24,7 @@ class AddCardActivity: AppCompatActivity(), LiveDataObserver {
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        viewModel.getCard().observe(this, ::onCardChanged)
+        viewModel.getCard().observeData(this, ::onCardChanged)
 
         // Setup view listeners
         bt_add_card.setOnClickListener(::onAddCardClicked)

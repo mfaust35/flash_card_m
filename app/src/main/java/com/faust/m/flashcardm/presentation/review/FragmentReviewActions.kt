@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.faust.m.flashcardm.R
-import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
@@ -31,7 +30,7 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        viewModel.getCurrentCard().observe(this.viewLifecycleOwner, ::onCurrentCardChanged)
+        viewModel.getCurrentCard().observeData(this.viewLifecycleOwner, ::onCurrentCardChanged)
 
         return result
     }
