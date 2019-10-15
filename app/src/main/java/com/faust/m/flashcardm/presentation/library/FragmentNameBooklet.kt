@@ -2,6 +2,8 @@ package com.faust.m.flashcardm.presentation.library
 
 import android.app.Dialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.WindowManager.LayoutParams
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -17,6 +19,7 @@ import org.koin.android.ext.android.getKoin
 class FragmentNameBooklet : DialogFragment() {
 
     private lateinit var editName: TextInputEditText
+    private var _dialog: AlertDialog? = null
     private lateinit var viewModel: LibraryViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,17 +35,13 @@ class FragmentNameBooklet : DialogFragment() {
                 requireActivity().layoutInflater.inflate(R.layout.dialog_add_booklet, null)
             editName = rootView.findViewById(R.id.et_booklet_name)
             editName.setEditorActionListener(::onEditorAction)
+            editName.addTextChangedListener(ValidationTextWatcher())
 
-            var titleStringId = R.string.title_dialog_add_booklet
-
-            // In case it's a rename
-            viewModel.selectedBooklet?.let { booklet ->
-                editName.setText(booklet.name)
-                titleStringId = R.string.title_dialog_rename_booklet
-            }
-
+            val titleStringId =
+                if (viewModel.selectedBooklet == null) R.string.title_dialog_add_booklet
+                else R.string.title_dialog_rename_booklet
             // Build dialog
-            val result = AlertDialog.Builder(it)
+            _dialog = AlertDialog.Builder(it)
                 .setTitle(titleStringId)
                 .setView(rootView)
                 .setPositiveButton(R.string.confirm_new_booklet, ::onPositiveButtonClicked)
@@ -50,9 +49,9 @@ class FragmentNameBooklet : DialogFragment() {
 
             // Use dialog window to focus on edit text and show soft input keyboard
             editName.requestFocus()
-            result.window?.setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+            _dialog?.window?.setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
-            result
+            _dialog
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
@@ -72,6 +71,26 @@ class FragmentNameBooklet : DialogFragment() {
                 true
             }
             else -> false
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        val text = viewModel.selectedBooklet?.name ?: ""
+        editName.setText(text)
+        editName.setSelection(text.length)
+    }
+
+    inner class ValidationTextWatcher: TextWatcher {
+
+        override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+        override fun afterTextChanged(editable: Editable?) {
+            _dialog?.getButton(Dialog.BUTTON_POSITIVE)?.isEnabled =
+                editable?.toString()?.isNotBlank() ?: true
         }
     }
 }
