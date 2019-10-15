@@ -13,6 +13,33 @@
         android:paddingTop="@dimen/small_margin"
         android:scrollbars="vertical"/>
 
+    <LinearLayout
+        android:id="@+id/ll_empty_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/large_margin"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:layout_marginEnd="@dimen/large_margin"
+            android:textSize="@dimen/font_size_h2"
+            android:textColor="@color/colorAccent"
+            android:text="@string/empty_list" />
+
+        <ImageView
+            android:id="@+id/iv_empty_recycler_view"
+            android:layout_width="@dimen/dimen_icon_h1"
+            android:layout_height="@dimen/dimen_icon_h1"
+            android:layout_margin="@dimen/small_margin"
+            android:src="@drawable/ic_subdirectory_arrow_right_white_24dp"/>
+
+    </LinearLayout>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_booklet"
         android:layout_width="wrap_content"

@@ -36,6 +36,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
         registerForContextMenu(recycler_view_booklet)
+        iv_empty_recycler_view.setColorFilter(getColor(R.color.colorAccent))
 
         viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
         viewModel.booklets.observeData(this, ::onBookletsChanged)
@@ -81,6 +82,10 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
     private fun onBookletsChanged(booklets: MutableList<LibraryBooklet>) {
         bookletAdapter.replaceBooklets(booklets)
+        when {
+            booklets.isEmpty() -> ll_empty_recycler_view.visibility = View.VISIBLE
+            else -> ll_empty_recycler_view.visibility = View.GONE
+        }
     }
 
     private fun onStateAddedBookletChanged(addedBooklet: AddedBooklet?) {
