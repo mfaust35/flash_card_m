@@ -27,4 +27,20 @@ data class Card (
     fun frontAsTextOrNull() = content["front"]?.firstOrNull()?.value
 
     fun backAsTextOrNull() = content["back"]?.firstOrNull()?.value
+
+    internal fun needReview(): Boolean {
+        return rating < 5 && needReviewToday()
+    }
+
+    private fun needReviewToday(): Boolean {
+        if (this.lastSeen == this.createdAt)
+            return true
+        Calendar.getInstance().let { today: Calendar ->
+            today.set(Calendar.HOUR, 0)
+            today.set(Calendar.MINUTE, 0)
+            today.set(Calendar.SECOND, 0)
+            today.set(Calendar.MILLISECOND, 0)
+            return today.after(Calendar.getInstance().apply { time = lastSeen })
+        }
+    }
 }

@@ -7,5 +7,6 @@ class UseCases(val getBookletsOutlines: GetBookletsOutlines,
                val deleteBooklet: DeleteBooklet,
                val getBooklets: GetBooklets,
                val updateCard: UpdateCard,
-               val renameBooklet: RenameBooklet
+               val renameBooklet: RenameBooklet,
+               val getCardsToReviewForBooklet: GetCardsToReviewForBooklet
 )

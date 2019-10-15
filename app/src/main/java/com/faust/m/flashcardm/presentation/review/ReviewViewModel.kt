@@ -3,7 +3,6 @@ package com.faust.m.flashcardm.presentation.review
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Card
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.framework.UseCases
@@ -19,7 +18,6 @@ import java.util.*
 
 class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
-    private val cardRepository: CardRepository by inject()
     private val flashViewModel: FlashViewModel by inject()
     private val useCases: UseCases by inject()
 
@@ -58,8 +56,8 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, 
     }
 
     private fun loadQueue() {
-        cardRepository
-            .getAllCardsForBooklet(bookletId)
+        useCases
+            .getCardsToReviewForBooklet(bookletId)
             .forEach { cardQueue.add(it) }
         currentCard.postValue(nextCard())
     }
