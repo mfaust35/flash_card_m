@@ -73,9 +73,9 @@ class CardRoomDataSourceTest: BaseDaoTest() {
     private fun given2BookletsAnd3CardsInDatabase() {
         bookletDao.add(BookletEntity("My first booklet", 10))
         bookletDao.add(BookletEntity("My Second Booklet", 25))
-        cardDao.add(CardEntity(5, Date(20),10, 1))
-        cardDao.add(CardEntity(5, Date(1000),25, 3))
-        cardDao.add(CardEntity(5, Date(30000),25, 5))
+        cardDao.add(CardEntity(5, Date(20), Date(20),10, 1))
+        cardDao.add(CardEntity(5, Date(1000), Date(1000),25, 3))
+        cardDao.add(CardEntity(5, Date(30000), Date(30000),25, 5))
     }
 
     @Test

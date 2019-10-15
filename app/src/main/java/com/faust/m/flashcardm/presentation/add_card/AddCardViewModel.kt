@@ -13,7 +13,6 @@ import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.verbose
 import org.koin.core.KoinComponent
 import org.koin.core.inject
-import java.util.*
 
 class AddCardViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
@@ -21,7 +20,7 @@ class AddCardViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
     private val flashViewModel: FlashViewModel by inject()
 
     private val card: MutableLiveData<Card> = MutableLiveData(
-        Card(lastSeen = Date(), bookletId = bookletId)
+        Card(bookletId = bookletId)
     )
 
     fun getCard(): LiveData<Card> = card
@@ -39,7 +38,7 @@ class AddCardViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
             card.value?.let {
                 cardRepository.addCard(it).also { newCard ->
                     verbose { "Created a new card: $newCard" }
-                    card.postValue(Card(lastSeen = Date(), bookletId = bookletId))
+                    card.postValue(Card(bookletId = bookletId))
                     flashViewModel.bookletsStateChanged()
                 }
             }

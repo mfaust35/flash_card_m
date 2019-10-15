@@ -32,7 +32,7 @@ class CardRoomDataSource(private val cardDao: CardDao,
 
     override fun getAllCardsForBooklet(bookletId: Long): List<Card> =
         cardDao.getAllCardsForBooklet(bookletId).map {
-            Card(it.rating, it.lastSeen, buildCardEntities(it.id), it.bookletId, it.id)
+            Card(it.rating, it.lastSeen, it.createdAt, buildCardEntities(it.id), it.bookletId, it.id)
         }
 
     private fun buildCardEntities(cardId: Long): HashMap<String, MutableList<CardContent>> {
@@ -59,13 +59,13 @@ class CardRoomDataSource(private val cardDao: CardDao,
 
 
     private fun CardEntity.toDomainModel(): Card =
-        Card(rating, lastSeen, bookletId = bookletId, id = id)
+        Card(rating, lastSeen, createdAt, bookletId = bookletId, id = id)
 
     private fun CardContentEntity.toDomainModel(): CardContent =
         CardContent(value, type, cardId, id)
 
     private fun Card.toEntityModel(): CardEntity =
-        CardEntity(rating, lastSeen, bookletId, id)
+        CardEntity(rating, lastSeen, createdAt, bookletId, id)
 
     private fun CardContent.toEntityModelWithCardId(newCardId: Long): CardContentEntity =
         CardContentEntity(value, type, newCardId, id)

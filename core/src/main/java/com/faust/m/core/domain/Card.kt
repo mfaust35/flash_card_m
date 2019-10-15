@@ -11,7 +11,8 @@ data class CardContent (
 
 data class Card (
     val rating: Int = 0,
-    val lastSeen: Date,
+    val lastSeen: Date = Date(),
+    val createdAt: Date = lastSeen,
     val content: HashMap<String, MutableList<CardContent>> = HashMap(),
     val bookletId: Long = 0,
     val id: Long = 0

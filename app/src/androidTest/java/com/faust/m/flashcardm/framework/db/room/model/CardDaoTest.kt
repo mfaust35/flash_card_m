@@ -11,7 +11,7 @@ import java.util.*
 class CardDaoTest: BaseDaoTest() {
 
     private val bookletEntity = BookletEntity("First Booklet", 42)
-    private val cardEntity = CardEntity(1, Date(30), 42, 10)
+    private val cardEntity = CardEntity(1, Date(30), Date(30), 42, 10)
     private val cardContentEntity =
         CardContentEntity("Learn it", "text", 10, 25)
 
@@ -83,9 +83,9 @@ class CardDaoTest: BaseDaoTest() {
         bookletDao.add(BookletEntity("", 2))
         bookletDao.add(BookletEntity("", 3))
 
-        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2, id = 2))
-        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), bookletId = 3, id = 3))
-        cardDao.add(CardEntity(rating = 3, lastSeen = Date(30), bookletId = 3, id = 4))
+        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 2, id = 2))
+        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 3))
+        cardDao.add(CardEntity(rating = 3, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 4))
     }
 
     @Test
@@ -95,13 +95,13 @@ class CardDaoTest: BaseDaoTest() {
         // The card shells can be retrieved
         assertThat(cardDao.getAllCardsShellsForBooklets(listOf(2)))
             .containsExactly(
-                CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2, id = 2)
+                CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 2, id = 2)
             )
         assertThat(cardDao.getAllCardsShellsForBooklets(listOf(2, 3)))
             .containsExactlyInAnyOrder(
-                CardEntity(rating = 2, lastSeen = Date(30), bookletId = 2, id = 2),
-                CardEntity(rating = 2, lastSeen = Date(30), bookletId = 3, id = 3),
-                CardEntity(rating = 3, lastSeen = Date(30), bookletId = 3, id = 4)
+                CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 2, id = 2),
+                CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 3),
+                CardEntity(rating = 3, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 4)
             )
     }
 }
