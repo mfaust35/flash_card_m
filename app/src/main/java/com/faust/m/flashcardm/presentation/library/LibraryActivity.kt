@@ -14,6 +14,7 @@ import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
+import org.jetbrains.anko.design.longSnackbar
 import org.jetbrains.anko.startActivity
 import org.koin.android.ext.android.getKoin
 
@@ -42,6 +43,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.booklets.observeData(this, ::onBookletsChanged)
         viewModel.stateAddBooklet.observeData(this, ::onStateAddedBookletChanged)
         viewModel.eventAddCardToBooklet.observeEvent(this, ::onEvenAddCardToBooklet)
+        viewModel.eventReviewBooklet.observeEvent(this, ::onEventReviewBooklet)
 
         fab_add_booklet.setOnClickListener(::onFabAddBookletClicked)
     }
@@ -70,9 +72,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
 
     private fun onBookletClicked(booklet: LibraryBooklet) {
-        startActivity<ReviewActivity>(
-            BOOKLET_ID to booklet.id
-        )
+        viewModel.reviewBooklet(booklet)
     }
 
     private fun onBookletLongClicked(booklet: LibraryBooklet): Boolean {
@@ -96,6 +96,16 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         startActivity<AddCardActivity>(
             BOOKLET_ID to bookletId
         )
+    }
+
+    private fun onEventReviewBooklet(bookletId: Long) {
+        when(bookletId) {
+            LibraryViewModel.EMPTY_BOOKLET ->
+                activity_library_main_view.longSnackbar(R.string.empty_booklet_for_review)
+            else -> startActivity<ReviewActivity>(
+                BOOKLET_ID to bookletId
+            )
+        }
     }
 
     private fun onFabAddBookletClicked() {

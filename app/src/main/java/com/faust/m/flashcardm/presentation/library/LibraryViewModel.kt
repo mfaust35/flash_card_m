@@ -22,6 +22,10 @@ import org.koin.core.inject
 
 class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
+    companion object {
+        const val EMPTY_BOOKLET: Long = -1
+    }
+
     private val useCases: UseCases by inject()
 
 
@@ -39,6 +43,9 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     private val _eventAddCardToBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
     val eventAddCardToBooklet: LiveData<Event<Long>> = _eventAddCardToBooklet
+
+    private val _eventReviewBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
+    val eventReviewBooklet: LiveData<Event<Long>> = _eventReviewBooklet
 
     var selectedBooklet: LibraryBooklet? = null
         set(value) {
@@ -72,6 +79,13 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
                 }
             }
         } ?: warn { "Could not find booklet to delete" }
+    }
+
+    fun reviewBooklet(booklet: LibraryBooklet) {
+        when(booklet.cardToReviewCount) {
+            0 -> _eventReviewBooklet.postValue(Event(EMPTY_BOOKLET))
+            else -> _eventReviewBooklet.postValue(Event(booklet.id))
+        }
     }
 
     fun addCardsToCurrentBooklet() {
