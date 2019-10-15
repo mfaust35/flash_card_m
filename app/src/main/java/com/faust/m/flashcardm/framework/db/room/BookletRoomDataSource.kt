@@ -13,6 +13,10 @@ class BookletRoomDataSource(private val bookletDao: BookletDao): BookletDataSour
         }
     }
 
+    override fun renameBooklet(newName: String, bookletId: Long): Boolean = with (bookletDao) {
+        updateName(newName, bookletId) == 1
+    }
+
     override fun getAllBooklet(): List<Booklet> =
         bookletDao.getAllBooklets().map(::toEntityModel)
 

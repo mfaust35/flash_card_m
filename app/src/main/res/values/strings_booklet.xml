@@ -1,11 +1,13 @@
 <resources>
     <string name="title_dialog_add_booklet">Add a booklet</string>
+    <string name="title_dialog_rename_booklet">Rename a booklet</string>
     <string name="hint_enter_new_booklet_name">"Booklet's name"</string>
     <string name="confirm_new_booklet">Add</string>
 
     <string name="empty_booklet_list">"You don't have any booklets yet.\nTry adding one with the bottom left button :"</string>
     <string name="empty_booklet_for_review">"You don't have any card to review now in this booklet. Try adding one with a long click on this booklet."</string>
 
-    <string name="menu_action_delete">Delete this booklet</string>
     <string name="menu_action_add_card">Add cards</string>
+    <string name="menu_action_rename_booklet">Rename this booklet</string>
+    <string name="menu_action_delete">Delete this booklet</string>
 </resources>

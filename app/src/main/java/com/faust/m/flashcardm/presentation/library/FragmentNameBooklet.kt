@@ -2,6 +2,7 @@ package com.faust.m.flashcardm.presentation.library
 
 import android.app.Dialog
 import android.os.Bundle
+import android.view.WindowManager.LayoutParams
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
@@ -13,7 +14,7 @@ import com.faust.m.flashcardm.presentation.setPositiveButton
 import com.google.android.material.textfield.TextInputEditText
 import org.koin.android.ext.android.getKoin
 
-class FragmentAddBooklet : DialogFragment() {
+class FragmentNameBooklet : DialogFragment() {
 
     private lateinit var editName: TextInputEditText
     private lateinit var viewModel: LibraryViewModel
@@ -32,26 +33,41 @@ class FragmentAddBooklet : DialogFragment() {
             editName = rootView.findViewById(R.id.et_booklet_name)
             editName.setEditorActionListener(::onEditorAction)
 
-            AlertDialog.Builder(it)
-                .setTitle(R.string.title_dialog_add_booklet)
+            var titleStringId = R.string.title_dialog_add_booklet
+
+            // In case it's a rename
+            viewModel.selectedBooklet?.let { booklet ->
+                editName.setText(booklet.name)
+                titleStringId = R.string.title_dialog_rename_booklet
+            }
+
+            // Build dialog
+            val result = AlertDialog.Builder(it)
+                .setTitle(titleStringId)
                 .setView(rootView)
                 .setPositiveButton(R.string.confirm_new_booklet, ::onPositiveButtonClicked)
                 .create()
+
+            // Use dialog window to focus on edit text and show soft input keyboard
+            editName.requestFocus()
+            result.window?.setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+
+            result
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
     private fun onPositiveButtonClicked() {
-        addBookletWithName(editName.text.toString())
+        nameBooklet(editName.text.toString())
     }
 
-    private fun addBookletWithName(name: String) {
-        viewModel.addBookletWithName(name)
+    private fun nameBooklet(name: String) {
+        viewModel.nameBooklet(name)
     }
 
     private fun onEditorAction(textView: TextView, editorAction: EditorAction): Boolean {
         return when {
             editorAction.isDone() -> {
-                addBookletWithName(textView.text.toString())
+                nameBooklet(textView.text.toString())
                 dismiss()
                 true
             }

@@ -6,6 +6,9 @@ import androidx.room.Query
 @Dao
 interface BookletDao: BaseDao<BookletEntity> {
 
+    @Query("UPDATE $BookletTableName SET name=:newName WHERE booklet_id=:bookletId")
+    fun updateName(newName: String, bookletId: Long): Int
+
     @Query("SELECT * FROM $BookletTableName")
     fun getAllBooklets(): List<BookletEntity>
 }

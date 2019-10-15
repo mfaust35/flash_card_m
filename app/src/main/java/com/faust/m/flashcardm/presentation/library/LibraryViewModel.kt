@@ -12,6 +12,7 @@ import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
+import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -53,11 +54,32 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
             field = value
         }
 
+    fun nameBooklet(newName: String) {
+        selectedBooklet?.let { renameBooklet(newName, it) } ?: addBooklet(newName)
+    }
 
-    fun addBookletWithName(name: String) {
+    private fun renameBooklet(newName: String, libraryBooklet: LibraryBooklet) {
+        GlobalScope.launch {
+            when(useCases.renameBooklet(newName, libraryBooklet.id)) {
+                true -> {
+                    verbose { "Booklet renamed oldName: ${libraryBooklet.name} | newName: $newName" }
+                    val copy = libraryBooklet.copy(name = newName)
+                    _booklets.value?.let {
+                        it.remove(libraryBooklet)
+                        it.add(copy)
+                    }
+                    _booklets.notifyObserver()
+                }
+                false ->
+                    warn { "Cannot rename booklet oldName: ${libraryBooklet.name} | newName: $newName" }
+            }
+        }
+    }
+
+    private fun addBooklet(newName: String) {
         _stateAddBooklet.postValue(AddedBooklet(state = ONGOING))
         GlobalScope.launch {
-            useCases.addBooklet(Booklet(name)).let {
+            useCases.addBooklet(Booklet(newName)).let {
                 verbose { "Booklet $it added" }
                 _booklets.add(LibraryBooklet(it, BookletOutline.EMPTY))
                 _stateAddBooklet.postValue(AddedBooklet(it.id, SUCCESS))

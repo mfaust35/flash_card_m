@@ -49,6 +49,7 @@ val useCases = module {
     single { DeleteBooklet(get()) }
     single { GetBooklets(get()) }
     single { UpdateCard(get()) }
-    single { UseCases(get(), get(), get(), get(), get()) }
+    single { RenameBooklet(get()) }
+    single { UseCases(get(), get(), get(), get(), get(), get()) }
 
 }

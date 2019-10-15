@@ -66,9 +66,16 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
                 viewModel.addCardsToCurrentBooklet()
                 true
             }
+            R.id.menu_action_rename_booklet -> {
+                showFragmentNameBooklet()
+                true
+            }
             else -> false
         }
     }
+
+    private fun showFragmentNameBooklet() =
+        FragmentNameBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
 
 
     private fun onBookletClicked(booklet: LibraryBooklet) {
@@ -109,6 +116,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun onFabAddBookletClicked() {
-        FragmentAddBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
+        viewModel.selectedBooklet = null
+        showFragmentNameBooklet()
     }
 }

@@ -6,6 +6,8 @@ interface BookletDataSource {
 
     fun add(booklet: Booklet): Booklet
 
+    fun renameBooklet(newName: String, bookletId: Long): Boolean
+
     fun getAllBooklet(): List<Booklet>
 
     fun delete(booklet: Booklet): Int
