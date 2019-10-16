@@ -2,6 +2,7 @@ package com.faust.m.flashcardm.presentation.library
 
 import android.os.Bundle
 import android.view.ContextMenu
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
+import com.faust.m.flashcardm.presentation.about.AboutActivity
 import com.faust.m.flashcardm.presentation.add_card.AddCardActivity
 import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
@@ -28,6 +30,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_library)
+        setSupportActionBar(findViewById(R.id.toolbar))
 
         // Initialize adapter
         bookletAdapter = BookletAdapter(this,
@@ -37,7 +40,6 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
         registerForContextMenu(recycler_view_booklet)
-        iv_empty_recycler_view.setColorFilter(getColor(R.color.colorAccent))
 
         viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
         viewModel.booklets.observeData(this, ::onBookletsChanged)
@@ -48,11 +50,28 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         fab_add_booklet.setOnClickListener(::onFabAddBookletClicked)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_activity_library, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+
+        return when (item.itemId) {
+            R.id.menu_action_show_about -> {
+                startActivity<AboutActivity>()
+                true
+            }
+            else -> false
+        }
+    }
+
     override fun onCreateContextMenu(menu: ContextMenu?,
                                      v: View?,
                                      menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
-        menuInflater.inflate(R.menu.menu_library, menu)
+        menuInflater.inflate(R.menu.menu_booklet, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -90,8 +109,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     private fun onBookletsChanged(booklets: MutableList<LibraryBooklet>) {
         bookletAdapter.replaceBooklets(booklets)
         when {
-            booklets.isEmpty() -> ll_empty_recycler_view.visibility = View.VISIBLE
-            else -> ll_empty_recycler_view.visibility = View.GONE
+            booklets.isEmpty() -> tv_empty_recycler_view.visibility = View.VISIBLE
+            else -> tv_empty_recycler_view.visibility = View.GONE
         }
     }
 

@@ -4,17 +4,17 @@
     <color name="colorPrimaryLight">#DBDBDB</color>
     <color name="colorPrimaryDark">#00574B</color>
 
-    <color name="colorAccent">#33691E</color>
+    <color name="colorAccent">#1B5E20</color>
 
     <color name="colorWhite">#FAFAFA</color>
     <color name="colorWhitePressed">#CFCFCF</color>
-    <color name="colorWhiteSelected">#43A047</color>
+    <color name="colorWhiteSelected">@color/colorAccent</color>
 
-    <color name="colorHighlight1">@color/colorAccent</color>
+    <color name="colorHighlight1">#00897B</color>
     <color name="colorHighlight2">#7CB342</color>
     <color name="colorHighlight3">#689F38</color>
     <color name="colorHighlight4">#558B2F</color>
     <color name="colorHighlight5">#33691E</color>
-    <color name="colorHighlight6">#827717</color>
+    <color name="colorHighlight6">#00796B</color>
 
 </resources>

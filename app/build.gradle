@@ -49,6 +49,8 @@ dependencies {
     implementation "org.koin:koin-android:$koin_version"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
+    // About page
+    implementation 'com.github.medyo:android-about-page:1.2.5'
 
     // Base testing
     androidTestImplementation 'androidx.test:runner:1.2.0'

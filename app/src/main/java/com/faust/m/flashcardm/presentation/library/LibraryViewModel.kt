@@ -10,8 +10,7 @@ import com.faust.m.core.usecase.BookletOutline
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.Event
-import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
-import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
+import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.*
 import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -104,6 +103,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     fun reviewBooklet(booklet: LibraryBooklet) {
+        _stateAddBooklet.postValue(AddedBooklet(state = EMPTY))
         when(booklet.cardToReviewCount) {
             0 -> _eventReviewBooklet.postValue(Event(EMPTY_BOOKLET))
             else -> _eventReviewBooklet.postValue(Event(booklet.id))
@@ -173,5 +173,5 @@ data class LibraryBooklet(val name: String,
  */
 data class AddedBooklet(val id: Long? = null, val state: State) {
 
-    enum class State { ONGOING, FAIL, SUCCESS }
+    enum class State { EMPTY, ONGOING, FAIL, SUCCESS }
 }

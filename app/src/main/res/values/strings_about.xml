@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="about_anki_droid">AnkiDroid application</string>
+    <string name="about_flash_card_wikipedia">"A flashcard or flash card is a card bearing information"
+                "on both sides, which is intended to be used as an aid in memorization. Each"
+                "flashcard bears a question on one side and an answer on the other."
+                "Flashcards are often used to memorize vocabulary, historical dates,"
+                "formulae or any subject matter that can be learned via a"
+                "question-and-answer format"</string>
+
+</resources>
