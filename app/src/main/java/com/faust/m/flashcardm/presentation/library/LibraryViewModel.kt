@@ -7,6 +7,7 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Booklet
 import com.faust.m.core.usecase.BookletOutline
+import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.Event
@@ -165,8 +166,20 @@ data class LibraryBooklet(val name: String,
         booklet.id
     )
 
+    val color: Int = colors[kotlin.math.abs(hashCode() % 6)]
+
     fun toBooklet() = Booklet(name, id)
 }
+
+private val colors = arrayOf (
+    R.color.colorHighlight1,
+    R.color.colorHighlight2,
+    R.color.colorHighlight3,
+    R.color.colorHighlight4,
+    R.color.colorHighlight5,
+    R.color.colorHighlight6
+)
+
 
 /**
  * Wrapper class for observing booklet adding procedure

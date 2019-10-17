@@ -33,9 +33,10 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         // Initialize adapter
-        bookletAdapter = BookletAdapter(this,
+        bookletAdapter = BookletAdapter(
             onItemClick = ::onBookletClicked,
-            onItemLongClick = ::onBookletLongClicked)
+            onItemLongClick = ::onBookletLongClicked
+        )
         // Setup adapter in recyclerView
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
