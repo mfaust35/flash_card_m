@@ -1,10 +1,10 @@
 package com.faust.m.flashcardm.presentation.library
 
 import android.os.Bundle
-import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
@@ -35,12 +35,11 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         // Initialize adapter
         bookletAdapter = BookletAdapter(
             onItemClick = ::onBookletClicked,
-            onItemLongClick = ::onBookletLongClicked
+            onInfoClick = ::onBookletInfoClicked
         )
         // Setup adapter in recyclerView
         recycler_view_booklet.layoutManager = LinearLayoutManager(this)
         recycler_view_booklet.adapter = bookletAdapter
-        registerForContextMenu(recycler_view_booklet)
 
         viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
         viewModel.booklets.observeData(this, ::onBookletsChanged)
@@ -68,16 +67,18 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         }
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?,
-                                     v: View?,
-                                     menuInfo: ContextMenu.ContextMenuInfo?) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-        menuInflater.inflate(R.menu.menu_booklet, menu)
+    private fun onBookletInfoClicked(booklet: LibraryBooklet, view: View) {
+        viewModel.selectedBooklet = booklet
+
+        PopupMenu(this, view).apply {
+            menuInflater.inflate(R.menu.menu_booklet, this.menu)
+            setOnMenuItemClickListener(::onInfoMenuClick)
+            show()
+        }
     }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        super.onContextItemSelected(item)
-        return when (item.itemId) {
+    private fun onInfoMenuClick(menuItem: MenuItem?): Boolean {
+        return when (menuItem?.itemId) {
             R.id.menu_action_delete -> {
                 viewModel.deleteCurrentBooklet()
                 true
@@ -100,11 +101,6 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
     private fun onBookletClicked(booklet: LibraryBooklet) {
         viewModel.reviewBooklet(booklet)
-    }
-
-    private fun onBookletLongClicked(booklet: LibraryBooklet): Boolean {
-        viewModel.selectedBooklet = booklet
-        return false
     }
 
     private fun onBookletsChanged(booklets: MutableList<LibraryBooklet>) {

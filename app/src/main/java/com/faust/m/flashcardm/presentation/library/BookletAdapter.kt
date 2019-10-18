@@ -1,13 +1,17 @@
 package com.faust.m.flashcardm.presentation.library
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.RecyclerViewBookletBinding
+import org.jetbrains.anko.find
 
 class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
                      var onItemClick: ((value: LibraryBooklet) -> Unit)? = null,
-                     var onItemLongClick: ((value: LibraryBooklet) -> Boolean)? = null):
+                     var onInfoClick: ((value: LibraryBooklet, infoView: View) -> Unit)? = null):
     RecyclerView.Adapter<BookletAdapter.Holder>(){
 
     private val booklets: MutableList<LibraryBooklet> =
@@ -50,7 +54,9 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
             }
 
             itemView.setOnClickListener { onItemClick?.invoke(booklet) }
-            itemView.setOnLongClickListener { onItemLongClick?.invoke(booklet) ?: false }
+            itemView.find<ImageView>(R.id.iv_info).apply {
+                this.setOnClickListener { onInfoClick?.invoke(booklet, this) }
+            }
         }
     }
 }

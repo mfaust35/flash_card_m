@@ -37,14 +37,19 @@ class FragmentNameBooklet : DialogFragment() {
             editName.setEditorActionListener(::onEditorAction)
             editName.addTextChangedListener(ValidationTextWatcher())
 
-            val titleStringId =
-                if (viewModel.selectedBooklet == null) R.string.title_dialog_add_booklet
-                else R.string.title_dialog_rename_booklet
+            var titleStringId = R.string.title_dialog_add_booklet
+            var positiveButtonStringId = R.string.confirm_new_booklet
+            if (viewModel.selectedBooklet != null) {
+                titleStringId = R.string.title_dialog_rename_booklet
+                positiveButtonStringId = R.string.confirm_rename_booklet
+            }
+
             // Build dialog
             _dialog = AlertDialog.Builder(it)
                 .setTitle(titleStringId)
                 .setView(rootView)
-                .setPositiveButton(R.string.confirm_new_booklet, ::onPositiveButtonClicked)
+                .setPositiveButton(positiveButtonStringId, ::onPositiveButtonClicked)
+                .setNegativeButton(android.R.string.cancel) { _, _ -> dismiss() }
                 .create()
 
             // Use dialog window to focus on edit text and show soft input keyboard
