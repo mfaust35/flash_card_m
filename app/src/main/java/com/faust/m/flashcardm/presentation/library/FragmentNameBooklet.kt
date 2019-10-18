@@ -69,15 +69,17 @@ class FragmentNameBooklet : DialogFragment() {
     }
 
     private fun onEditorAction(textView: TextView, editorAction: EditorAction): Boolean {
-        return when {
-            editorAction.isDone() -> {
-                nameBooklet(textView.text.toString())
+        textView.text.toString().let { name ->
+            if (editorAction.isDone() && name.isValidBookletName()) {
+                nameBooklet(name)
                 dismiss()
-                true
+                return true
             }
-            else -> false
+            return false
         }
     }
+
+    private fun String.isValidBookletName(): Boolean = !this.isBlank()
 
     override fun onStart() {
         super.onStart()

@@ -6,7 +6,7 @@
     <string name="confirm_rename_booklet">Rename</string>
 
     <string name="empty_booklet_list">"You don't have any booklets to review yet. Try adding one with the bottom left button"</string>
-    <string name="empty_booklet_for_review">"You don't have any card to review now in this booklet. Try adding one with a long click on this booklet."</string>
+    <string name="empty_booklet_for_review">"You don't have any card to review now in this booklet. Try adding one by clicking on the booklet info."</string>
 
     <string name="menu_action_show_about">About</string>
     <string name="menu_action_add_card">Add cards</string>
