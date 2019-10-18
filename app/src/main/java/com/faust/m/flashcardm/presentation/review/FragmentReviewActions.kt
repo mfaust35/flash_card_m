@@ -14,7 +14,7 @@ import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
-import com.faust.m.flashcardm.presentation.setOnClickListener
+import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.fragment_review_actions.*
 import org.koin.android.ext.android.getKoin
 
@@ -39,9 +39,9 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
         super.onViewCreated(view, savedInstanceState)
 
         // Setup button click listener
-        bt_show_answer.setOnClickListener(::onShowAnswerClicked)
-        bt_ask_again.setOnClickListener(::onAskAgainClicked)
-        bt_i_knew.setOnClickListener(::onIKnewClicked)
+        bt_show_answer.setNoArgOnClickListener(::onShowAnswerClicked)
+        bt_ask_again.setNoArgOnClickListener(::onAskAgainClicked)
+        bt_i_knew.setNoArgOnClickListener(::onIKnewClicked)
     }
 
     private fun onCurrentCardChanged(currentCard: CurrentCard) {

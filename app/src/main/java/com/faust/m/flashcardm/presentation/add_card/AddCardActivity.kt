@@ -8,7 +8,7 @@ import com.faust.m.core.domain.Card
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.setOnClickListener
+import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.activity_add_card.*
 import org.koin.android.ext.android.getKoin
 
@@ -27,7 +27,7 @@ class AddCardActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.getCard().observeData(this, ::onCardChanged)
 
         // Setup view listeners
-        bt_add_card.setOnClickListener(::onAddCardClicked)
+        bt_add_card.setNoArgOnClickListener(::onAddCardClicked)
         et_card_front.setOnFocusChangeListener(::onFocusChanged)
     }
 

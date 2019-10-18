@@ -14,7 +14,7 @@ import com.faust.m.flashcardm.presentation.about.AboutActivity
 import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.booklet.BookletActivity
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
-import com.faust.m.flashcardm.presentation.setOnClickListener
+import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
 import org.jetbrains.anko.design.longSnackbar
 import org.jetbrains.anko.startActivity
@@ -47,7 +47,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.eventAddCardToBooklet.observeEvent(this, ::onEvenAddCardToBooklet)
         viewModel.eventReviewBooklet.observeEvent(this, ::onEventReviewBooklet)
 
-        fab_add_booklet.setOnClickListener(::onFabAddBookletClicked)
+        fab_add_booklet.setNoArgOnClickListener(::onFabAddBookletClicked)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
