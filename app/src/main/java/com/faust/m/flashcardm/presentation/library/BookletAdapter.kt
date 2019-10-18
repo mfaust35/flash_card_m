@@ -17,8 +17,9 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
-        //Holder(parent.inflate(R.layout.recycler_view_booklet, false))
-        Holder(RecyclerViewBookletBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        with(LayoutInflater.from(parent.context)) {
+            Holder(RecyclerViewBookletBinding.inflate(this, parent, false))
+        }
 
     override fun getItemCount(): Int = booklets.size
 

@@ -6,9 +6,11 @@
     <dimen name="small_margin">4dp</dimen>
 
     <dimen name="dimen_card_min_height">75dp</dimen>
+    <dimen name="dimen_booklet_card_min_height">35dp</dimen>
     <dimen name="dimen_card_highlight">50dp</dimen>
 
     <dimen name="dimen_icon_h1">48dp</dimen>
+    <dimen name="dimen_icon_h1_5">40dp</dimen>
     <dimen name="dimen_icon_h2">24dp</dimen>
     <dimen name="dimen_icon_h3">18dp</dimen>
 

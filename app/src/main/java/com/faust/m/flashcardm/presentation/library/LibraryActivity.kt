@@ -11,8 +11,8 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.about.AboutActivity
-import com.faust.m.flashcardm.presentation.add_card.AddCardActivity
 import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
+import com.faust.m.flashcardm.presentation.booklet.BookletActivity
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
@@ -120,7 +120,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun onEvenAddCardToBooklet(bookletId: Long) {
-        startActivity<AddCardActivity>(
+        startActivity<BookletActivity>(
             BOOKLET_ID to bookletId
         )
     }

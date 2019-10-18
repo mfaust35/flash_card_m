@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <variable
+            name="card"
+            type="com.faust.m.flashcardm.presentation.booklet.BookletCard"/>
+    </data>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_marginLeft="@dimen/small_margin"
+        android:layout_marginRight="@dimen/small_margin"
+        android:layout_marginBottom="@dimen/small_margin"
+        android:gravity="center_vertical"
+        android:background="@drawable/recycler_view_booklet_background"
+        android:minHeight="@dimen/dimen_booklet_card_min_height"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="@{card.front}"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/small_margin"
+            android:gravity="center"
+            android:textSize="@dimen/font_size_h3" />
+
+        <TextView
+            android:text="@{card.back}"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/small_margin"
+            android:gravity="center"
+            android:textSize="@dimen/font_size_h3" />
+
+    </LinearLayout>
+
+</layout>

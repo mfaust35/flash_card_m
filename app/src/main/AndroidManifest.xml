@@ -25,6 +25,8 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".presentation.review.ReviewActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".presentation.booklet.BookletActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".presentation.about.AboutActivity"
             android:theme="@style/AppTheme.NoActionBar" />
     </application>

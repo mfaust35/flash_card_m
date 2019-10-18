@@ -47,6 +47,14 @@
             android:paddingRight="@dimen/large_margin"
             android:textSize="@dimen/font_size_h3" />
 
+        <ImageView
+            android:id="@+id/iv_info"
+            android:layout_width="@dimen/dimen_icon_h1_5"
+            android:layout_height="@dimen/dimen_icon_h1_5"
+            android:src="@drawable/ic_info_white_24dp"
+            android:tint="@color/colorWhitePressed"
+            android:layout_marginRight="@dimen/large_margin" />
+
     </LinearLayout>
 
 </layout>
