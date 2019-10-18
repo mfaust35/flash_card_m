@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
         <variable
@@ -7,54 +8,68 @@
             type="com.faust.m.flashcardm.presentation.library.LibraryBooklet"/>
     </data>
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/small_margin"
         android:layout_marginRight="@dimen/small_margin"
         android:layout_marginBottom="@dimen/small_margin"
-        android:gravity="center_vertical"
         android:background="@drawable/recycler_view_booklet_background"
-        android:minHeight="@dimen/dimen_card_min_height"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:minHeight="@dimen/dimen_card_min_height">
+
 
         <TextView
-            android:text="@{String.valueOf(booklet.totalCardCount)}"
             android:id="@+id/recycler_view_booklet_highlight"
-            android:background="@drawable/recycler_view_booklet_highlight"
-            android:backgroundTint="@{context.getColor(booklet.color)}"
             android:layout_width="@dimen/dimen_card_highlight"
             android:layout_height="@dimen/dimen_card_highlight"
             android:layout_margin="@dimen/large_margin"
-            android:textColor="@color/colorWhite"
+            android:background="@drawable/recycler_view_booklet_highlight"
+            android:backgroundTint="@{context.getColor(booklet.color)}"
             android:gravity="center"
-            android:textSize="@dimen/font_size_h1" />
+            android:text="@{String.valueOf(booklet.totalCardCount)}"
+            android:textColor="@color/colorWhite"
+            android:textSize="@dimen/font_size_h1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:text="@{booklet.name}"
             android:id="@+id/recycler_view_booklet_name"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/medium_margin"
+            android:paddingLeft="@dimen/large_margin"
             android:paddingRight="@dimen/large_margin"
-            android:textSize="@dimen/font_size_h2" />
+            android:text="@{booklet.name}"
+            android:textSize="@dimen/font_size_h2"
+            app:layout_constraintBottom_toTopOf="@+id/recycler_view_booklet_count"
+            app:layout_constraintStart_toEndOf="@+id/recycler_view_booklet_highlight"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:text="@{String.valueOf(booklet.cardToReviewCount)}"
             android:id="@+id/recycler_view_booklet_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="@dimen/large_margin"
-            android:textSize="@dimen/font_size_h3" />
+            android:layout_marginTop="@dimen/medium_margin"
+            android:layout_marginBottom="@dimen/medium_margin"
+            android:paddingLeft="@dimen/large_margin"
+            android:text="@{@plurals/cards_to_review(booklet.cardToReviewCount, booklet.cardToReviewCount)}"
+            android:textSize="@dimen/font_size_h3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/recycler_view_booklet_highlight" />
 
         <ImageView
             android:id="@+id/iv_info"
             android:layout_width="@dimen/dimen_icon_h1_5"
             android:layout_height="@dimen/dimen_icon_h1_5"
+            android:layout_marginRight="@dimen/large_margin"
             android:src="@drawable/ic_info_white_24dp"
             android:tint="@color/colorWhitePressed"
-            android:layout_marginRight="@dimen/large_margin" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>
