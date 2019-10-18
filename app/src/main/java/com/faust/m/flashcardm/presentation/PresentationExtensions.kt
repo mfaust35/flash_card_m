@@ -75,3 +75,16 @@ class Event<out T>(private val content: T) {
      */
     fun peekContent(): T = content
 }
+
+open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
+
+    fun add(value: T) {
+        this.value?.add(value)
+        postValue(this.value)
+    }
+
+    fun remove(value: T) {
+        this.value?.remove(value)
+        postValue(this.value)
+    }
+}

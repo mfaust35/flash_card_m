@@ -11,6 +11,7 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.Event
+import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.*
 import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
@@ -133,21 +134,11 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
         }
 }
 
-class MutableLibraryBooklets: MutableLiveData<MutableList<LibraryBooklet>>() {
+class MutableLibraryBooklets: MutableLiveList<LibraryBooklet>() {
 
     override fun postValue(value: MutableList<LibraryBooklet>?) {
         value?.sortBy(LibraryBooklet::name)
         super.postValue(value)
-    }
-
-    fun add(value: LibraryBooklet) {
-        this.value?.add(value)
-        postValue(this.value)
-    }
-
-    fun remove(value: LibraryBooklet) {
-        this.value?.remove(value)
-        postValue(this.value)
     }
 }
 

@@ -8,10 +8,10 @@ import android.widget.PopupMenu
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.presentation.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.about.AboutActivity
-import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
 import com.faust.m.flashcardm.presentation.booklet.BookletActivity
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener

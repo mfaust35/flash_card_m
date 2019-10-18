@@ -19,13 +19,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".presentation.add_card.AddCardActivity"
-            android:windowSoftInputMode="adjustResize"
-            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".presentation.review.ReviewActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".presentation.booklet.BookletActivity"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".presentation.about.AboutActivity"
             android:theme="@style/AppTheme.NoActionBar" />

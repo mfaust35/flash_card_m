@@ -5,7 +5,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
-import com.faust.m.flashcardm.presentation.add_card.BOOKLET_ID
+
+const val BOOKLET_ID = "booklet_id"
 
 class BaseViewModelFactory: ViewModelProvider.Factory {
 

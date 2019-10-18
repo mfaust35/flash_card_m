@@ -28,6 +28,10 @@ data class Card (
 
     fun backAsTextOrNull() = content["back"]?.firstOrNull()?.value
 
+    fun addFrontAsText(text: String) = add(CardContent(text, "front"))
+
+    fun addBackAsText(text: String) = add(CardContent(text, "back"))
+
     internal fun needReview(): Boolean {
         return rating < 5 && needReviewToday()
     }

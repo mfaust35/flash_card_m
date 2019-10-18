@@ -4,38 +4,41 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Card
-import com.faust.m.core.domain.CardContent
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.framework.UseCases
-import com.faust.m.flashcardm.presentation.Event
-import com.faust.m.flashcardm.presentation.notifyObserver
+import com.faust.m.flashcardm.presentation.MutableLiveList
+import com.faust.m.flashcardm.presentation.booklet.CardEditionState.CLOSED
+import com.faust.m.flashcardm.presentation.booklet.CardEditionState.OPEN
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.verbose
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 
+
+enum class CardEditionState { OPEN, CLOSED }
+
 class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
     private val useCases: UseCases by inject()
     private val flashViewModel: FlashViewModel by inject()
 
-    private val _cards: MutableLiveData<MutableList<BookletCard>> =
-        MutableLiveData<MutableList<BookletCard>>().apply {
+
+    private val _cards: MutableLiveList<BookletCard> =
+        MutableLiveList<BookletCard>().apply {
             GlobalScope.launch {
                 loadCards()
             }
         }
     val cards: LiveData<MutableList<BookletCard>> = _cards
 
-    private val _eventStopAdd: MutableLiveData<Event<Boolean>> = MutableLiveData()
-    val eventStopAdd: LiveData<Event<Boolean>> = _eventStopAdd
+    private val _currentCard: MutableLiveData<Card?> = MutableLiveData()
+    val currentCard: LiveData<Card?> = _currentCard
 
-    fun triggerStopAdd() {
-        _eventStopAdd.postValue(Event(true))
-    }
+    private val _cardEditionState: MutableLiveData<CardEditionState> = MutableLiveData(CLOSED)
+    val cardEditionState: LiveData<CardEditionState> = _cardEditionState
+
 
     private fun loadCards() = mutableListOf<BookletCard>()
         .apply {
@@ -47,36 +50,28 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
             _cards.postValue(it)
         }
 
-    private val card: MutableLiveData<Card> = MutableLiveData()
-
-    fun setupCard() {
-        GlobalScope.launch {
-            card.postValue(Card(bookletId = bookletId))
-        }
-    }
-
-    fun getCard(): LiveData<Card> = card
-
-    fun updateCardFront(front: String) {
-        card.value?.add(CardContent(front, "front"))
-    }
-
-    fun updateCardBack(back: String) {
-        card.value?.add(CardContent(back, "back"))
-    }
-
-    fun addCard() {
-        GlobalScope.launch {
-            card.value?.let {
+    fun addCard(front: String, back: String) =
+        _currentCard.value?.let {
+            it.addFrontAsText(front)
+            it.addBackAsText(back)
+            GlobalScope.launch {
                 useCases.addCard(it).also { newCard ->
-                    _cards.value?.add(BookletCard(newCard))
-                    _cards.notifyObserver()
                     verbose { "Created a new card: $newCard" }
-                    card.postValue(Card(bookletId = bookletId))
+                    _cards.add(BookletCard(newCard))
+                    _currentCard.postValue(Card(bookletId = bookletId))
                     flashViewModel.bookletsStateChanged()
                 }
             }
         }
+
+    fun stopCardEdition() {
+        _cardEditionState.postValue(CLOSED)
+        _currentCard.postValue(null)
+    }
+
+    fun startCardEdition() {
+        _cardEditionState.postValue(OPEN)
+        when { _currentCard.value == null -> _currentCard.postValue(Card(bookletId = bookletId)) }
     }
 }
 
@@ -85,8 +80,8 @@ data class BookletCard(val front: String,
                        val id: Long = 0) {
 
     constructor(card: Card): this(
-        card.frontAsTextOrNull() ?: "~~",
-        card.backAsTextOrNull() ?: "~~",
+        card.frontAsTextOrNull() ?: "",
+        card.backAsTextOrNull() ?: "",
         card.id
     )
 }

@@ -32,7 +32,7 @@
 
     <fragment
         android:id="@+id/fg_add_card"
-        android:name="com.faust.m.flashcardm.presentation.booklet.FragmentAddCard"
+        android:name="com.faust.m.flashcardm.presentation.booklet.FragmentEditCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

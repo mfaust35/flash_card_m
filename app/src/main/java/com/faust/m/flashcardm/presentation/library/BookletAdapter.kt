@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.flashcardm.R
-import com.faust.m.flashcardm.databinding.RecyclerViewBookletBinding
+import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import org.jetbrains.anko.find
 
 class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
@@ -22,7 +22,7 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         with(LayoutInflater.from(parent.context)) {
-            Holder(RecyclerViewBookletBinding.inflate(this, parent, false))
+            Holder(RecyclerViewLibraryBookletsBinding.inflate(this, parent, false))
         }
 
     override fun getItemCount(): Int = booklets.size
@@ -41,7 +41,7 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
         notifyDataSetChanged()
     }
 
-    inner class Holder(private val binding: RecyclerViewBookletBinding):
+    inner class Holder(private val binding: RecyclerViewLibraryBookletsBinding):
         RecyclerView.ViewHolder(binding.root) {
 
         fun bindBooklet(booklet: LibraryBooklet) {

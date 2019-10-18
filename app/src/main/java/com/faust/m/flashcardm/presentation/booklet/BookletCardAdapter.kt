@@ -3,7 +3,7 @@ package com.faust.m.flashcardm.presentation.booklet
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.faust.m.flashcardm.databinding.RecyclerViewCardsBinding
+import com.faust.m.flashcardm.databinding.RecyclerViewBookletCardsBinding
 
 class BookletCardAdapter(cards: Collection<BookletCard>? = null):
         RecyclerView.Adapter<BookletCardAdapter.Holder>(){
@@ -13,7 +13,7 @@ class BookletCardAdapter(cards: Collection<BookletCard>? = null):
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         with(LayoutInflater.from(parent.context)) {
-            Holder(RecyclerViewCardsBinding.inflate(this, parent, false))
+            Holder(RecyclerViewBookletCardsBinding.inflate(this, parent, false))
         }
 
     override fun getItemCount(): Int = cards.size
@@ -28,7 +28,7 @@ class BookletCardAdapter(cards: Collection<BookletCard>? = null):
         notifyDataSetChanged()
     }
 
-    inner class Holder(private val binding: RecyclerViewCardsBinding):
+    inner class Holder(private val binding: RecyclerViewBookletCardsBinding):
             RecyclerView.ViewHolder(binding.root) {
 
         fun bindCard(card: BookletCard) {
