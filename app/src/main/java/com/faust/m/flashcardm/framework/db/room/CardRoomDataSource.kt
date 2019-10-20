@@ -4,17 +4,19 @@ import com.faust.m.core.LongSparseArrayList
 import com.faust.m.core.data.CardDataSource
 import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
+import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
 import com.faust.m.flashcardm.framework.db.room.model.CardDao
 import com.faust.m.flashcardm.framework.db.room.model.CardEntity
 
-class CardRoomDataSource(private val cardDao: CardDao,
-                         private val cardContentDao: CardContentDao): CardDataSource {
+class CardRoomDataSource(private val database: FlashRoomDatabase,
+                         private val cardDao: CardDao = database.cardDao(),
+                         private val cardContentDao: CardContentDao = database.cardContentDao()):
+    CardDataSource {
 
-    override fun add(card: Card): Card {
+    override fun add(card: Card): Card = database.runInTransaction<Card> {
         // Save the card first
-        // Should use a transaction here
         val cardCopy: Card = cardDao.add(card.toEntityModel()).let { card.copy(id = it) }
 
         // Then save the cardContent
@@ -23,20 +25,20 @@ class CardRoomDataSource(private val cardDao: CardDao,
                 cardCopy.add(it.copy(id = this))
             }
         }
-
-        return cardCopy
+        cardCopy
     }
 
     override fun update(card: Card): Card =
         cardDao.update(card.toEntityModel()).let { card.copy(id = it.toLong()) }
 
-    override fun updateCardContent(card: Card): Card {
+    override fun updateCardContent(card: Card): Card = database.runInTransaction<Card> {
         cardDao.updateCreatedAt(card.createdAt, card.id)
         card.content.values.flatten().toList().forEach {
             cardContentDao.update(it.toEntityModel())
         }
-        return card
+        card
     }
+
 
     override fun getAllCardsForBooklet(bookletId: Long): List<Card> =
         cardDao.getAllCardsForBooklet(bookletId).map {

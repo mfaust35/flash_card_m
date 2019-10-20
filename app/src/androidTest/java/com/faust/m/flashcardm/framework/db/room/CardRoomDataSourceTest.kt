@@ -5,6 +5,8 @@ import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.*
+import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,13 +20,15 @@ class CardRoomDataSourceTest: BaseDaoTest() {
     private val card =
         Card(rating = 0, lastSeen = Date(), bookletId = bookletEntity.id).add(cardContent)
 
+    private lateinit var _database: FlashRoomDatabase
     private lateinit var cardRoomDataSource: CardRoomDataSource
     private lateinit var cardContentDao: CardContentDao
     private lateinit var cardDao: CardDao
     private lateinit var bookletDao: BookletDao
 
     override fun onDatabaseCreated(database: FlashRoomDatabase) = with(database) {
-        cardRoomDataSource = CardRoomDataSource(cardDao(), cardContentDao())
+        _database = this
+        cardRoomDataSource = CardRoomDataSource(database)
         bookletDao = bookletDao()
         cardDao = cardDao()
         cardContentDao = cardContentDao()
@@ -179,6 +183,46 @@ class CardRoomDataSourceTest: BaseDaoTest() {
                     id = 1
                 ))
             }
+        }
+    }
+
+    @Test
+    fun addACardWithCardContentFailShouldRollBackTransactionAndThrowError() {
+        // Given a booklet in database
+        bookletDao.add(
+            BookletEntity(
+            name = "my first booklet",
+            id = 2)
+        )
+        // Given database will throw an error during cardContent add
+        val cardContentDao: CardContentDao = mockk()
+        every { cardContentDao.add(any()) }.throws(RuntimeException("Random error"))
+        cardRoomDataSource = CardRoomDataSource(_database, cardDao, cardContentDao)
+
+        // When I add a card in database
+        var errorThrown = false
+        val card = Card(
+            rating = 2,
+            lastSeen = Date(30),
+            createdAt = Date(500),
+            bookletId = 2,
+            id = 3
+        ).apply {
+            content["front"] = mutableListOf(
+                CardContent(value = "val", type = "front", cardId = 1, id = 0)
+            )
+        }
+        try {
+            cardRoomDataSource.add(card)
+        } catch (e: java.lang.RuntimeException) {
+            errorThrown = true
+        }
+
+        // Then there was an error thrown
+        assertThat(errorThrown).isTrue()
+        // Then the card add has been roll back
+        cardDao.getAllCardsForBooklet(2).run {
+            assertThat(size).isEqualTo(0)
         }
     }
 }

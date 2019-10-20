@@ -27,10 +27,7 @@ val roomDatabaseModule = module {
 
     single { CardRepository(get()) }
     single {
-        CardRoomDataSource(
-            get<FlashRoomDatabase>().cardDao(),
-            get<FlashRoomDatabase>().cardContentDao()
-        )
+        CardRoomDataSource(get())
     } bind CardDataSource::class
 }
 
