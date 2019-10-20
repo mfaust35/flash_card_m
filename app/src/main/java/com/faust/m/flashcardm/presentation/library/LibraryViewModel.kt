@@ -6,10 +6,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Booklet
-import com.faust.m.core.usecase.BookletOutline
+import com.faust.m.core.usecase.booklet.BookletOutline
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.framework.BookletUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel
-import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.*
@@ -28,7 +28,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
         const val EMPTY_BOOKLET: Long = -1
     }
 
-    private val useCases: UseCases by inject()
+    private val cardUseCases: BookletUseCases by inject()
 
 
     private val _booklets: MutableLibraryBooklets = MutableLibraryBooklets()
@@ -61,7 +61,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     private fun renameBooklet(newName: String, libraryBooklet: LibraryBooklet) {
         GlobalScope.launch {
-            when(useCases.renameBooklet(newName, libraryBooklet.id)) {
+            when(cardUseCases.renameBooklet(newName, libraryBooklet.id)) {
                 true -> {
                     verbose { "Booklet renamed oldName: ${libraryBooklet.name} | newName: $newName" }
                     val copy = libraryBooklet.copy(name = newName)
@@ -80,7 +80,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private fun addBooklet(newName: String) {
         _stateAddBooklet.postValue(AddedBooklet(state = ONGOING))
         GlobalScope.launch {
-            useCases.addBooklet(Booklet(newName)).let {
+            cardUseCases.addBooklet(Booklet(newName)).let {
                 verbose { "Booklet $it added" }
                 _booklets.add(LibraryBooklet(it, BookletOutline.EMPTY))
                 _stateAddBooklet.postValue(AddedBooklet(it.id, SUCCESS))
@@ -91,7 +91,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     fun deleteCurrentBooklet() {
         selectedBooklet?.let { libraryBooklet ->
             GlobalScope.launch {
-                useCases.deleteBooklet(libraryBooklet.toBooklet()).let {result: Int ->
+                cardUseCases.deleteBooklet(libraryBooklet.toBooklet()).let { result: Int ->
                     when(result) {
                         0 -> warn { "Booklet $libraryBooklet not deleted" }
                         else -> {
@@ -120,9 +120,9 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     private fun loadLibraryBooklets() = mutableListOf<LibraryBooklet>()
         .apply {
-            val tBooklets: List<Booklet> = useCases.getBooklets()
+            val tBooklets: List<Booklet> = cardUseCases.getBooklets()
             val tBookletsOutlines: LongSparseArray<BookletOutline> =
-                useCases.getBookletsOutlines(tBooklets)
+                cardUseCases.getBookletsOutlines(tBooklets)
 
             for (tBooklet: Booklet in tBooklets) {
                 val tOutline = tBookletsOutlines[tBooklet.id] ?: BookletOutline.EMPTY

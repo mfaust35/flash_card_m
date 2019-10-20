@@ -1,4 +1,4 @@
-package com.faust.m.core.usecase
+package com.faust.m.core.usecase.booklet
 
 import androidx.collection.LongSparseArray
 import androidx.collection.forEach

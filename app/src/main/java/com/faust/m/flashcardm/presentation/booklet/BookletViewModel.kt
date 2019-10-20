@@ -5,9 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Card
-import com.faust.m.core.usecase.BookletOutline
+import com.faust.m.core.usecase.booklet.BookletOutline
+import com.faust.m.flashcardm.framework.BookletUseCases
+import com.faust.m.flashcardm.framework.CardUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel
-import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.booklet.CardEditionState.*
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
@@ -24,7 +25,8 @@ enum class CardEditionState { EDIT, ADD, CLOSED }
 
 class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
-    private val useCases: UseCases by inject()
+    private val bookletUseCases: BookletUseCases by inject()
+    private val cardUseCases: CardUseCases by inject()
     private val flashViewModel: FlashViewModel by inject()
 
     private val _booklet: MutableLiveData<LibraryBooklet> = MutableLiveData<LibraryBooklet>().apply {
@@ -53,14 +55,14 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
     val cardEditionState: LiveData<CardEditionState> = _cardEditionState
 
 
-    private  fun loadBooklet() = useCases.getBooklet(bookletId)?.let { tBooklet ->
-        val tOutlines = useCases.getBookletsOutlines(listOf(tBooklet))
+    private  fun loadBooklet() = bookletUseCases.getBooklet(bookletId)?.let { tBooklet ->
+        val tOutlines = bookletUseCases.getBookletsOutlines(listOf(tBooklet))
         val tOutline = tOutlines[tBooklet.id] ?: BookletOutline.EMPTY
         _booklet.postValue(LibraryBooklet(tBooklet, tOutline))
     }
 
     private fun loadCards() =
-        useCases.getCardsForBooklet(bookletId).apply {
+        cardUseCases.getCardsForBooklet(bookletId).apply {
             _cards.postValue(this.toMutableList())
         }
 
@@ -69,7 +71,7 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
             it.addFrontAsText(front)
             it.addBackAsText(back)
             GlobalScope.launch {
-                useCases.addCard(it).also { newCard ->
+                cardUseCases.addCard(it).also { newCard ->
                     verbose { "Created a new card: $newCard" }
                     _cards.add(newCard)
                     _currentCard.postValue(Card(bookletId = bookletId))
@@ -83,7 +85,7 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
             it.editFrontAsText(front)
             it.editBackAsText(back)
             GlobalScope.launch {
-                useCases.updateCardContent(it).also { updatedCard ->
+                cardUseCases.updateCardContent(it).also { updatedCard ->
                     verbose { "Updated a card: $updatedCard" }
                     loadCards()
                     flashViewModel.bookletsStateChanged()

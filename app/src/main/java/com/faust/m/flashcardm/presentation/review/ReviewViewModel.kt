@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Card
+import com.faust.m.flashcardm.framework.CardUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel
-import com.faust.m.flashcardm.framework.UseCases
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
 import kotlinx.coroutines.GlobalScope
@@ -19,7 +19,7 @@ import java.util.*
 class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
 
     private val flashViewModel: FlashViewModel by inject()
-    private val useCases: UseCases by inject()
+    private val cardUseCases: CardUseCases by inject()
 
     private val currentCard: MutableLiveData<CurrentCard> = MutableLiveData()
 
@@ -41,7 +41,7 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, 
         card?.let {
             val cardToUpdate = it.copy(rating = it.rating + 1, lastSeen = Date())
             GlobalScope.launch {
-                useCases.updateCard(cardToUpdate).also { updatedCard: Card ->
+                cardUseCases.updateCard(cardToUpdate).also { updatedCard: Card ->
                     warn { "Card updated $updatedCard" }
                     flashViewModel.bookletsStateChanged()
                 }
@@ -56,8 +56,8 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, 
     }
 
     private fun loadQueue() {
-        useCases
-            .getCardsToReviewForBooklet(bookletId)
+        cardUseCases
+            .getCardsForBooklet(bookletId, filterReviewCard = true)
             .forEach { cardQueue.add(it) }
         currentCard.postValue(nextCard())
     }

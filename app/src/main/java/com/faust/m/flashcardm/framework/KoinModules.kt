@@ -4,7 +4,11 @@ import com.faust.m.core.data.BookletDataSource
 import com.faust.m.core.data.BookletRepository
 import com.faust.m.core.data.CardDataSource
 import com.faust.m.core.data.CardRepository
-import com.faust.m.core.usecase.*
+import com.faust.m.core.usecase.booklet.*
+import com.faust.m.core.usecase.card.AddCard
+import com.faust.m.core.usecase.card.GetCardsForBooklet
+import com.faust.m.core.usecase.card.UpdateCard
+import com.faust.m.core.usecase.card.UpdateCardContent
 import com.faust.m.flashcardm.framework.db.room.BookletRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.CardRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
@@ -39,19 +43,24 @@ val viewModelModule = module {
 
 }
 
-val useCases = module {
+val cardUseCases = module {
 
-    single { GetBookletsOutlines(get()) }
+    single { AddCard(get()) }
+    single { GetCardsForBooklet(get()) }
+    single { UpdateCard(get()) }
+    single { UpdateCardContent(get()) }
+    single { CardUseCases(get(), get(), get(), get()) }
+
+}
+
+val bookletUseCases = module {
+
     single { AddBooklet(get()) }
     single { DeleteBooklet(get()) }
-    single { GetBooklets(get()) }
-    single { UpdateCard(get()) }
-    single { RenameBooklet(get()) }
-    single { GetCardsToReviewForBooklet(get()) }
-    single { GetCardsForBooklet(get()) }
-    single { AddCard(get()) }
     single { GetBooklet(get()) }
-    single { UpdateCardContent(get()) }
-    single { UseCases(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { GetBooklets(get()) }
+    single { GetBookletsOutlines(get()) }
+    single { RenameBooklet(get()) }
+    single { BookletUseCases(get(), get(), get(), get(), get(), get()) }
 
 }

@@ -1,4 +1,4 @@
-package com.faust.m.core.usecase
+package com.faust.m.core.usecase.card
 
 import com.faust.m.core.data.CardRepository
 import com.faust.m.core.domain.Card
