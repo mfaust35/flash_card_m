@@ -12,7 +12,8 @@ import com.faust.m.flashcardm.framework.BookletUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.MutableLiveList
-import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.*
+import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
+import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
 import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -40,8 +41,11 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
             _booklets
         }
 
-    private val _stateAddBooklet: MutableLiveData<AddedBooklet?> = MutableLiveData()
-    val stateAddBooklet: LiveData<AddedBooklet?> = _stateAddBooklet
+    private val _bookletAdded: MutableLiveData<Event<AddedBooklet>> = MutableLiveData()
+    val bookletAdded: LiveData<Event<AddedBooklet>> = _bookletAdded
+
+    private val _bookletRemoved: MutableLiveData<Event<LibraryBooklet>> = MutableLiveData()
+    val bookletRemoved: LiveData<Event<LibraryBooklet>> = _bookletRemoved
 
     private val _eventAddCardToBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
     val eventAddCardToBooklet: LiveData<Event<Long>> = _eventAddCardToBooklet
@@ -50,10 +54,6 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     val eventReviewBooklet: LiveData<Event<Long>> = _eventReviewBooklet
 
     var selectedBooklet: LibraryBooklet? = null
-        set(value) {
-            _stateAddBooklet.postValue(null)
-            field = value
-        }
 
     fun nameBooklet(newName: String) {
         selectedBooklet?.let { renameBooklet(newName, it) } ?: addBooklet(newName)
@@ -78,12 +78,13 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     private fun addBooklet(newName: String) {
-        _stateAddBooklet.postValue(AddedBooklet(state = ONGOING))
+        _bookletAdded.postValue(Event(AddedBooklet(state = ONGOING)))
         GlobalScope.launch {
             cardUseCases.addBooklet(Booklet(newName)).let {
                 verbose { "Booklet $it added" }
-                _booklets.add(LibraryBooklet(it, BookletOutline.EMPTY))
-                _stateAddBooklet.postValue(AddedBooklet(it.id, SUCCESS))
+                val newBooklet = LibraryBooklet(it, BookletOutline.EMPTY)
+                val position = _booklets.addSilent(newBooklet)
+                _bookletAdded.postValue(Event(AddedBooklet(SUCCESS, position, newBooklet)))
             }
         }
     }
@@ -96,7 +97,8 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
                         0 -> warn { "Booklet $libraryBooklet not deleted" }
                         else -> {
                             verbose { "Booklet $libraryBooklet deleted" }
-                            _booklets.remove(libraryBooklet)
+                            _booklets.value?.remove(libraryBooklet)
+                            _bookletRemoved.postValue(Event(libraryBooklet))
                         }
                     }
                 }
@@ -105,7 +107,6 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     fun reviewBooklet(booklet: LibraryBooklet) {
-        _stateAddBooklet.postValue(AddedBooklet(state = EMPTY))
         when(booklet.cardToReviewCount) {
             0 -> _eventReviewBooklet.postValue(Event(EMPTY_BOOKLET))
             else -> _eventReviewBooklet.postValue(Event(booklet.id))
@@ -135,6 +136,14 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 }
 
 class MutableLibraryBooklets: MutableLiveList<LibraryBooklet>() {
+
+    fun addSilent(booklet: LibraryBooklet): Int {
+        return value?.let {
+            it.add(booklet)
+            it.sortBy(LibraryBooklet::name)
+            it.indexOf(booklet)
+        } ?: -1
+    }
 
     override fun postValue(value: MutableList<LibraryBooklet>?) {
         value?.sortBy(LibraryBooklet::name)
@@ -179,7 +188,9 @@ data class LibraryBooklet(val name: String,
 /**
  * Wrapper class for observing booklet adding procedure
  */
-data class AddedBooklet(val id: Long? = null, val state: State) {
+data class AddedBooklet(val state: State,
+                        val position: Int = 0,
+                        val booklet: LibraryBooklet = LibraryBooklet.LOADING) {
 
     enum class State { EMPTY, ONGOING, FAIL, SUCCESS }
 }

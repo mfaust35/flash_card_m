@@ -13,6 +13,7 @@ import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.about.AboutActivity
 import com.faust.m.flashcardm.presentation.booklet.BookletActivity
+import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
@@ -43,7 +44,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
         viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
         viewModel.booklets.observeData(this, ::onBookletsChanged)
-        viewModel.stateAddBooklet.observeData(this, ::onStateAddedBookletChanged)
+        viewModel.bookletRemoved.observeEvent(this, ::onEventBookletRemoved)
+        viewModel.bookletAdded.observeEvent(this, ::onEventBookletAdded)
         viewModel.eventAddCardToBooklet.observeEvent(this, ::onEvenAddCardToBooklet)
         viewModel.eventReviewBooklet.observeEvent(this, ::onEventReviewBooklet)
 
@@ -111,8 +113,16 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         }
     }
 
-    private fun onStateAddedBookletChanged(addedBooklet: AddedBooklet?) {
-        bookletAdapter.setSelected(addedBooklet?.id)
+    private fun onEventBookletRemoved(libraryBooklet: LibraryBooklet) {
+        bookletAdapter.bookletRemoved(libraryBooklet)
+    }
+
+    private fun onEventBookletAdded(addedBooklet: AddedBooklet?) {
+        addedBooklet?.run {
+            if (addedBooklet.state == SUCCESS) {
+                bookletAdapter.bookletAdded(this)
+            }
+        }
     }
 
     private fun onEvenAddCardToBooklet(bookletId: Long) {

@@ -12,13 +12,10 @@ import org.jetbrains.anko.find
 class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
                      var onItemClick: ((value: LibraryBooklet) -> Unit)? = null,
                      var onInfoClick: ((value: LibraryBooklet, infoView: View) -> Unit)? = null):
-    RecyclerView.Adapter<BookletAdapter.Holder>(){
+    RecyclerView.Adapter<BookletAdapter.Holder>() {
 
     private val booklets: MutableList<LibraryBooklet> =
         if (booklets.isNullOrEmpty()) mutableListOf() else ArrayList(booklets)
-
-    private var selected: Long? = null
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         with(LayoutInflater.from(parent.context)) {
@@ -36,9 +33,15 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
         notifyDataSetChanged()
     }
 
-    fun setSelected(bookletId: Long?) {
-        selected = bookletId
-        notifyDataSetChanged()
+    fun bookletRemoved(libraryBooklet: LibraryBooklet) {
+        val indexOf = booklets.indexOf(libraryBooklet)
+        booklets.remove(libraryBooklet)
+        notifyItemRemoved(indexOf)
+    }
+
+    fun bookletAdded(booklet: AddedBooklet) {
+        booklets.add(booklet.position, booklet.booklet)
+        notifyItemInserted(booklet.position)
     }
 
     inner class Holder(private val binding: RecyclerViewLibraryBookletsBinding):
@@ -47,11 +50,6 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
         fun bindBooklet(booklet: LibraryBooklet) {
             binding.booklet = booklet
             binding.executePendingBindings()
-
-            when(booklet.id) {
-                selected -> itemView.isSelected = true
-                else -> itemView.isSelected = false
-            }
 
             itemView.setOnClickListener { onItemClick?.invoke(booklet) }
             itemView.find<ImageView>(R.id.iv_info).apply {
