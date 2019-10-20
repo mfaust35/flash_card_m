@@ -12,8 +12,7 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.booklet.CardEditionState.CLOSED
-import com.faust.m.flashcardm.presentation.booklet.CardEditionState.OPEN
+import com.faust.m.flashcardm.presentation.booklet.CardEditionState.*
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.activity_booklet.*
@@ -24,9 +23,8 @@ import org.koin.android.ext.android.getKoin
 class BookletActivity: AppCompatActivity(), LiveDataObserver {
 
     private lateinit var bookletCardAdapter: BookletCardAdapter
-    private lateinit var viewModel: BookletViewModel
-
     private lateinit var libraryBookletBinding: RecyclerViewLibraryBookletsBinding
+    private lateinit var viewModel: BookletViewModel
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +40,7 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         }
 
         // Initialize adapter
-        bookletCardAdapter = BookletCardAdapter()
+        bookletCardAdapter = BookletCardAdapter(onItemClick = ::onBookletCardClicked)
         // Setup adapter in recyclerView
         recycler_view_cards.layoutManager = LinearLayoutManager(this)
         recycler_view_cards.adapter = bookletCardAdapter
@@ -52,10 +50,14 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
 
         viewModel = getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         viewModel.booklet.observeData(this, ::onBookletChanged)
-        viewModel.cards.observeData(this, ::onCardsChanged)
+        viewModel.bookletCards.observeData(this, ::onCardsChanged)
         viewModel.cardEditionState.observeData(this, ::onCardEditionState)
 
         fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
+    }
+
+    private fun onBookletCardClicked(card: BookletCard) {
+        viewModel.startCardEdition(card)
     }
 
     private fun onBookletChanged(booklet: LibraryBooklet) {
@@ -68,12 +70,12 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
 
     private fun onCardEditionState(cardEditionState: CardEditionState) =
         when(cardEditionState) {
-            OPEN -> showFragment()
+            EDIT, ADD -> showFragment()
             CLOSED -> hideFragment()
         }
 
     private fun onFabAddCardClicked() {
-        viewModel.startCardEdition()
+        viewModel.startCardAddition()
     }
 
     private fun showFragment() {

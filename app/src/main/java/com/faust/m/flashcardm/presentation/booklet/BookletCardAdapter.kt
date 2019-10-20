@@ -5,7 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.flashcardm.databinding.RecyclerViewBookletCardsBinding
 
-class BookletCardAdapter(cards: Collection<BookletCard>? = null):
+class BookletCardAdapter(cards: Collection<BookletCard>? = null,
+                         var onItemClick: ((value: BookletCard) -> Unit)? = null):
         RecyclerView.Adapter<BookletCardAdapter.Holder>(){
 
     private val cards: MutableList<BookletCard> =
@@ -34,6 +35,8 @@ class BookletCardAdapter(cards: Collection<BookletCard>? = null):
         fun bindCard(card: BookletCard) {
             binding.card = card
             binding.executePendingBindings()
+
+            itemView.setOnClickListener { onItemClick?.invoke(card) }
         }
     }
 }

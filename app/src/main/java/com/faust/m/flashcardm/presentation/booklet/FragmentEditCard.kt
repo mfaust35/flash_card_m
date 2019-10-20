@@ -14,9 +14,11 @@ import com.faust.m.core.domain.Card
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
+import com.faust.m.flashcardm.presentation.booklet.CardEditionState.EDIT
 import com.faust.m.flashcardm.presentation.booklet.FragmentEditCard.EditTextMatching.BACK
 import com.faust.m.flashcardm.presentation.booklet.FragmentEditCard.EditTextMatching.FRONT
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
+import com.google.android.material.button.MaterialButton
 import kotlinx.android.synthetic.main.fragment_edit_card.*
 import org.koin.android.ext.android.getKoin
 
@@ -34,9 +36,29 @@ class FragmentEditCard: Fragment(), LiveDataObserver {
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        viewModel.currentCard.observeData(this.viewLifecycleOwner, ::onCardChanged)
+        with(this.viewLifecycleOwner) {
+            viewModel.cardEditionState.observeData(this, ::onCardEditionStateChanged)
+            viewModel.currentCard.observeData(this, ::onCardChanged)
+        }
 
         return result
+    }
+
+    private fun onCardEditionStateChanged(state: CardEditionState) {
+        when(state) {
+            EDIT -> bt_confirm.configureAsEdit()
+            else -> bt_confirm.configureAsAdd()
+        }
+    }
+
+    private fun MaterialButton.configureAsAdd() {
+        setNoArgOnClickListener(::onAddCardClicked)
+        setText(R.string.confirm_new_card)
+    }
+
+    private fun MaterialButton.configureAsEdit() {
+        setNoArgOnClickListener(::onEditCardClicked)
+        setText(R.string.confirm_edit_card)
     }
 
     private fun onCardChanged(card: Card?) {
@@ -62,7 +84,6 @@ class FragmentEditCard: Fragment(), LiveDataObserver {
         super.onViewCreated(view, savedInstanceState)
 
         // Setup view listeners
-        bt_add_card.setNoArgOnClickListener(::onAddCardClicked)
         bt_close.setOnClickListener(::onClose)
         et_card_front.addTextChangedListener(ValidationTextWatcher(FRONT))
         et_card_back.addTextChangedListener(ValidationTextWatcher(BACK))
@@ -72,6 +93,11 @@ class FragmentEditCard: Fragment(), LiveDataObserver {
         et_card_front.clearFocus()
         et_card_back.clearFocus()
         viewModel.addCard(et_card_front.text.toString(), et_card_back.text.toString())
+    }
+
+    private fun onEditCardClicked() {
+        viewModel.editCard(et_card_front.text.toString(), et_card_back.text.toString())
+        onClose(bt_close)
     }
 
     private fun onClose(v: View) {
@@ -100,7 +126,7 @@ class FragmentEditCard: Fragment(), LiveDataObserver {
                     BACK -> backValid = valid
                 }
             }
-            bt_add_card.isEnabled = frontValid && backValid
+            bt_confirm.isEnabled = frontValid && backValid
         }
     }
 }

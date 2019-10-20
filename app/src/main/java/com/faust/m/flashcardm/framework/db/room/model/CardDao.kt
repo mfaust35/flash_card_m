@@ -3,6 +3,7 @@ package com.faust.m.flashcardm.framework.db.room.model
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Query
+import java.util.*
 
 @Dao
 interface CardContentDao: BaseDao<CardContentEntity> {
@@ -13,6 +14,9 @@ interface CardContentDao: BaseDao<CardContentEntity> {
 
 @Dao
 interface CardDao: BaseDao<CardEntity> {
+
+    @Query("UPDATE $CardTableName SET created_at=:createdAt WHERE card_id=:id")
+    fun updateCreatedAt(createdAt: Date, id: Long): Int
 
     @Query("SELECT * FROM $CardTableName")
     fun getAllCards(): List<CardEntity>

@@ -9,6 +9,8 @@ interface CardDataSource {
 
     fun update(card: Card): Card
 
+    fun updateCardContent(card: Card): Card
+
     fun getAllCardsForBooklet(bookletId: Long): List<Card>
 
     /**

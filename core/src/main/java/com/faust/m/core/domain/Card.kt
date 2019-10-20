@@ -32,12 +32,25 @@ data class Card (
 
     fun addBackAsText(text: String) = add(CardContent(text, "back"))
 
+    fun editFrontAsText(newValue: String) = editAsText(newValue, "front")
+
+    private fun editAsText(newValue: String, type: String) = content[type]?.let {
+        it.firstOrNull()?.run {
+            it.remove(this)
+            it.add(this.copy(value = newValue))
+        }
+    }
+
+    fun editBackAsText(newValue: String) = editAsText(newValue, "back")
+
     internal fun needReview(): Boolean {
         return rating < 5 && needReviewToday()
     }
 
     private fun needReviewToday(): Boolean {
         if (this.lastSeen == this.createdAt)
+            return true
+        if (this.lastSeen.before(this.createdAt))
             return true
         Calendar.getInstance().let { today: Calendar ->
             today.set(Calendar.HOUR, 0)

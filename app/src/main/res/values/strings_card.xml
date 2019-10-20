@@ -3,6 +3,7 @@
     <string name="hint_enter_card_front">Front</string>
     <string name="hint_enter_card_back">Back</string>
     <string name="confirm_new_card">Add</string>
+    <string name="confirm_edit_card">Edit</string>
     <string name="close_new_card">Close</string>
 
     <string name="show_card_answer">Show answer</string>

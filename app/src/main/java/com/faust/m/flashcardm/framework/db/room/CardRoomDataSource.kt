@@ -19,7 +19,7 @@ class CardRoomDataSource(private val cardDao: CardDao,
 
         // Then save the cardContent
         card.content.values.flatten().toList().forEach {
-            cardContentDao.add(it.toEntityModelWithCardId(cardCopy.id)).run {
+            cardContentDao.add(it.toEntityModel(cardCopy.id)).run {
                 cardCopy.add(it.copy(id = this))
             }
         }
@@ -29,6 +29,14 @@ class CardRoomDataSource(private val cardDao: CardDao,
 
     override fun update(card: Card): Card =
         cardDao.update(card.toEntityModel()).let { card.copy(id = it.toLong()) }
+
+    override fun updateCardContent(card: Card): Card {
+        cardDao.updateCreatedAt(card.createdAt, card.id)
+        card.content.values.flatten().toList().forEach {
+            cardContentDao.update(it.toEntityModel())
+        }
+        return card
+    }
 
     override fun getAllCardsForBooklet(bookletId: Long): List<Card> =
         cardDao.getAllCardsForBooklet(bookletId).map {
@@ -67,6 +75,6 @@ class CardRoomDataSource(private val cardDao: CardDao,
     private fun Card.toEntityModel(): CardEntity =
         CardEntity(rating, lastSeen, createdAt, bookletId, id)
 
-    private fun CardContent.toEntityModelWithCardId(newCardId: Long): CardContentEntity =
-        CardContentEntity(value, type, newCardId, id)
+    private fun CardContent.toEntityModel(newCardId: Long = -1): CardContentEntity =
+        CardContentEntity(value, type, if (-1L != newCardId) newCardId else cardId, id)
 }

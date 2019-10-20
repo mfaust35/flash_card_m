@@ -19,6 +19,7 @@ class CardRoomDataSourceTest: BaseDaoTest() {
         Card(rating = 0, lastSeen = Date(), bookletId = bookletEntity.id).add(cardContent)
 
     private lateinit var cardRoomDataSource: CardRoomDataSource
+    private lateinit var cardContentDao: CardContentDao
     private lateinit var cardDao: CardDao
     private lateinit var bookletDao: BookletDao
 
@@ -26,6 +27,7 @@ class CardRoomDataSourceTest: BaseDaoTest() {
         cardRoomDataSource = CardRoomDataSource(cardDao(), cardContentDao())
         bookletDao = bookletDao()
         cardDao = cardDao()
+        cardContentDao = cardContentDao()
     }
 
     @Test
@@ -107,6 +109,76 @@ class CardRoomDataSourceTest: BaseDaoTest() {
         cardRoomDataSource.getAllCardShellsForBooklets(listOf(20)).let {
             // There is no entry in the map for non existing booklet
             assertThat(it[20]).isNull()
+        }
+    }
+
+    @Test
+    fun updateCardContentShouldUpdateCardContentInDatabase() {
+        givenABookletCardCardContent()
+
+        whenIUpdateCardContent()
+
+        // The card content value should be updated
+        cardContentDao.getAllCardContentsForCard(1).run {
+            assertThat(size).isEqualTo(1)
+            firstOrNull()?.let {
+                assertThat(it).isEqualTo(
+                    CardContentEntity(
+                        value = "new_value",
+                        type = "front",
+                        cardId = 1,
+                        id = 3
+                    )
+                )
+            }
+        }
+    }
+
+    private fun givenABookletCardCardContent() {
+        bookletDao.add(BookletEntity(
+            name = "My Second Booklet",
+            id =  25))
+        cardDao.add(CardEntity(
+            rating = 5,
+            createdAt = Date(20),
+            lastSeen = Date(30),
+            bookletId = 25,
+            id = 1))
+        cardContentDao.add(CardContentEntity(
+            value = "old_value",
+            type = "front",
+            cardId = 1,
+            id = 3
+        ))
+    }
+
+    private fun whenIUpdateCardContent() {
+        val cardToUpdate: Card = Card(createdAt = Date(3000), bookletId = 25, id = 1).apply {
+            content["front"] = mutableListOf(
+                CardContent(value = "new_value", type = "front", cardId = 1, id = 3)
+            )
+        }
+        cardRoomDataSource.updateCardContent(cardToUpdate)
+    }
+
+    @Test
+    fun updateCardContentShouldUpdateCreatedAtDateOfCard() {
+        givenABookletCardCardContent()
+
+        whenIUpdateCardContent()
+
+        // Only the card createdAt should be updated
+        cardDao.getAllCardsForBooklet(25).run {
+            assertThat(size).isEqualTo(1)
+            first().let {
+                assertThat(it).isEqualTo(CardEntity(
+                    rating = 5,
+                    createdAt = Date(3000),
+                    lastSeen = Date(30),
+                    bookletId = 25,
+                    id = 1
+                ))
+            }
         }
     }
 }

@@ -104,4 +104,36 @@ class CardDaoTest: BaseDaoTest() {
                 CardEntity(rating = 3, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 4)
             )
     }
+
+    @Test
+    fun testUpdateCreatedAtShouldUpdateFieldCreatedAtOnly() {
+        // Given a booklet / card in database
+        bookletDao.add(BookletEntity(
+            name = "My first booklet",
+            id = 24))
+        cardDao.add(CardEntity(
+            rating = 4,
+            lastSeen = Date(20),
+            createdAt = Date(300),
+            bookletId = 24,
+            id = 3
+        ))
+
+        // When I update createdAt
+        cardDao.updateCreatedAt(Date(4000), 3)
+
+        // The new card contain a new createdAt value
+        cardDao.getAllCardsForBooklet(24).run {
+            assertThat(size).isEqualTo(1)
+            first(). let {
+                assertThat(it).isEqualTo(CardEntity(
+                    rating = 4,
+                    lastSeen = Date(20),
+                    createdAt = Date(4000),
+                    bookletId = 24,
+                    id = 3
+                ))
+            }
+        }
+    }
 }

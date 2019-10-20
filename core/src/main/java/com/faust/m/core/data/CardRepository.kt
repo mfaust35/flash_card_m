@@ -9,6 +9,8 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun updateCard(card: Card): Card = dataSource.update(card)
 
+    fun updateCardContent(card: Card): Card = dataSource.updateCardContent(card)
+
     fun getAllCardsForBooklet(bookletId: Long) = dataSource.getAllCardsForBooklet(bookletId)
 
     fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArray<MutableList<Card>> =
