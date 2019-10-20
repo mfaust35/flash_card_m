@@ -3,9 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/colorWhite"
-    android:layout_width="match_parent"
     android:paddingBottom="@dimen/medium_margin"
-    android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/textView"
@@ -24,7 +24,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout2"
+        android:id="@+id/til1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/hint_enter_card_front"
@@ -37,27 +37,25 @@
             android:id="@+id/et_card_front"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="actionDone"
-            android:singleLine="true" />
+            android:inputType="textMultiLine|textCapSentences" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout"
+        android:id="@+id/til2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/large_margin"
         android:layout_marginEnd="@dimen/large_margin"
         android:layout_marginBottom="@dimen/large_margin"
         android:hint="@string/hint_enter_card_back"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout2">
+        app:layout_constraintTop_toBottomOf="@+id/til1">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_card_back"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="actionDone"
-            android:singleLine="true" />
+            android:inputType="textMultiLine|textCapSentences" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -70,7 +68,7 @@
         android:layout_marginStart="@dimen/large_margin"
         android:layout_marginEnd="@dimen/large_margin"
         app:layout_constraintEnd_toStartOf="@+id/bt_add_card"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/til2" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/bt_add_card"
@@ -80,6 +78,6 @@
         android:text="@string/confirm_new_card"
         android:layout_marginEnd="@dimen/large_margin"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/til2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

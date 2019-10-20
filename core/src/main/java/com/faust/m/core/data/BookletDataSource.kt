@@ -10,5 +10,7 @@ interface BookletDataSource {
 
     fun getAllBooklet(): List<Booklet>
 
+    fun getBooklet(bookletId: Long): Booklet?
+
     fun delete(booklet: Booklet): Int
 }

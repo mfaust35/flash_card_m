@@ -53,6 +53,7 @@ val useCases = module {
     single { GetCardsToReviewForBooklet(get()) }
     single { GetCardsForBooklet(get()) }
     single { AddCard(get()) }
-    single { UseCases(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { GetBooklet(get()) }
+    single { UseCases(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 
 }

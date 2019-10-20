@@ -9,6 +9,9 @@ interface BookletDao: BaseDao<BookletEntity> {
     @Query("UPDATE $BookletTableName SET name=:newName WHERE booklet_id=:bookletId")
     fun updateName(newName: String, bookletId: Long): Int
 
+    @Query("SELECT * FROM $BookletTableName WHERE booklet_id=:bookletId")
+    fun getBooklet(bookletId: Long): BookletEntity?
+
     @Query("SELECT * FROM $BookletTableName")
     fun getAllBooklets(): List<BookletEntity>
 }

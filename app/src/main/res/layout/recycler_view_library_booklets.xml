@@ -35,40 +35,51 @@
 
         <TextView
             android:id="@+id/recycler_view_booklet_name"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/medium_margin"
             android:paddingLeft="@dimen/large_margin"
             android:paddingRight="@dimen/large_margin"
             android:text="@{booklet.name}"
             android:textSize="@dimen/font_size_h2"
-            app:layout_constraintBottom_toTopOf="@+id/recycler_view_booklet_count"
-            app:layout_constraintStart_toEndOf="@+id/recycler_view_booklet_highlight"
+            app:layout_constraintBottom_toTopOf="@id/recycler_view_booklet_count"
+            app:layout_constraintEnd_toStartOf="@id/guideline"
+            app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_highlight"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/recycler_view_booklet_count"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:paddingRight="@dimen/large_margin"
-            android:layout_marginTop="@dimen/medium_margin"
             android:layout_marginBottom="@dimen/medium_margin"
             android:paddingLeft="@dimen/large_margin"
+            android:paddingRight="@dimen/large_margin"
             android:text="@{@plurals/cards_to_review(booklet.cardToReviewCount, booklet.cardToReviewCount)}"
             android:textSize="@dimen/font_size_h3"
+            app:layout_constraintTop_toBottomOf="@id/recycler_view_booklet_name"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/recycler_view_booklet_highlight" />
+            app:layout_constraintEnd_toStartOf="@id/guideline"
+            app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_highlight" />
 
         <ImageView
             android:id="@+id/iv_info"
             android:layout_width="@dimen/dimen_icon_h1_5"
             android:layout_height="@dimen/dimen_icon_h1_5"
-            android:layout_marginRight="@dimen/large_margin"
+            android:layout_marginStart="@dimen/large_margin"
+            android:layout_marginEnd="@dimen/large_margin"
             android:src="@drawable/ic_info_white_24dp"
             android:tint="@color/colorWhitePressed"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="72dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

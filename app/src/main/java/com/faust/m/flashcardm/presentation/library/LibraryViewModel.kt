@@ -150,6 +150,19 @@ data class LibraryBooklet(val name: String,
                           val totalCardCount: Int,
                           val id: Long = 0) {
 
+    companion object {
+        private val colors = arrayOf (
+            R.color.colorHighlight1,
+            R.color.colorHighlight2,
+            R.color.colorHighlight3,
+            R.color.colorHighlight4,
+            R.color.colorHighlight5,
+            R.color.colorHighlight6
+        )
+
+        val LOADING = LibraryBooklet("Loading", 0, 0, 0)
+    }
+
     constructor(booklet: Booklet, bookletOutline: BookletOutline): this(
         booklet.name,
         bookletOutline.cardToReviewCount,
@@ -161,15 +174,6 @@ data class LibraryBooklet(val name: String,
 
     fun toBooklet() = Booklet(name, id)
 }
-
-private val colors = arrayOf (
-    R.color.colorHighlight1,
-    R.color.colorHighlight2,
-    R.color.colorHighlight3,
-    R.color.colorHighlight4,
-    R.color.colorHighlight5,
-    R.color.colorHighlight6
-)
 
 
 /**

@@ -17,7 +17,7 @@ import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.booklet.FragmentEditCard.EditTextMatching.BACK
 import com.faust.m.flashcardm.presentation.booklet.FragmentEditCard.EditTextMatching.FRONT
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
-import kotlinx.android.synthetic.main.fragment_add_card.*
+import kotlinx.android.synthetic.main.fragment_edit_card.*
 import org.koin.android.ext.android.getKoin
 
 
@@ -30,7 +30,7 @@ class FragmentEditCard: Fragment(), LiveDataObserver {
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val result =
-            inflater.inflate(R.layout.fragment_add_card, container, false)
+            inflater.inflate(R.layout.fragment_edit_card, container, false)
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)

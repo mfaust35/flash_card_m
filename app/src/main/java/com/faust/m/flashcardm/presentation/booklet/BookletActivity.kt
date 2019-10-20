@@ -1,17 +1,23 @@
 package com.faust.m.flashcardm.presentation.booklet
 
 import android.os.Bundle
+import android.text.TextUtils
+import android.view.LayoutInflater
 import android.view.animation.AnimationUtils.loadAnimation
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.booklet.CardEditionState.CLOSED
 import com.faust.m.flashcardm.presentation.booklet.CardEditionState.OPEN
+import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.activity_booklet.*
+import org.jetbrains.anko.find
 import org.koin.android.ext.android.getKoin
 
 
@@ -20,10 +26,20 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
     private lateinit var bookletCardAdapter: BookletCardAdapter
     private lateinit var viewModel: BookletViewModel
 
+    private lateinit var libraryBookletBinding: RecyclerViewLibraryBookletsBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_booklet)
+
+        // Initialize LibraryBookletBinding
+        libraryBookletBinding = with(LayoutInflater.from(insert_point.context)) {
+            RecyclerViewLibraryBookletsBinding.inflate(this, insert_point, true)
+        }.apply {
+            displayShortName()
+            booklet = LibraryBooklet.LOADING
+        }
 
         // Initialize adapter
         bookletCardAdapter = BookletCardAdapter()
@@ -35,10 +51,15 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         makeFragmentTransaction(animated = false) { it.hide(fg_add_card) }
 
         viewModel = getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
+        viewModel.booklet.observeData(this, ::onBookletChanged)
         viewModel.cards.observeData(this, ::onCardsChanged)
         viewModel.cardEditionState.observeData(this, ::onCardEditionState)
 
         fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
+    }
+
+    private fun onBookletChanged(booklet: LibraryBooklet) {
+        libraryBookletBinding.booklet = booklet
     }
 
     private fun onCardsChanged(cards: MutableList<BookletCard>) {
@@ -92,3 +113,9 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
             else -> super.onBackPressed()
         }
 }
+
+private fun RecyclerViewLibraryBookletsBinding.displayShortName() =
+    root.find<TextView>(R.id.recycler_view_booklet_name).let {
+        it.maxLines = 1
+        it.ellipsize = TextUtils.TruncateAt.END
+    }

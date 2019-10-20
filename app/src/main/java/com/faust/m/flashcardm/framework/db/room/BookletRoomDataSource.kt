@@ -18,12 +18,15 @@ class BookletRoomDataSource(private val bookletDao: BookletDao): BookletDataSour
     }
 
     override fun getAllBooklet(): List<Booklet> =
-        bookletDao.getAllBooklets().map(::toEntityModel)
+        bookletDao.getAllBooklets().map { it.toDomainModel() }
+
+    override fun getBooklet(bookletId: Long): Booklet? =
+        bookletDao.getBooklet(bookletId)?.toDomainModel()
 
     override fun delete(booklet: Booklet): Int = bookletDao.delete(booklet.toEntityModel())
 
-    private fun toEntityModel(bookletEntity: BookletEntity): Booklet =
-        Booklet(bookletEntity.name, bookletEntity.id)
+    private fun BookletEntity.toDomainModel(): Booklet =
+        Booklet(name, id)
 
     private fun Booklet.toEntityModel(): BookletEntity =
         BookletEntity(name, id)

@@ -11,5 +11,7 @@ class BookletRepository(private val dataSource: BookletDataSource) {
 
     fun getAllBooklets() = dataSource.getAllBooklet()
 
+    fun getBooklet(bookletId: Long) = dataSource.getBooklet(bookletId)
+
     fun delete(booklet: Booklet): Int = dataSource.delete(booklet)
 }
