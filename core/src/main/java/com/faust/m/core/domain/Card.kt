@@ -1,10 +1,14 @@
 package com.faust.m.core.domain
 
+import com.faust.m.core.domain.CardContentType.BACK
+import com.faust.m.core.domain.CardContentType.FRONT
 import java.util.*
+
+enum class CardContentType { FRONT, BACK }
 
 data class CardContent (
     val value: String,
-    val type: String,
+    val type: CardContentType,
     val cardId: Long = 0,
     val id: Long = 0
 )
@@ -13,7 +17,8 @@ data class Card (
     val rating: Int = 0,
     val lastSeen: Date = Date(),
     val createdAt: Date = lastSeen,
-    val content: HashMap<String, MutableList<CardContent>> = HashMap(),
+    val content: EnumMap<CardContentType, MutableList<CardContent>> =
+        EnumMap(CardContentType::class.java),
     val bookletId: Long = 0,
     val id: Long = 0
 ) {
@@ -24,24 +29,24 @@ data class Card (
             .add(cardContent)
     }
 
-    fun frontAsTextOrNull() = content["front"]?.firstOrNull()?.value
+    fun frontAsTextOrNull() = content[FRONT]?.firstOrNull()?.value
 
-    fun backAsTextOrNull() = content["back"]?.firstOrNull()?.value
+    fun backAsTextOrNull() = content[BACK]?.firstOrNull()?.value
 
-    fun addFrontAsText(text: String) = add(CardContent(text, "front"))
+    fun addFrontAsText(text: String) = add(CardContent(text, FRONT))
 
-    fun addBackAsText(text: String) = add(CardContent(text, "back"))
+    fun addBackAsText(text: String) = add(CardContent(text, BACK))
 
-    fun editFrontAsText(newValue: String) = editAsText(newValue, "front")
+    fun editFrontAsText(newValue: String) = editAsText(newValue, FRONT)
 
-    private fun editAsText(newValue: String, type: String) = content[type]?.let {
+    private fun editAsText(newValue: String, type: CardContentType) = content[type]?.let {
         it.firstOrNull()?.run {
             it.remove(this)
             it.add(this.copy(value = newValue))
         }
     }
 
-    fun editBackAsText(newValue: String) = editAsText(newValue, "back")
+    fun editBackAsText(newValue: String) = editAsText(newValue, BACK)
 
     internal fun needReview(): Boolean {
         return rating < 5 && needReviewToday()

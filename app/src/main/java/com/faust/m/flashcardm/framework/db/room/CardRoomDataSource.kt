@@ -4,11 +4,13 @@ import com.faust.m.core.LongSparseArrayList
 import com.faust.m.core.data.CardDataSource
 import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
+import com.faust.m.core.domain.CardContentType
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
 import com.faust.m.flashcardm.framework.db.room.model.CardDao
 import com.faust.m.flashcardm.framework.db.room.model.CardEntity
+import java.util.*
 
 class CardRoomDataSource(private val database: FlashRoomDatabase,
                          private val cardDao: CardDao = database.cardDao(),
@@ -17,12 +19,15 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
 
     override fun add(card: Card): Card = database.runInTransaction<Card> {
         // Save the card first
-        val cardCopy: Card = cardDao.add(card.toEntityModel()).let { card.copy(id = it) }
+        val cardCopy: Card = cardDao.add(card.toEntityModel()).let {
+            card.copy(id = it, content = EnumMap(CardContentType::class.java))
+        }
 
         // Then save the cardContent
         card.content.values.flatten().toList().forEach {
-            cardContentDao.add(it.toEntityModel(cardCopy.id)).run {
-                cardCopy.add(it.copy(id = this))
+            val contentForCardCopy = it.copy(cardId = cardCopy.id)
+            cardContentDao.add(contentForCardCopy.toEntityModel()).run {
+                cardCopy.add(contentForCardCopy.copy(id = this))
             }
         }
         cardCopy
@@ -45,10 +50,10 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
             Card(it.rating, it.lastSeen, it.createdAt, buildCardEntities(it.id), it.bookletId, it.id)
         }
 
-    private fun buildCardEntities(cardId: Long): HashMap<String, MutableList<CardContent>> {
+    private fun buildCardEntities(cardId: Long): EnumMap<CardContentType, MutableList<CardContent>> {
         val cardContentEntities =
             cardContentDao.getAllCardContentsForCard(cardId)
-        val content = HashMap<String, MutableList<CardContent>>()
+        val content = EnumMap<CardContentType, MutableList<CardContent>>(CardContentType::class.java)
         for (cardContentEntity in cardContentEntities) {
             content
                 .getOrPut(cardContentEntity.type) { mutableListOf() }

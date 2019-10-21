@@ -29,10 +29,11 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
     private val cardUseCases: CardUseCases by inject()
     private val flashViewModel: FlashViewModel by inject()
 
-    private val _booklet: MutableLiveData<LibraryBooklet> = MutableLiveData<LibraryBooklet>().apply {
-        GlobalScope.launch {
-            loadBooklet()
-        }
+    private val _booklet: MutableLiveData<LibraryBooklet> =
+        MutableLiveData<LibraryBooklet>().apply {
+            GlobalScope.launch {
+                loadBooklet()
+            }
     }
     val booklet: LiveData<LibraryBooklet> = _booklet
 
@@ -76,6 +77,7 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
                     _cards.add(newCard)
                     _currentCard.postValue(Card(bookletId = bookletId))
                     flashViewModel.bookletsStateChanged()
+                    loadBooklet()
                 }
             }
         }
@@ -89,6 +91,7 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
                     verbose { "Updated a card: $updatedCard" }
                     loadCards()
                     flashViewModel.bookletsStateChanged()
+                    loadBooklet()
                 }
             }
         }

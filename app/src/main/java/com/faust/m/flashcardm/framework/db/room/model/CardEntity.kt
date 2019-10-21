@@ -1,6 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
 import androidx.room.*
+import com.faust.m.core.domain.CardContentType
 import java.util.*
 
 const val CardContentTableName = "card_contents"
@@ -18,7 +19,7 @@ const val CardTableName = "cards"
 )
 data class CardContentEntity (
     @ColumnInfo(name = "value") val value: String,
-    @ColumnInfo(name = "card_type") val type: String,
+    @ColumnInfo(name = "card_type") val type: CardContentType,
     @ColumnInfo(name = "card_id") val cardId: Long,
     @ColumnInfo(name = "card_content_id")
     @PrimaryKey(autoGenerate = true) val id: Long = 0

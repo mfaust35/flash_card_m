@@ -1,6 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
+import com.faust.m.core.domain.CardContentType.FRONT
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
@@ -13,7 +14,7 @@ class CardDaoTest: BaseDaoTest() {
     private val bookletEntity = BookletEntity("First Booklet", 42)
     private val cardEntity = CardEntity(1, Date(30), Date(30), 42, 10)
     private val cardContentEntity =
-        CardContentEntity("Learn it", "text", 10, 25)
+        CardContentEntity("Learn it", FRONT, 10, 25)
 
     private lateinit var bookletDao: BookletDao
     private lateinit var cardDao: CardDao

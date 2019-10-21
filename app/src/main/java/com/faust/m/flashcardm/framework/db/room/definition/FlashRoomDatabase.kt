@@ -2,6 +2,9 @@ package com.faust.m.flashcardm.framework.db.room.definition
 
 import android.content.Context
 import androidx.room.*
+import com.faust.m.core.domain.CardContentType
+import com.faust.m.core.domain.CardContentType.BACK
+import com.faust.m.core.domain.CardContentType.FRONT
 import com.faust.m.flashcardm.framework.db.room.model.*
 import java.util.*
 
@@ -11,7 +14,7 @@ const val DATABASE_PATH = "flash_database"
     entities = [BookletEntity::class, CardEntity::class, CardContentEntity::class],
     version = 3
 )
-@TypeConverters(DateConverter::class)
+@TypeConverters(DateConverter::class, CardContentTypeConverter::class)
 abstract class FlashRoomDatabase: RoomDatabase() {
 
     abstract fun bookletDao(): BookletDao
@@ -50,5 +53,26 @@ class DateConverter {
     @TypeConverter
     fun fromDate(date: Date?): Long? {
         return date?.let { date.time }
+    }
+}
+
+class CardContentTypeConverter {
+
+    @TypeConverter
+    fun toCardContentType(value: String?): CardContentType? {
+        return when(value) {
+            "front" -> FRONT
+            "back" -> BACK
+            else -> BACK
+        }
+    }
+
+    @TypeConverter
+    fun fromCardContentType(cardContentType: CardContentType?): String? {
+        return when(cardContentType) {
+            FRONT -> "front"
+            BACK -> "back"
+            else -> "back"
+        }
     }
 }

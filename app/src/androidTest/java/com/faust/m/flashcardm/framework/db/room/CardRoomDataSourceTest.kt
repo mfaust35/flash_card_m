@@ -3,6 +3,7 @@ package com.faust.m.flashcardm.framework.db.room
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import com.faust.m.core.domain.Card
 import com.faust.m.core.domain.CardContent
+import com.faust.m.core.domain.CardContentType.FRONT
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.*
 import io.mockk.every
@@ -16,7 +17,7 @@ import java.util.*
 class CardRoomDataSourceTest: BaseDaoTest() {
 
     private val bookletEntity = BookletEntity("My Second Booklet", 25)
-    private val cardContent = CardContent("content", "recto")
+    private val cardContent = CardContent("content", FRONT)
     private val card =
         Card(rating = 0, lastSeen = Date(), bookletId = bookletEntity.id).add(cardContent)
 
@@ -48,10 +49,10 @@ class CardRoomDataSourceTest: BaseDaoTest() {
                 assertThat(it.bookletId)
                     .`as`("BookletId from card in cursor")
                     .isEqualTo(25)
-                assertThat(it.content["recto"]?.size)
+                assertThat(it.content[FRONT]?.size)
                     .`as`("List of recto content from card in database")
                     .isEqualTo(1)
-                assertThat(it.content["recto"]?.first()?.value)
+                assertThat(it.content[FRONT]?.first()?.value)
                     .`as`("First cardContent in card from database")
                     .isEqualTo("content")
             }
@@ -129,7 +130,7 @@ class CardRoomDataSourceTest: BaseDaoTest() {
                 assertThat(it).isEqualTo(
                     CardContentEntity(
                         value = "new_value",
-                        type = "front",
+                        type = FRONT,
                         cardId = 1,
                         id = 3
                     )
@@ -150,7 +151,7 @@ class CardRoomDataSourceTest: BaseDaoTest() {
             id = 1))
         cardContentDao.add(CardContentEntity(
             value = "old_value",
-            type = "front",
+            type = FRONT,
             cardId = 1,
             id = 3
         ))
@@ -158,8 +159,8 @@ class CardRoomDataSourceTest: BaseDaoTest() {
 
     private fun whenIUpdateCardContent() {
         val cardToUpdate: Card = Card(createdAt = Date(3000), bookletId = 25, id = 1).apply {
-            content["front"] = mutableListOf(
-                CardContent(value = "new_value", type = "front", cardId = 1, id = 3)
+            content[FRONT] = mutableListOf(
+                CardContent(value = "new_value", type = FRONT, cardId = 1, id = 3)
             )
         }
         cardRoomDataSource.updateCardContent(cardToUpdate)
@@ -197,7 +198,7 @@ class CardRoomDataSourceTest: BaseDaoTest() {
         // Given database will throw an error during cardContent add
         val cardContentDao: CardContentDao = mockk()
         every { cardContentDao.add(any()) }.throws(RuntimeException("Random error"))
-        cardRoomDataSource = CardRoomDataSource(_database, cardDao, cardContentDao)
+        val cardRoomDataSourceException = CardRoomDataSource(_database, cardDao, cardContentDao)
 
         // When I add a card in database
         var errorThrown = false
@@ -208,12 +209,12 @@ class CardRoomDataSourceTest: BaseDaoTest() {
             bookletId = 2,
             id = 3
         ).apply {
-            content["front"] = mutableListOf(
-                CardContent(value = "val", type = "front", cardId = 1, id = 0)
+            content[FRONT] = mutableListOf(
+                CardContent(value = "val", type = FRONT, cardId = 1, id = 0)
             )
         }
         try {
-            cardRoomDataSource.add(card)
+            cardRoomDataSourceException.add(card)
         } catch (e: java.lang.RuntimeException) {
             errorThrown = true
         }
@@ -223,6 +224,66 @@ class CardRoomDataSourceTest: BaseDaoTest() {
         // Then the card add has been roll back
         cardDao.getAllCardsForBooklet(2).run {
             assertThat(size).isEqualTo(0)
+        }
+    }
+
+    @Test
+    fun testAddCardShouldReturnABookletWithNoMoreContentCardThanTheCardToAdd() {
+        // Given a booklet in database
+        bookletDao.add(bookletEntity)
+
+        val cardWithContent = Card(
+            rating = 5,
+            createdAt = Date(20),
+            lastSeen = Date(30),
+            bookletId = 25,
+            id = 1
+        ).apply {
+            content[FRONT] = mutableListOf(CardContent(
+                value = "old_value",
+                type = FRONT,
+                cardId = 1,
+                id = 3
+            ))
+        }
+
+        cardRoomDataSource.add(cardWithContent).let {
+            assertThat(it.content[FRONT]).containsExactly(CardContent(
+                    value = "old_value",
+                    type = FRONT,
+                    cardId = 1,
+                    id = 3
+            ))
+        }
+    }
+
+    @Test
+    fun testAddCardWithNewCardContentShouldSetCardIdIntoCardContent() {
+        // Given a booklet in database
+        bookletDao.add(bookletEntity)
+
+        val cardWithContent = Card(
+            rating = 5,
+            createdAt = Date(20),
+            lastSeen = Date(30),
+            bookletId = 25,
+            id = 1
+        ).apply {
+            content[FRONT] = mutableListOf(CardContent(
+                value = "old_value",
+                type = FRONT,
+                cardId = 0, // Card id is not set to the correct card yet
+                id = 3
+            ))
+        }
+
+        cardRoomDataSource.add(cardWithContent).let {
+            assertThat(it.content[FRONT]).containsExactly(CardContent(
+                value = "old_value",
+                type = FRONT,
+                cardId = 1,
+                id = 3
+            ))
         }
     }
 }
