@@ -52,6 +52,7 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.booklet.observeData(this, ::onBookletChanged)
         viewModel.bookletCards.observeData(this, ::onCardsChanged)
         viewModel.cardEditionState.observeData(this, ::onCardEditionState)
+        viewModel.loadData()
 
         fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
     }

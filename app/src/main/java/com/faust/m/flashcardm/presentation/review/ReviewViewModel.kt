@@ -23,12 +23,14 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, 
 
     private val currentCard: MutableLiveData<CurrentCard> = MutableLiveData()
 
-    private val cardQueue: Queue<Card> =
-        LinkedList<Card>().apply {
-            GlobalScope.launch {
-                loadQueue()
-            }
+    private val cardQueue: Queue<Card> = LinkedList<Card>().apply {
+        GlobalScope.launch {
+            cardUseCases
+                .getCardsForBooklet(bookletId, filterReviewCard = true)
+                .forEach { add(it) }
+            currentCard.postValue(nextCard())
         }
+    }
     private var card: Card? = null
 
     fun getCurrentCard(): LiveData<CurrentCard> = currentCard
@@ -52,13 +54,6 @@ class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, 
 
     fun repeatCurrentCard() {
         card?.let { cardQueue.add(it) }
-        currentCard.postValue(nextCard())
-    }
-
-    private fun loadQueue() {
-        cardUseCases
-            .getCardsForBooklet(bookletId, filterReviewCard = true)
-            .forEach { cardQueue.add(it) }
         currentCard.postValue(nextCard())
     }
 

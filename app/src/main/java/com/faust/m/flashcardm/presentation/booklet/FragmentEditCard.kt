@@ -63,8 +63,10 @@ class FragmentEditCard: Fragment(), LiveDataObserver {
 
     private fun onCardChanged(card: Card?) {
         card?.let {
-            updateText(it.frontAsTextOrNull(), et_card_front)
+            val frontValue = it.frontAsTextOrNull()
+            updateText(frontValue, et_card_front)
             updateText(it.backAsTextOrNull(), et_card_back)
+            frontValue?.let { value -> et_card_front.setSelection(value.length) }
             if(et_card_front.requestFocus()) {
                 activity?.run {
                     (this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager?)

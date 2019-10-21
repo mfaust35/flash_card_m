@@ -48,6 +48,8 @@ data class Card (
 
     fun editBackAsText(newValue: String) = editAsText(newValue, BACK)
 
+    fun copyWithoutContent() = this.copy(content = EnumMap(CardContentType::class.java))
+
     internal fun needReview(): Boolean {
         return rating < 5 && needReviewToday()
     }

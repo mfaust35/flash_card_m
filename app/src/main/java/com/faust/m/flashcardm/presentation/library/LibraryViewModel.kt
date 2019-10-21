@@ -170,6 +170,7 @@ data class LibraryBooklet(val name: String,
         )
 
         val LOADING = LibraryBooklet("Loading", 0, 0, 0)
+        val ERROR = LibraryBooklet("Error", 0, 0, 0)
     }
 
     constructor(booklet: Booklet, bookletOutline: BookletOutline): this(

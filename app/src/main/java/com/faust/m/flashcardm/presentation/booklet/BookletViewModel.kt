@@ -12,6 +12,7 @@ import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.booklet.CardEditionState.*
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
+import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -29,19 +30,11 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
     private val cardUseCases: CardUseCases by inject()
     private val flashViewModel: FlashViewModel by inject()
 
-    private val _booklet: MutableLiveData<LibraryBooklet> =
-        MutableLiveData<LibraryBooklet>().apply {
-            GlobalScope.launch {
-                loadBooklet()
-            }
-    }
+    private val _booklet: MutableLiveData<LibraryBooklet> = MutableLiveData()
     val booklet: LiveData<LibraryBooklet> = _booklet
 
-    private val _cards: MutableLiveList<Card> = MutableLiveList<Card>().apply {
-        GlobalScope.launch {
-            loadCards()
-        }
-    }
+    private val _cards: MutableLiveList<Card> = MutableLiveList()
+
     private val _bookletCards: MutableLiveList<BookletCard> = MutableLiveList()
     val bookletCards: LiveData<MutableList<BookletCard>> =
         Transformations.switchMap(_cards) {
@@ -56,16 +49,19 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
     val cardEditionState: LiveData<CardEditionState> = _cardEditionState
 
 
-    private  fun loadBooklet() = bookletUseCases.getBooklet(bookletId)?.let { tBooklet ->
-        val tOutlines = bookletUseCases.getBookletsOutlines(listOf(tBooklet))
-        val tOutline = tOutlines[tBooklet.id] ?: BookletOutline.EMPTY
-        _booklet.postValue(LibraryBooklet(tBooklet, tOutline))
+    fun loadData() = GlobalScope.launch {
+        cardUseCases.getCardsForBooklet(bookletId).let {
+            _cards.postValue(it.toMutableList())
+        }
+        _booklet.postValue(loadBooklet())
     }
 
-    private fun loadCards() =
-        cardUseCases.getCardsForBooklet(bookletId).apply {
-            _cards.postValue(this.toMutableList())
-        }
+    private fun loadBooklet(): LibraryBooklet =
+        bookletUseCases.getBooklet(bookletId)?.let { tBooklet ->
+            val tOutlines = bookletUseCases.getBookletsOutlines(listOf(tBooklet))
+            val tOutline = tOutlines[tBooklet.id] ?: BookletOutline.EMPTY
+            LibraryBooklet(tBooklet, tOutline)
+        } ?: LibraryBooklet.ERROR
 
     fun addCard(front: String, back: String) =
         _currentCard.value?.let {
@@ -77,22 +73,35 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
                     _cards.add(newCard)
                     _currentCard.postValue(Card(bookletId = bookletId))
                     flashViewModel.bookletsStateChanged()
-                    loadBooklet()
+                    _booklet.postValue(loadBooklet())
                 }
             }
         }
 
     fun editCard(front: String, back: String) =
-        _currentCard.value?.copy(createdAt = Date())?.let {
-            it.editFrontAsText(front)
-            it.editBackAsText(back)
+        _currentCard.value?.copy(createdAt = Date())?.let { cardToUpdate ->
+            cardToUpdate.editFrontAsText(front)
+            cardToUpdate.editBackAsText(back)
             GlobalScope.launch {
-                cardUseCases.updateCardContent(it).also { updatedCard ->
+                cardUseCases.updateCardContent(cardToUpdate).also { updatedCard ->
                     verbose { "Updated a card: $updatedCard" }
-                    loadCards()
                     flashViewModel.bookletsStateChanged()
-                    loadBooklet()
+                    _cards.updateCardValue(updatedCard)
+                    _booklet.postValue(loadBooklet())
                 }
+            }
+        }
+
+    private fun MutableLiveList<Card>.updateCardValue(updatedCard: Card) =
+        value?.let { cardsValue ->
+            cardsValue.find { it.id == updatedCard.id }?.let { cardFound ->
+                val indexOf = cardsValue.indexOf(cardFound)
+                cardsValue.remove(cardFound)
+                val newCard = cardFound.copyWithoutContent()
+                updatedCard.frontAsTextOrNull()?.let { newCard.addFrontAsText(it) }
+                updatedCard.backAsTextOrNull()?.let { newCard.addBackAsText(it) }
+                cardsValue.add(indexOf, newCard)
+                notifyObserver()
             }
         }
 
