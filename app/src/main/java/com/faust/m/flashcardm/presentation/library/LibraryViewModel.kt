@@ -140,7 +140,7 @@ class MutableLibraryBooklets: MutableLiveList<LibraryBooklet>() {
     fun addSilent(booklet: LibraryBooklet): Int {
         return value?.let {
             it.add(booklet)
-            it.sortBy(LibraryBooklet::name)
+            it.sortBy { booklet -> booklet.name.toLowerCase() }
             it.indexOf(booklet)
         } ?: -1
     }
