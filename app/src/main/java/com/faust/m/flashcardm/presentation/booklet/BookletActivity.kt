@@ -17,6 +17,8 @@ import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.booklet.CardEditionState.*
+import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.DELETED
+import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.SELECTING
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -46,7 +48,7 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         }
 
         // Initialize adapter
-        bookletCardAdapter = BookletCardAdapter(onItemClick = ::onBookletCardClicked)
+        bookletCardAdapter = BookletCardAdapter()
         // Setup adapter in recyclerView
         recycler_view_cards.layoutManager = LinearLayoutManager(this)
         recycler_view_cards.adapter = bookletCardAdapter
@@ -57,16 +59,12 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         viewModel = getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         viewModel.booklet.observeData(this, ::onBookletChanged)
         viewModel.bookletCards.observeData(this, ::onCardsChanged)
-        viewModel.cardEditionState.observeData(this, ::onCardEditionState)
-        viewModel.cardDeleteState.observeData(this, ::onDeleteCardStateChanged)
+        viewModel.cardEditionState.observeData(this, ::onCardEditionStateChanged)
+        viewModel.cardRemovalStatus.observeData(this, ::onDeleteCardStateChanged)
         viewModel.loadData()
 
-        fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
-        iv_info.setOnClickListener(::onInfoClicked)
-    }
-
-    private fun onBookletCardClicked(card: BookletCard) {
-        viewModel.startCardEdition(card)
+        fab_add_card.setNoArgOnClickListener(::onAddCardClicked)
+        iv_info.setOnClickListener(::onBookletInfoClicked)
     }
 
     private fun onBookletChanged(booklet: LibraryBooklet) {
@@ -77,62 +75,45 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         bookletCardAdapter.replaceCards(cards)
     }
 
-    private fun onCardEditionState(cardEditionState: CardEditionState) =
+    private fun onCardEditionStateChanged(cardEditionState: CardEditionState) =
         when(cardEditionState) {
             EDIT, ADD -> showFragment()
             CLOSED -> hideFragment()
         }
 
-    private fun onDeleteCardStateChanged(deleteCard: DeleteCard) {
-        if (deleteCard.state == DeleteCard.State.DELETING) {
-            libraryBookletBinding.displayAsCancelButton()
-            bookletCardAdapter.deleteMode = true
-            bookletCardAdapter.idSelected = mutableListOf()
-            bookletCardAdapter.onItemClick = ::onItemClickWhenDelete
+    private fun onDeleteCardStateChanged(deleteCard: CardRemovalStatus) {
+        if (deleteCard.state == SELECTING) {
+            libraryBookletBinding.animateToCancelButton()
+            fab_add_card.animateToConfirmDeleteFAB()
+            bookletCardAdapter.switchMode(true, ::onSelectItem)
             bookletCardAdapter.notifyDataSetChanged()
-            fab_add_card.displayAsDelete()
-            fab_add_card.setNoArgOnClickListener(::onFabDeleteClicked)
-            iv_info.setNoArgOnClickListener(::onCancelDeleteClicked)
-        }
-        else if (deleteCard.state == DeleteCard.State.DELETED) {
-            libraryBookletBinding.displayAsNormalButton()
-            bookletCardAdapter.deleteMode = false
-            bookletCardAdapter.onItemClick = ::onBookletCardClicked
-            bookletCardAdapter.notifyItemDeleted(deleteCard.position)
-            fab_add_card.displayAsAdd()
-            fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
-            iv_info.setOnClickListener(::onInfoClicked)
         }
         else {
-            libraryBookletBinding.displayAsNormalButton()
-            bookletCardAdapter.deleteMode = false
-            bookletCardAdapter.onItemClick = ::onBookletCardClicked
-            bookletCardAdapter.notifyDataSetChanged()
-            fab_add_card.displayAsAdd()
-            fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
-            iv_info.setOnClickListener(::onInfoClicked)
+            libraryBookletBinding.animateToInfoButton()
+            fab_add_card.animateToAddCardFAB()
+            bookletCardAdapter.switchMode(false, ::onEditCard)
+            if (deleteCard.state == DELETED) {
+                bookletCardAdapter.notifyItemDeleted(deleteCard.position, deleteCard.bookletCards)
+            }
+            else {
+                bookletCardAdapter.notifyDataSetChanged()
+            }
         }
     }
 
-    private fun onCancelDeleteClicked() {
-        viewModel.cancelDelete()
-    }
+    private fun onEditCard(card: BookletCard) = viewModel.startCardEdition(card)
 
-    private fun onFabDeleteClicked() {
-        viewModel.deleteTheseItems()
-    }
+    private fun onCancelDeleteClicked() = viewModel.stopRemoveCard()
 
-    private fun onItemClickWhenDelete(card: BookletCard) {
-        val ids = viewModel.itemClickForDeletion(card)
-        bookletCardAdapter.idSelected = ids
-        bookletCardAdapter.notifyDataSetChanged()
-    }
+    private fun onConfirmDeleteClicked() = viewModel.deleteSelectedBookletCards()
 
-    private fun onFabAddCardClicked() {
-        viewModel.startCardAddition()
-    }
+    private fun onSelectItem(card: BookletCard) =
+        viewModel.switchBookletCardForRemoval(card)
 
-    private fun onInfoClicked(view: View) {
+    private fun onAddCardClicked() = viewModel.startCardAddition()
+
+
+    private fun onBookletInfoClicked(view: View) {
         PopupMenu(this, view).apply {
             menuInflater.inflate(R.menu.menu_card, this.menu)
             setOnMenuItemClickListener(::onInfoMenuClick)
@@ -143,21 +124,22 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
     private fun onInfoMenuClick(menuItem: MenuItem?): Boolean {
         return when (menuItem?.itemId) {
             R.id.menu_action_delete_card -> {
-                viewModel.startDeleteCards()
+                viewModel.startRemoveCards()
                 true
             }
             else -> false
         }
     }
 
+
     private fun showFragment() {
         makeFragmentTransaction { it.show(fg_add_card) }
-        makeAnimationEnable(false)
+        makeFABAnimation(false)
     }
 
     private fun hideFragment() {
         makeFragmentTransaction { it.hide(fg_add_card) }
-        makeAnimationEnable(true)
+        makeFABAnimation(true)
     }
 
     private fun makeFragmentTransaction(animated: Boolean = true,
@@ -170,7 +152,7 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
             ft.commit()
         }
 
-    private fun makeAnimationEnable(enable: Boolean) =
+    private fun makeFABAnimation(enable: Boolean) =
         fab_add_card.apply {
             clearAnimation()
             startAnimation(
@@ -182,63 +164,45 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
 
 
     override fun onBackPressed() {
-        if (fg_add_card.isVisible) {
-            viewModel.stopCardEdition()
-        } else {
-            if (!viewModel.onBackPressed())
-                super.onBackPressed()
+        if (!viewModel.onBackPressed()) {
+            super.onBackPressed()
         }
     }
 
-    private fun FloatingActionButton.displayAsAdd() {
+
+    private fun FloatingActionButton.animateToAddCardFAB() {
         setImageResource(R.drawable.ic_library_add_black_24dp)
-        apply {
-            clearAnimation()
-            startAnimation(
-                loadAnimation(this@BookletActivity,
-                    R.anim.pop_up)
-            )
-        }
+        clearAnimation()
+        startAnimation(loadAnimation(this@BookletActivity, R.anim.pop_up))
+        setNoArgOnClickListener(::onAddCardClicked)
     }
 
-    private fun FloatingActionButton.displayAsDelete() {
-        setImageResource(android.R.drawable.ic_menu_delete)
-        apply {
-            clearAnimation()
-            startAnimation(
-                loadAnimation(this@BookletActivity,
-                    R.anim.pop_up)
-            )
-        }
+    private fun FloatingActionButton.animateToConfirmDeleteFAB() {
+        setImageResource(R.drawable.ic_delete_forever_white_24dp)
+        clearAnimation()
+        startAnimation(loadAnimation(this@BookletActivity, R.anim.pop_up))
+        setNoArgOnClickListener(::onConfirmDeleteClicked)
     }
 
-    private fun RecyclerViewLibraryBookletsBinding.displayAsCancelButton() =
+    private fun RecyclerViewLibraryBookletsBinding.animateToCancelButton() =
         root.find<ImageView>(R.id.iv_info).let {
-            it.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-            apply {
-                it.clearAnimation()
-                it.startAnimation(
-                    loadAnimation(this@BookletActivity,
-                        R.anim.pop_up)
-                )
-            }
+            it.setImageResource(R.drawable.ic_cancel_white_24dp)
+            it.clearAnimation()
+            it.startAnimation(loadAnimation(this@BookletActivity, R.anim.pop_up))
+            it.setNoArgOnClickListener(::onCancelDeleteClicked)
         }
 
-    private fun RecyclerViewLibraryBookletsBinding.displayAsNormalButton() =
+    private fun RecyclerViewLibraryBookletsBinding.animateToInfoButton() =
         root.find<ImageView>(R.id.iv_info).let {
             it.setImageResource(R.drawable.ic_info_white_24dp)
-            apply {
-                it.clearAnimation()
-                it.startAnimation(
-                    loadAnimation(this@BookletActivity,
-                        R.anim.pop_up)
-                )
-            }
+            it.clearAnimation()
+            it.startAnimation(loadAnimation(this@BookletActivity, R.anim.pop_up))
+            it.setOnClickListener(::onBookletInfoClicked)
+        }
+
+    private fun RecyclerViewLibraryBookletsBinding.displayShortName() =
+        root.find<TextView>(R.id.recycler_view_booklet_name).let {
+            it.maxLines = 1
+            it.ellipsize = TextUtils.TruncateAt.END
         }
 }
-
-private fun RecyclerViewLibraryBookletsBinding.displayShortName() =
-    root.find<TextView>(R.id.recycler_view_booklet_name).let {
-        it.maxLines = 1
-        it.ellipsize = TextUtils.TruncateAt.END
-    }

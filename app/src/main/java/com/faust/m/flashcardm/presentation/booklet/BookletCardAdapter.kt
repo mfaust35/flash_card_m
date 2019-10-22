@@ -7,19 +7,16 @@ import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.RecyclerViewBookletCardsBinding
-import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.find
-import org.jetbrains.anko.info
 
 class BookletCardAdapter(cards: Collection<BookletCard>? = null,
                          var onItemClick: ((value: BookletCard) -> Unit)? = null):
-        RecyclerView.Adapter<BookletCardAdapter.Holder>(), AnkoLogger {
+        RecyclerView.Adapter<BookletCardAdapter.Holder>() {
 
     private val cards: MutableList<BookletCard> =
         if (cards.isNullOrEmpty()) mutableListOf() else ArrayList(cards)
 
-    var deleteMode: Boolean = false
-    var idSelected: MutableList<Long> = mutableListOf()
+    var showRemoveMode: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         with(LayoutInflater.from(parent.context)) {
@@ -32,35 +29,33 @@ class BookletCardAdapter(cards: Collection<BookletCard>? = null,
         holder.bindCard(cards[position])
     }
 
+    fun switchMode(isRemoveMode: Boolean, newOnItemClick: (value: BookletCard) -> Unit) {
+        showRemoveMode = isRemoveMode
+        onItemClick = newOnItemClick
+    }
+
     fun replaceCards(newCards: List<BookletCard>) {
         cards.clear()
         cards.addAll(newCards)
         notifyDataSetChanged()
     }
 
-    fun notifyItemDeleted(positions: List<Int>) {
+    fun notifyItemDeleted(positions: Set<Int>, newCards: List<BookletCard>) {
+        val previousSize = cards.size
 
-        var size = cards.size
+        cards.clear()
+        cards.addAll(newCards)
 
-        val cardsToRemove =
-            cards.filterIndexed { index, bookletCard -> positions.contains(index) }
-        cards.removeAll(cardsToRemove)
-/*
-        positions.forEach {
-            notifyItemRemoved(it)
+        // Animated remove card
+        var offset = 0
+        (0 until previousSize).forEach {
+            if (positions.contains(it)) {
+                notifyItemRemoved(it - offset++)
+            }
         }
-*/
-        var count = 0
-        info { "Size is $size" }
-        for (i in 0 until cards.size) {
-            if (positions.contains(i))
-                notifyItemRemoved(i - (count++))
-            /*else
-                notifyItemChanged(i)*/
-        }
-        size = cards.size
-        //notifyDataSetChanged()
-        notifyItemRangeChanged(0, size)
+
+        // Update the rest
+        notifyItemRangeChanged(0, cards.size)
     }
 
     inner class Holder(private val binding: RecyclerViewBookletCardsBinding):
@@ -70,10 +65,15 @@ class BookletCardAdapter(cards: Collection<BookletCard>? = null,
             binding.card = card
             binding.executePendingBindings()
 
-            itemView.find<CheckBox>(R.id.cb_selected).isChecked = idSelected.contains(card.id)
-
-            itemView.find<CheckBox>(R.id.cb_selected).visibility =
-                if (deleteMode) View.VISIBLE else View.GONE
+            itemView.find<CheckBox>(R.id.cb_selected).let {
+                when {
+                    showRemoveMode -> {
+                        it.visibility = View.VISIBLE
+                        it.isChecked = card.isSelected
+                    }
+                    else -> it.visibility = View.GONE
+                }
+            }
 
             itemView.setOnClickListener { onItemClick?.invoke(card) }
         }

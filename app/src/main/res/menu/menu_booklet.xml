@@ -4,9 +4,9 @@
     tools:context="com.faust.m.flashcardm.presentation.MainActivity">
 
     <item
-        android:id="@+id/menu_action_add_card"
+        android:id="@+id/menu_action_manage_cards"
         android:orderInCategory="1"
-        android:title="@string/menu_action_add_card"
+        android:title="@string/menu_action_manage_cards"
         app:showAsAction="ifRoom" />
 
     <item
