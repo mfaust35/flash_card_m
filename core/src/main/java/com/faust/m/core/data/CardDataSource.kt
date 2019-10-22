@@ -19,4 +19,6 @@ interface CardDataSource {
     fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArrayList<Card>
 
     fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> // booklet_id -> count
+
+    fun deleteCard(card: Card): Int
 }

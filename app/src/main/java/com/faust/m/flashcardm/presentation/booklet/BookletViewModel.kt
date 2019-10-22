@@ -1,5 +1,6 @@
 package com.faust.m.flashcardm.presentation.booklet
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
@@ -16,7 +17,9 @@ import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.info
 import org.jetbrains.anko.verbose
+import org.jetbrains.anko.warn
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import java.util.*
@@ -42,12 +45,16 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
             _bookletCards
         }
 
+    private val _selectedBookletCard: MutableList<BookletCard> = mutableListOf()
+
     private val _currentCard: MutableLiveData<Card?> = MutableLiveData()
     val currentCard: LiveData<Card?> = _currentCard
 
     private val _cardEditionState: MutableLiveData<CardEditionState> = MutableLiveData(CLOSED)
     val cardEditionState: LiveData<CardEditionState> = _cardEditionState
 
+    private val _cardDeleteState: MutableLiveData<DeleteCard> = MutableLiveData()
+    val cardDeleteState: LiveData<DeleteCard> =_cardDeleteState
 
     fun loadData() = GlobalScope.launch {
         cardUseCases.getCardsForBooklet(bookletId).let {
@@ -119,6 +126,69 @@ class BookletViewModel(private val bookletId: Long): ViewModel(), KoinComponent,
         _currentCard.postValue(_cards.value?.find { it.id == card.id })
         _cardEditionState.postValue(EDIT)
     }
+
+    fun startDeleteCards() {
+        _cardDeleteState.postValue(DeleteCard(DeleteCard.State.DELETING))
+        _selectedBookletCard.clear()
+    }
+
+    fun itemClickForDeletion(card: BookletCard): MutableList<Long> {
+        if (_selectedBookletCard.contains(card)) {
+            _selectedBookletCard.remove(card)
+        }
+        else {
+            _selectedBookletCard.add(card)
+        }
+        return _selectedBookletCard.map(BookletCard::id).toMutableList()
+    }
+
+    fun cancelDelete() {
+        _cardDeleteState.postValue(DeleteCard(DeleteCard.State.NOTHING))
+    }
+
+    fun deleteTheseItems() {
+        info { "_cards: ${_cards.value}" }
+        info { "_bookletCards: ${_bookletCards.value}" }
+        info { "_selectedBookletCard: $_selectedBookletCard" }
+
+        val positions = mutableListOf<Int>()
+        val curCards = _bookletCards.value ?: mutableListOf()
+        val ids = _selectedBookletCard.map(BookletCard::id).toSet()
+
+        val bookletCardsToRemove = mutableListOf<BookletCard>()
+        for (card in curCards) {
+            if (_selectedBookletCard.contains(card)) {
+                positions.add(curCards.indexOf(card))
+                bookletCardsToRemove.add(card)
+            }
+        }
+        bookletCardsToRemove.forEach { _bookletCards.value?.remove(it) }
+
+        val realCards = _cards.value ?: mutableListOf()
+        val cardsToRemove = mutableListOf<Card>()
+        for (card in realCards) {
+            if (ids.contains(card.id)) {
+                // Need to remove it from the list
+                cardsToRemove.add(card)
+            }
+        }
+        info { "cardsToRemove: $cardsToRemove" }
+        cardsToRemove.forEach { _cards.value?.remove(it) }
+
+        info { "positions: $positions" }
+        info { "_cards: ${_cards.value}" }
+        info { "_bookletCards: ${_bookletCards.value}" }
+
+        _cardDeleteState.postValue(DeleteCard(DeleteCard.State.DELETED, positions))
+    }
+
+    fun onBackPressed(): Boolean {
+        if (_cardDeleteState.value?.state == DeleteCard.State.DELETING) {
+            _cardDeleteState.postValue(DeleteCard(DeleteCard.State.NOTHING))
+            return true
+        }
+        return false
+    }
 }
 
 data class BookletCard(val front: String,
@@ -130,4 +200,9 @@ data class BookletCard(val front: String,
         card.backAsTextOrNull() ?: "",
         card.id
     )
+}
+
+data class DeleteCard(val state: State, val position: List<Int> = mutableListOf()) {
+
+    enum class State { NOTHING, DELETED, DELETING }
 }

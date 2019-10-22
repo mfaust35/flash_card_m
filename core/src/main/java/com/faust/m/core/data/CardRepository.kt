@@ -18,4 +18,6 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun countCardForBooklets(bookletIds: List<Long>): Map<Long, Int> =
         dataSource.countCardsForBooklets(bookletIds)
+
+    fun deleteCard(card: Card): Int = dataSource.deleteCard(card)
 }

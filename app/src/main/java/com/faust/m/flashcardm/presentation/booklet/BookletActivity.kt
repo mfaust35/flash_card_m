@@ -3,7 +3,11 @@ package com.faust.m.flashcardm.presentation.booklet
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
 import android.view.animation.AnimationUtils.loadAnimation
+import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
@@ -15,7 +19,9 @@ import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.booklet.CardEditionState.*
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.android.synthetic.main.activity_booklet.*
+import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
 import org.jetbrains.anko.find
 import org.koin.android.ext.android.getKoin
 
@@ -52,9 +58,11 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.booklet.observeData(this, ::onBookletChanged)
         viewModel.bookletCards.observeData(this, ::onCardsChanged)
         viewModel.cardEditionState.observeData(this, ::onCardEditionState)
+        viewModel.cardDeleteState.observeData(this, ::onDeleteCardStateChanged)
         viewModel.loadData()
 
         fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
+        iv_info.setOnClickListener(::onInfoClicked)
     }
 
     private fun onBookletCardClicked(card: BookletCard) {
@@ -75,8 +83,71 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
             CLOSED -> hideFragment()
         }
 
+    private fun onDeleteCardStateChanged(deleteCard: DeleteCard) {
+        if (deleteCard.state == DeleteCard.State.DELETING) {
+            libraryBookletBinding.displayAsCancelButton()
+            bookletCardAdapter.deleteMode = true
+            bookletCardAdapter.idSelected = mutableListOf()
+            bookletCardAdapter.onItemClick = ::onItemClickWhenDelete
+            bookletCardAdapter.notifyDataSetChanged()
+            fab_add_card.displayAsDelete()
+            fab_add_card.setNoArgOnClickListener(::onFabDeleteClicked)
+            iv_info.setNoArgOnClickListener(::onCancelDeleteClicked)
+        }
+        else if (deleteCard.state == DeleteCard.State.DELETED) {
+            libraryBookletBinding.displayAsNormalButton()
+            bookletCardAdapter.deleteMode = false
+            bookletCardAdapter.onItemClick = ::onBookletCardClicked
+            bookletCardAdapter.notifyItemDeleted(deleteCard.position)
+            fab_add_card.displayAsAdd()
+            fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
+            iv_info.setOnClickListener(::onInfoClicked)
+        }
+        else {
+            libraryBookletBinding.displayAsNormalButton()
+            bookletCardAdapter.deleteMode = false
+            bookletCardAdapter.onItemClick = ::onBookletCardClicked
+            bookletCardAdapter.notifyDataSetChanged()
+            fab_add_card.displayAsAdd()
+            fab_add_card.setNoArgOnClickListener(::onFabAddCardClicked)
+            iv_info.setOnClickListener(::onInfoClicked)
+        }
+    }
+
+    private fun onCancelDeleteClicked() {
+        viewModel.cancelDelete()
+    }
+
+    private fun onFabDeleteClicked() {
+        viewModel.deleteTheseItems()
+    }
+
+    private fun onItemClickWhenDelete(card: BookletCard) {
+        val ids = viewModel.itemClickForDeletion(card)
+        bookletCardAdapter.idSelected = ids
+        bookletCardAdapter.notifyDataSetChanged()
+    }
+
     private fun onFabAddCardClicked() {
         viewModel.startCardAddition()
+    }
+
+    private fun onInfoClicked(view: View) {
+        PopupMenu(this, view).apply {
+            menuInflater.inflate(R.menu.menu_card, this.menu)
+            setOnMenuItemClickListener(::onInfoMenuClick)
+            show()
+        }
+    }
+
+    private fun onInfoMenuClick(menuItem: MenuItem?): Boolean {
+        return when (menuItem?.itemId) {
+            R.id.menu_action_delete_card -> {
+                viewModel.startDeleteCards()
+                true
+            }
+            else -> false
+        }
     }
 
     private fun showFragment() {
@@ -110,10 +181,59 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         }
 
 
-    override fun onBackPressed() =
-        when(fg_add_card.isVisible) {
-            true -> viewModel.stopCardEdition()
-            else -> super.onBackPressed()
+    override fun onBackPressed() {
+        if (fg_add_card.isVisible) {
+            viewModel.stopCardEdition()
+        } else {
+            if (!viewModel.onBackPressed())
+                super.onBackPressed()
+        }
+    }
+
+    private fun FloatingActionButton.displayAsAdd() {
+        setImageResource(R.drawable.ic_library_add_black_24dp)
+        apply {
+            clearAnimation()
+            startAnimation(
+                loadAnimation(this@BookletActivity,
+                    R.anim.pop_up)
+            )
+        }
+    }
+
+    private fun FloatingActionButton.displayAsDelete() {
+        setImageResource(android.R.drawable.ic_menu_delete)
+        apply {
+            clearAnimation()
+            startAnimation(
+                loadAnimation(this@BookletActivity,
+                    R.anim.pop_up)
+            )
+        }
+    }
+
+    private fun RecyclerViewLibraryBookletsBinding.displayAsCancelButton() =
+        root.find<ImageView>(R.id.iv_info).let {
+            it.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+            apply {
+                it.clearAnimation()
+                it.startAnimation(
+                    loadAnimation(this@BookletActivity,
+                        R.anim.pop_up)
+                )
+            }
+        }
+
+    private fun RecyclerViewLibraryBookletsBinding.displayAsNormalButton() =
+        root.find<ImageView>(R.id.iv_info).let {
+            it.setImageResource(R.drawable.ic_info_white_24dp)
+            apply {
+                it.clearAnimation()
+                it.startAnimation(
+                    loadAnimation(this@BookletActivity,
+                        R.anim.pop_up)
+                )
+            }
         }
 }
 
