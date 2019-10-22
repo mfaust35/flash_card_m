@@ -47,8 +47,8 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val _bookletRemoved: MutableLiveData<Event<LibraryBooklet>> = MutableLiveData()
     val bookletRemoved: LiveData<Event<LibraryBooklet>> = _bookletRemoved
 
-    private val _eventAddCardToBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
-    val eventAddCardToBooklet: LiveData<Event<Long>> = _eventAddCardToBooklet
+    private val _eventManageCardsForBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
+    val eventManageCardsForBooklet: LiveData<Event<Long>> = _eventManageCardsForBooklet
 
     private val _eventReviewBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
     val eventReviewBooklet: LiveData<Event<Long>> = _eventReviewBooklet
@@ -113,9 +113,9 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
         }
     }
 
-    fun addCardsToCurrentBooklet() {
+    fun manageCardsForCurrentBooklet() {
         selectedBooklet?.let {
-            _eventAddCardToBooklet.postValue(Event(it.id))
+            _eventManageCardsForBooklet.postValue(Event(it.id))
         } ?: warn { "Could not find booklet to add cards to" }
     }
 

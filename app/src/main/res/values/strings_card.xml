@@ -10,4 +10,6 @@
     <string name="ask_again">Ask again</string>
     <string name="i_knew">I knew</string>
 
+    <string name="menu_action_delete_cards">Delete cards</string>
+
 </resources>

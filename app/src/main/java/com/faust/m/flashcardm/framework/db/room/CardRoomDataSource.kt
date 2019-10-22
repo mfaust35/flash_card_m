@@ -72,6 +72,9 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
     override fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> =
         cardDao.countCardsForBooklets(bookletIds).map { it.bookletId to it.count }.toMap()
 
+    override fun deleteCard(card: Card): Int =
+        cardDao.delete(card.toEntityModel())
+
 
     private fun CardEntity.toDomainModel(): Card =
         Card(rating, lastSeen, createdAt, bookletId = bookletId, id = id)

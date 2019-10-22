@@ -46,7 +46,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.booklets.observeData(this, ::onBookletsChanged)
         viewModel.bookletRemoved.observeEvent(this, ::onEventBookletRemoved)
         viewModel.bookletAdded.observeEvent(this, ::onEventBookletAdded)
-        viewModel.eventAddCardToBooklet.observeEvent(this, ::onEvenAddCardToBooklet)
+        viewModel.eventManageCardsForBooklet.observeEvent(this, ::onEvenManageCardsForBooklet)
         viewModel.eventReviewBooklet.observeEvent(this, ::onEventReviewBooklet)
 
         fab_add_booklet.setNoArgOnClickListener(::onFabAddBookletClicked)
@@ -85,8 +85,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
                 viewModel.deleteCurrentBooklet()
                 true
             }
-            R.id.menu_action_add_card -> {
-                viewModel.addCardsToCurrentBooklet()
+            R.id.menu_action_manage_cards -> {
+                viewModel.manageCardsForCurrentBooklet()
                 true
             }
             R.id.menu_action_rename_booklet -> {
@@ -125,7 +125,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         }
     }
 
-    private fun onEvenAddCardToBooklet(bookletId: Long) {
+    private fun onEvenManageCardsForBooklet(bookletId: Long) {
         startActivity<BookletActivity>(
             BOOKLET_ID to bookletId
         )
