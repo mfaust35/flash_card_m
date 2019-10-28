@@ -48,7 +48,7 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
         }
 
         // Initialize adapter
-        bookletCardAdapter = BookletCardAdapter()
+        bookletCardAdapter = BookletCardAdapter(onItemClick = ::onEditCard)
         // Setup adapter in recyclerView
         recycler_view_cards.layoutManager = LinearLayoutManager(this)
         recycler_view_cards.adapter = bookletCardAdapter
