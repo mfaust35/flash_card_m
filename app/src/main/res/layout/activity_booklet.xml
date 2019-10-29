@@ -6,39 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/insert_point"
-        android:orientation="horizontal"
+    <fragment
+        android:id="@+id/fg_card_list"
+        android:name="com.faust.m.flashcardm.presentation.booklet.FragmentCardList"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/small_margin"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view_cards"
-        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@color/colorPrimaryLight"
-        android:paddingTop="@dimen/small_margin"
-        android:scrollbars="vertical"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/insert_point" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_card"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/large_margin"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="@dimen/fab_margin"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_library_add_black_24dp" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <fragment
         android:id="@+id/fg_add_card"
