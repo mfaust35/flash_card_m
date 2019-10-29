@@ -20,6 +20,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".presentation.review.ReviewActivity"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".presentation.booklet.BookletActivity"
             android:windowSoftInputMode="adjustResize"

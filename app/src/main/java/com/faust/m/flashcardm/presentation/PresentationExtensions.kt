@@ -1,8 +1,11 @@
 package com.faust.m.flashcardm.presentation
 
+import android.app.Activity
+import android.content.Context
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LifecycleOwner
@@ -24,6 +27,18 @@ fun TextInputEditText.setEditorActionListener(listener:
     setOnEditorActionListener { textView: TextView, actionId: Int, keyEvent: KeyEvent? ->
         listener.invoke(textView, EditorAction(actionId, keyEvent))
     }
+}
+
+fun Activity?.showKeyboard(view: View) = this?.run {
+    if (view.requestFocus()) {
+        (this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?)
+            ?.showSoftInput(view, 0)
+    }
+}
+
+fun Activity?.hideKeyboard(view: View) = this?.run {
+    (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?)
+        ?.hideSoftInputFromWindow(view.windowToken, 0)
 }
 
 class EditorAction(private val actionId: Int, private val keyEvent: KeyEvent?) {

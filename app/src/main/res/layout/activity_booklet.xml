@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/fg_add_card"
-        android:name="com.faust.m.flashcardm.presentation.booklet.FragmentEditCard"
+        android:name="com.faust.m.flashcardm.presentation.fragment_edit_card.FragmentEditCard"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"

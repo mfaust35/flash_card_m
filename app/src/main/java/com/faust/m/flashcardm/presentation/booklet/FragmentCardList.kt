@@ -1,7 +1,6 @@
 package com.faust.m.flashcardm.presentation.booklet
 
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -9,13 +8,13 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
+import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -135,12 +134,6 @@ class FragmentCardList: Fragment(), LiveDataObserver {
             else -> false
         }
     }
-
-    private fun RecyclerViewLibraryBookletsBinding.displayShortName() =
-        root.find<TextView>(R.id.recycler_view_booklet_name).let {
-            it.maxLines = 1
-            it.ellipsize = TextUtils.TruncateAt.END
-        }
 
     private fun FloatingActionButton.animateToAddCardFAB() {
         setImageResource(R.drawable.ic_library_add_black_24dp)

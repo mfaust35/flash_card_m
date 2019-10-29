@@ -11,5 +11,6 @@
     <string name="i_knew">I knew</string>
 
     <string name="menu_action_delete_cards">Delete cards</string>
+    <string name="menu_action_edit_cards">Edit this card</string>
 
 </resources>
