@@ -13,4 +13,6 @@
     <string name="menu_action_delete_cards">Delete cards</string>
     <string name="menu_action_edit_cards">Edit this card</string>
 
+    <string name="empty_card_list">"You don't have any card in this booklet. Try adding one with the bottom left button"</string>
+
 </resources>

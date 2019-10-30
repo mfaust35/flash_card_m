@@ -107,22 +107,23 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
     private fun onBookletsChanged(booklets: MutableList<LibraryBooklet>) {
         bookletAdapter.replaceBooklets(booklets)
-        when {
-            booklets.isEmpty() -> tv_empty_recycler_view.visibility = View.VISIBLE
-            else -> tv_empty_recycler_view.visibility = View.GONE
-        }
+        showEmptyRecyclerView(booklets.isEmpty())
     }
 
-    private fun onEventBookletRemoved(libraryBooklet: LibraryBooklet) {
-        bookletAdapter.bookletRemoved(libraryBooklet)
+    private fun showEmptyRecyclerView(show: Boolean) {
+        tv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
-    private fun onEventBookletAdded(addedBooklet: AddedBooklet?) {
-        addedBooklet?.run {
-            if (addedBooklet.state == SUCCESS) {
-                bookletAdapter.bookletAdded(this)
-            }
+    private fun onEventBookletRemoved(bookletRemovalStatus: BookletRemovalStatus) {
+        bookletAdapter.bookletRemoved(bookletRemovalStatus.removedBooklet)
+        showEmptyRecyclerView(bookletRemovalStatus.wasLast)
+    }
+
+    private fun onEventBookletAdded(addedBooklet: AddedBooklet) {
+        if (addedBooklet.state == SUCCESS) {
+            bookletAdapter.bookletAdded(addedBooklet)
         }
+        tv_empty_recycler_view.visibility = View.GONE
     }
 
     private fun onEvenManageCardsForBooklet(bookletId: Long) {

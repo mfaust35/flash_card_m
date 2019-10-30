@@ -14,9 +14,9 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
+import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.android.synthetic.main.fragment_card_list.*
 import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
@@ -76,6 +76,11 @@ class FragmentCardList: Fragment(), LiveDataObserver {
 
     private fun onCardsChanged(cards: MutableList<BookletCard>) {
         bookletCardAdapter.replaceCards(cards)
+        showEmptyRecyclerView(cards.isEmpty())
+    }
+
+    private fun showEmptyRecyclerView(show: Boolean) {
+        tv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun onDeleteCardStateChanged(deleteCard: CardRemovalStatus) {
@@ -91,6 +96,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
             bookletCardAdapter.switchMode(false, ::onEditCard)
             if (deleteCard.state == CardRemovalStatus.State.DELETED) {
                 bookletCardAdapter.notifyItemDeleted(deleteCard.position, deleteCard.bookletCards)
+                showEmptyRecyclerView(deleteCard.bookletCards.isEmpty())
             }
             else {
                 bookletCardAdapter.notifyDataSetChanged()
