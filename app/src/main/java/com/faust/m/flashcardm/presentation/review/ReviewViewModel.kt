@@ -5,9 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.faust.m.core.domain.Card
 import com.faust.m.flashcardm.framework.CardUseCases
-import com.faust.m.flashcardm.framework.FlashViewModel
-import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
-import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
+import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
+import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
+import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
+import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
+import com.faust.m.flashcardm.presentation.view_library_booklet.DelegateLibraryBooklet
+import com.faust.m.flashcardm.presentation.view_library_booklet.ViewModelLibraryBooklet
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -16,75 +20,134 @@ import org.koin.core.KoinComponent
 import org.koin.core.inject
 import java.util.*
 
-class ReviewViewModel(private val bookletId: Long): ViewModel(), KoinComponent, AnkoLogger {
+class ReviewViewModel @JvmOverloads constructor(
+    private val bookletId: Long,
+    private val delegateEditCard: DelegateEditCard = DelegateEditCard(bookletId),
+    private val delegateLibraryBooklet: ViewModelLibraryBooklet = DelegateLibraryBooklet(bookletId)
+): ViewModel(),
+    KoinComponent,
+    ViewModelEditCard by delegateEditCard,
+    ViewModelLibraryBooklet by delegateLibraryBooklet,
+    AnkoLogger {
 
-    private val flashViewModel: FlashViewModel by inject()
+    // Initialize the delegate for card edition with a listener onCardEdited
+    init { delegateEditCard.onCardEdited = ::onCardEdited }
+
+
     private val cardUseCases: CardUseCases by inject()
+    //private val viewModelLibraryBooklet = DelegateLibraryBooklet(bookletId)
 
-    private val currentCard: MutableLiveData<CurrentCard> = MutableLiveData()
 
-    private val cardQueue: Queue<Card> = LinkedList<Card>().apply {
+    // Current card used to make reviewCard on display
+    private val _currentCard: MutableLiveData<Card?> = MutableLiveData()
+    // Current reviewCard on display
+    private val _reviewCard: MutableLiveData<ReviewCard> = MutableLiveData()
+    val reviewCard: LiveData<ReviewCard> = _reviewCard
+
+    // Queue of cards (only cards to review) for the booklet on review
+    private var _cardQueue = LinkedList<Card>()
+
+
+    override fun loadData() {
+        delegateLibraryBooklet.loadData()
         GlobalScope.launch {
             cardUseCases
                 .getCardsForBooklet(bookletId, filterReviewCard = true)
-                .forEach { add(it) }
-            currentCard.postValue(nextCard())
+                .forEach { _cardQueue.add(it) }
+            postCardUpdate()
         }
     }
-    private var card: Card? = null
 
-    fun getCurrentCard(): LiveData<CurrentCard> = currentCard
 
-    fun switchCurrentCard() {
-        currentCard.postValue(nextCard())
+    fun flipCurrentCard() {
+        postCardUpdate()
     }
 
     fun validateCurrentCard() {
-        card?.let {
+        _currentCard.value?.let {
             val cardToUpdate = it.copy(rating = it.rating + 1, lastSeen = Date())
             GlobalScope.launch {
                 cardUseCases.updateCard(cardToUpdate).also { updatedCard: Card ->
                     warn { "Card updated $updatedCard" }
-                    flashViewModel.bookletsStateChanged()
+                    postBookletUpdate()
+                    postCardUpdate()
                 }
             }
         }
-        currentCard.postValue(nextCard())
     }
 
     fun repeatCurrentCard() {
-        card?.let { cardQueue.add(it) }
-        currentCard.postValue(nextCard())
+        _currentCard.value?.let { _cardQueue.add(it) }
+        postCardUpdate()
     }
 
-    private fun nextCard(): CurrentCard {
-        if (currentCard.value == null || currentCard.value?.state == RATING) {
-            if (cardQueue.isNotEmpty()) {
-                val nextCard = cardQueue.remove()
-                card = nextCard
-                nextCard.let {
-                    return CurrentCard(
-                        it.frontAsTextOrNull() ?: "??",
-                        it.backAsTextOrNull() ?: "??",
-                        ASKING
-                    )
+    fun startEditCard() =
+        delegateEditCard.startCardEdition(_currentCard.value)
+
+
+    private fun postCardUpdate() {
+        val card =
+            if (_reviewCard.value.isFinished()) {
+                when {
+                    _cardQueue.isNotEmpty() -> _cardQueue.remove()
+                    else -> null
                 }
+            } else {
+                _currentCard.value
             }
-            else {
-                return CurrentCard.EMPTY
-            }
+        _currentCard.postValue(card)
+
+        val tReviewCard =
+            if (null != card) reviewCardFrom(card, _reviewCard.value)
+            else ReviewCard.EMPTY
+        _reviewCard.postValue(tReviewCard)
+    }
+
+    private fun reviewCardFrom(card: Card, previousReviewCard: ReviewCard?): ReviewCard =
+        if (previousReviewCard.isFinished()) {
+            ReviewCard(card, ASKING, true)
         }
         else {
-            return currentCard.value?.copy(state = RATING) ?: CurrentCard.EMPTY
+            previousReviewCard!!.copy(state = RATING, animate = true)
+        }
+
+    private fun onCardEdited(cardEdited: Card) {
+        // Updating currentCard will trigger an update on _reviewCard
+        // So I reset _reviewCard to a value which will lead to a good updated value
+        GlobalScope.launch(Dispatchers.Main) {
+            _currentCard.postValue(cardEdited)
+            _reviewCard.value?.let {
+                _reviewCard.postValue(it.copy(
+                    front = cardEdited.frontAsTextOrNull() ?: "",
+                    back = cardEdited.backAsTextOrNull() ?: "",
+                    animate = false
+                ))
+            }
         }
     }
 }
 
-data class CurrentCard(val front: String, val back: String, val state: State) {
+/**
+ * Class ReviewCard is used by ReviewActivity and its fragment to display information
+ * related to a card
+ */
+data class ReviewCard(val front: String,
+                      val back: String,
+                      val state: State,
+                      val animate: Boolean) {
+
+    constructor(card: Card, state: State, animate: Boolean): this(
+        card.frontAsTextOrNull() ?: "??",
+        card.backAsTextOrNull() ?: "??",
+        state,
+        animate
+    )
 
     companion object {
-        val EMPTY = CurrentCard("--", "--", ASKING)
+        val EMPTY = ReviewCard("--", "--", ASKING, false)
     }
 
     enum class State { ASKING, RATING }
 }
+
+fun ReviewCard?.isFinished(): Boolean = ((this == null) || (state == RATING))

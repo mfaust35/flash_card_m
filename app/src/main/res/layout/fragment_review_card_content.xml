@@ -5,24 +5,63 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:id="@+id/insert_point"
+        android:orientation="horizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/small_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <View
+        android:id="@+id/lt_card_front"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/colorAccent"
+        android:gravity="center"
+        app:layout_constraintBottom_toTopOf="@+id/lt_card_back"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/insert_point" />
+
     <TextView
         android:id="@+id/tv_card_front"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:textSize="@dimen/font_size_h1"
+        android:layout_margin="@dimen/large_margin"
         android:gravity="center"
-        android:background="@color/colorAccent"
+        android:elevation="@dimen/small_margin"
+        android:translationZ="@dimen/small_margin"
+        android:background="@drawable/card_background"
         app:layout_constraintBottom_toTopOf="@+id/tv_card_back"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/insert_point" />
+
+    <View
+        android:id="@+id/lt_card_back"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/colorWhitePressed"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/lt_card_front" />
 
     <TextView
         android:id="@+id/tv_card_back"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:textSize="@dimen/font_size_h1"
+        android:layout_margin="@dimen/large_margin"
         android:gravity="center"
+        android:elevation="@dimen/small_margin"
+        android:translationZ="@dimen/small_margin"
+        android:background="@drawable/card_background"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

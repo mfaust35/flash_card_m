@@ -5,7 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.booklet.CardEditionState.*
+import com.faust.m.flashcardm.presentation.fragment_edit_card.CardEditionState
+import com.faust.m.flashcardm.presentation.fragment_edit_card.CardEditionState.*
 import kotlinx.android.synthetic.main.activity_booklet.*
 import org.koin.android.ext.android.getKoin
 
@@ -56,14 +57,14 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
             ft.commit()
         }
         supportFragmentManager.findFragmentById(R.id.fg_card_list)?.let {
-            (it as FragmentCardList).makeFABAnimation(false)
+            (it as FragmentCardList).makeFABAnimation(true)
         }
     }
 
 
-    override fun onBackPressed() {
-        if (!viewModel.onBackPressed()) {
-            super.onBackPressed()
+    override fun onBackPressed() =
+        when {
+            viewModel.onBackPressed() -> {}
+            else -> super.onBackPressed()
         }
-    }
 }

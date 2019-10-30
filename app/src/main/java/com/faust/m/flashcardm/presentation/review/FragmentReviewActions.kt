@@ -12,8 +12,8 @@ import androidx.transition.TransitionManager
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.review.CurrentCard.State.ASKING
-import com.faust.m.flashcardm.presentation.review.CurrentCard.State.RATING
+import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
+import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.fragment_review_actions.*
 import org.koin.android.ext.android.getKoin
@@ -30,7 +30,7 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        viewModel.getCurrentCard().observeData(this.viewLifecycleOwner, ::onCurrentCardChanged)
+        viewModel.reviewCard.observeData(this.viewLifecycleOwner, ::onCurrentCardChanged)
 
         return result
     }
@@ -44,15 +44,15 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
         bt_i_knew.setNoArgOnClickListener(::onIKnewClicked)
     }
 
-    private fun onCurrentCardChanged(currentCard: CurrentCard) {
-        if (currentCard == CurrentCard.EMPTY) {
+    private fun onCurrentCardChanged(reviewCard: ReviewCard) {
+        if (reviewCard == ReviewCard.EMPTY) {
             return
         }
         (view as ConstraintLayout).let {
             TransitionManager.beginDelayedTransition(it, AutoTransition().apply { duration = 100 })
             ConstraintSet().apply {
                 clone(it)
-                when (currentCard.state) {
+                when (reviewCard.state) {
                     ASKING -> {
                         setVisibility(R.id.bt_show_answer, View.VISIBLE)
                         setVisibility(R.id.bt_ask_again, View.GONE)
@@ -70,7 +70,7 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
     }
 
     private fun onShowAnswerClicked() {
-        viewModel.switchCurrentCard()
+        viewModel.flipCurrentCard()
     }
 
     private fun onAskAgainClicked() {

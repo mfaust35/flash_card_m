@@ -1,5 +1,3 @@
 <resources>
     <string name="app_name">FlashCardM</string>
-
-    <string name="card_number">%i cards</string>
 </resources>
