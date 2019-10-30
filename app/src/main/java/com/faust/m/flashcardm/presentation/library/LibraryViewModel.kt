@@ -11,6 +11,7 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.framework.BookletUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.presentation.Event
+import com.faust.m.flashcardm.presentation.MutableLiveEvent
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
 import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
@@ -44,8 +45,8 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val _bookletAdded: MutableLiveData<Event<AddedBooklet>> = MutableLiveData()
     val bookletAdded: LiveData<Event<AddedBooklet>> = _bookletAdded
 
-    private val _bookletRemoved: MutableLiveData<Event<LibraryBooklet>> = MutableLiveData()
-    val bookletRemoved: LiveData<Event<LibraryBooklet>> = _bookletRemoved
+    private val _bookletRemoved: MutableLiveEvent<BookletRemovalStatus> = MutableLiveEvent()
+    val bookletRemoved: LiveData<Event<BookletRemovalStatus>> = _bookletRemoved
 
     private val _eventManageCardsForBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
     val eventManageCardsForBooklet: LiveData<Event<Long>> = _eventManageCardsForBooklet
@@ -93,14 +94,16 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
         selectedBooklet?.let { libraryBooklet ->
             GlobalScope.launch {
                 cardUseCases.deleteBooklet(libraryBooklet.toBooklet()).let { result: Int ->
-                    when(result) {
-                        0 -> warn { "Booklet $libraryBooklet not deleted" }
-                        else -> {
-                            verbose { "Booklet $libraryBooklet deleted" }
-                            _booklets.value?.remove(libraryBooklet)
-                            _bookletRemoved.postValue(Event(libraryBooklet))
-                        }
+                    if (0 == result) {
+                        warn { "Booklet $libraryBooklet not deleted" }
+                        return@launch
                     }
+                    verbose { "Booklet $libraryBooklet deleted" }
+                    _booklets.removeSilent(libraryBooklet)
+                    _bookletRemoved.postEvent(BookletRemovalStatus(
+                        removedBooklet = libraryBooklet,
+                        wasLast = _booklets.value.isNullOrEmpty())
+                    )
                 }
             }
         } ?: warn { "Could not find booklet to delete" }
@@ -144,6 +147,8 @@ class MutableLibraryBooklets: MutableLiveList<LibraryBooklet>() {
             it.indexOf(booklet)
         } ?: -1
     }
+
+    fun removeSilent(booklet: LibraryBooklet) = value?.remove(booklet)
 
     override fun postValue(value: MutableList<LibraryBooklet>?) {
         value?.sortBy(LibraryBooklet::name)
@@ -195,3 +200,6 @@ data class AddedBooklet(val state: State,
 
     enum class State { EMPTY, ONGOING, FAIL, SUCCESS }
 }
+
+data class BookletRemovalStatus(val removedBooklet: LibraryBooklet,
+                                val wasLast: Boolean)

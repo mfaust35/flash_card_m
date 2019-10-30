@@ -9,6 +9,7 @@
     <color name="colorWhite">#FAFAFA</color>
     <color name="colorWhitePressed">#CFCFCF</color>
     <color name="colorWhiteSelected">@color/colorAccent</color>
+    <color name="colorDarkGrey">#6B6B6B</color>
 
     <color name="colorHighlight1">#00897B</color>
     <color name="colorHighlight2">#7CB342</color>

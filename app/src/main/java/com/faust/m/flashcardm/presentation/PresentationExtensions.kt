@@ -103,3 +103,10 @@ open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
         postValue(this.value)
     }
 }
+
+class MutableLiveEvent<T>: MutableLiveData<Event<T>>() {
+
+    fun postEvent(event: T) {
+        postValue(Event(event))
+    }
+}
