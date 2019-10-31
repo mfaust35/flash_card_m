@@ -28,17 +28,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-    <TextView
-        android:id="@+id/tv_empty_recycler_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <ImageView
+        android:id="@+id/iv_empty_recycler_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="@dimen/large_margin"
-        android:layout_weight="1"
         android:gravity="center"
-        android:text="@string/empty_booklet_list"
-        android:drawableBottom="@drawable/ic_subdirectory_arrow_right_white_24dp"
-        android:textSize="@dimen/font_size_h2"
-        android:drawableTint="@color/colorDarkGrey"
+        android:src="@drawable/empty_library"
+        android:tint="@color/colorDarkGrey"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
