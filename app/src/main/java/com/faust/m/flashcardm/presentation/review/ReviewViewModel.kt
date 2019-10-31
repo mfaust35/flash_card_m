@@ -145,6 +145,7 @@ data class ReviewCard(val front: String,
 
     companion object {
         val EMPTY = ReviewCard("--", "--", ASKING, false)
+        val LOADING = ReviewCard("loading", "loading", ASKING, false)
     }
 
     enum class State { ASKING, RATING }

@@ -11,12 +11,14 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
 import androidx.transition.TransitionManager
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.databinding.FragmentReviewCardContentBinding
 import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
+import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
+import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import kotlinx.android.synthetic.main.fragment_review_card_content.*
 import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
 import org.koin.android.ext.android.getKoin
@@ -25,13 +27,15 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
 
     private lateinit var libraryBookletBinding: RecyclerViewLibraryBookletsBinding
     private lateinit var viewModel: ReviewViewModel
+    private lateinit var cardBinding: FragmentReviewCardContentBinding
 
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val result =
-            inflater.inflate(R.layout.fragment_review_card_content, container, false)
+        cardBinding =
+            FragmentReviewCardContentBinding.inflate(inflater, container, false)
+        cardBinding.card = ReviewCard.LOADING
 
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
@@ -40,7 +44,7 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             viewModel.booklet.observeData(this, ::onBookletChanged)
         }
 
-        return result
+        return cardBinding.root
     }
 
     private fun onBookletChanged(booklet: LibraryBooklet) {
@@ -84,17 +88,17 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
         if (reviewCard == ReviewCard.EMPTY) {
             return
         }
-        tv_card_back.text = reviewCard.back
-        tv_card_front.text = reviewCard.front
+        cardBinding.card = reviewCard
         if (!reviewCard.animate) {
             return
         }
-        if (reviewCard.state == RATING) {
-            animateView { it.setVisibility(R.id.tv_card_back, View.VISIBLE) }
-        } else {
-            tv_card_front.visibility = View.INVISIBLE
-            tv_card_back.visibility = View.INVISIBLE
-            animateView { it.setVisibility(R.id.tv_card_front, View.VISIBLE) }
+        when(reviewCard.state) {
+            RATING -> animateView { it.setVisibility(R.id.tv_card_back, View.VISIBLE) }
+            ASKING -> {
+                tv_card_front.visibility = View.INVISIBLE
+                tv_card_back.visibility = View.INVISIBLE
+                animateView { it.setVisibility(R.id.tv_card_front, View.VISIBLE) }
+            }
         }
     }
 

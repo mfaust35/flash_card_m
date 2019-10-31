@@ -1,70 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:review_card="http://schemas.android.com/apk/res-auto">
 
-    <LinearLayout
-        android:id="@+id/insert_point"
-        android:orientation="horizontal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/small_margin"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+    <data>
+        <variable
+            name="card"
+            type="com.faust.m.flashcardm.presentation.review.ReviewCard"/>
+    </data>
 
-    <View
-        android:id="@+id/lt_card_front"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/colorAccent"
-        android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@+id/lt_card_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/insert_point" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/tv_card_front"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:textSize="@dimen/font_size_h1"
-        android:layout_margin="@dimen/large_margin"
-        android:gravity="center"
-        android:elevation="@dimen/small_margin"
-        android:translationZ="@dimen/small_margin"
-        android:background="@drawable/card_background"
-        app:layout_constraintBottom_toTopOf="@+id/tv_card_back"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/insert_point" />
+        <LinearLayout
+            android:id="@+id/insert_point"
+            android:orientation="horizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/small_margin"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-    <View
-        android:id="@+id/lt_card_back"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@color/colorWhitePressed"
-        android:gravity="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lt_card_front" />
+        <!--Add a light background behind the reviewCards-->
+        <View
+            android:id="@+id/view_background"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@color/colorWhitePressed"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/insert_point" />
 
-    <TextView
-        android:id="@+id/tv_card_back"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:textSize="@dimen/font_size_h1"
-        android:layout_margin="@dimen/large_margin"
-        android:gravity="center"
-        android:elevation="@dimen/small_margin"
-        android:translationZ="@dimen/small_margin"
-        android:background="@drawable/card_background"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_card_front" />
+        <com.faust.m.flashcardm.presentation.review.ReviewCardView
+            android:id="@+id/tv_card_front"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="@dimen/large_margin"
+            review_card:card_text="@{card.front}"
+            app:layout_constraintBottom_toTopOf="@+id/tv_card_back"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/insert_point" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <com.faust.m.flashcardm.presentation.review.ReviewCardView
+            android:id="@+id/tv_card_back"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="@dimen/large_margin"
+            review_card:card_text="@{card.back}"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_card_front" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
