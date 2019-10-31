@@ -111,7 +111,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     }
 
     private fun showEmptyRecyclerView(show: Boolean) {
-        tv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
+        iv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun onEventBookletRemoved(bookletRemovalStatus: BookletRemovalStatus) {
@@ -123,7 +123,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         if (addedBooklet.state == SUCCESS) {
             bookletAdapter.bookletAdded(addedBooklet)
         }
-        tv_empty_recycler_view.visibility = View.GONE
+        showEmptyRecyclerView(false)
     }
 
     private fun onEvenManageCardsForBooklet(bookletId: Long) {

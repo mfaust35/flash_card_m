@@ -13,9 +13,9 @@
 
     <color name="colorHighlight1">#00897B</color>
     <color name="colorHighlight2">#7CB342</color>
-    <color name="colorHighlight3">#689F38</color>
+    <color name="colorHighlight3">#33691E</color>
     <color name="colorHighlight4">#558B2F</color>
-    <color name="colorHighlight5">#33691E</color>
+    <color name="colorHighlight5">#689F38</color>
     <color name="colorHighlight6">#00796B</color>
 
 </resources>

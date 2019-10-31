@@ -80,7 +80,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
     }
 
     private fun showEmptyRecyclerView(show: Boolean) {
-        tv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
+        iv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun onDeleteCardStateChanged(deleteCard: CardRemovalStatus) {

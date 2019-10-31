@@ -20,6 +20,7 @@ class AboutActivity: AppCompatActivity() {
                     " AnkiDroid")
             .addItem(ankiDroidElement())
             .addItem(wikipediaElement())
+            .addItem(icon8Element())
             .addEmail("melodie.faust@gmail.com")
             .addGitHub("mfaust35")
             .addItem(versionElement())
@@ -40,6 +41,19 @@ class AboutActivity: AppCompatActivity() {
     private fun wikipediaElement(): Element = Element().apply {
         title = getString(R.string.about_flash_card_wikipedia)
         iconDrawable = R.drawable.icons8_wikipedia_48
+
+        intent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse("https://www.en.wikipedia.org/wiki/Flashcard")
+        }
+    }
+
+    private fun icon8Element(): Element = Element().apply {
+        title = getString(R.string.about_icons)
+        iconDrawable = R.drawable.icons8_icon_48
+
+        intent = Intent(Intent.ACTION_VIEW).apply {
+            data = Uri.parse("https://www.icons8.com")
+        }
     }
 
     private fun versionElement(): Element = Element().apply {
