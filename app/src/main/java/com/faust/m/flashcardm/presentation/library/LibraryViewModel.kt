@@ -162,6 +162,9 @@ class MutableLibraryBooklets: MutableLiveList<LibraryBooklet>() {
 data class LibraryBooklet(val name: String,
                           val cardToReviewCount: Int,
                           val totalCardCount: Int,
+                          val newCount: Int,
+                          val inReviewCount: Int,
+                          val learnedCount: Int,
                           val id: Long = 0) {
 
     companion object {
@@ -174,14 +177,17 @@ data class LibraryBooklet(val name: String,
             R.color.colorHighlight6
         )
 
-        val LOADING = LibraryBooklet("Loading", 0, 0, 0)
-        val ERROR = LibraryBooklet("Error", 0, 0, 0)
+        val LOADING = LibraryBooklet("Loading", 0, 0, 0, 0, 0, 0)
+        val ERROR = LibraryBooklet("Error", 0, 0, 0, 0, 0, 0)
     }
 
     constructor(booklet: Booklet, bookletOutline: BookletOutline): this(
         booklet.name,
         bookletOutline.cardToReviewCount,
         bookletOutline.cardTotalCount,
+        bookletOutline.cardNewCount,
+        bookletOutline.cardInReviewCount,
+        bookletOutline.cardLearnedCount,
         booklet.id
     )
 

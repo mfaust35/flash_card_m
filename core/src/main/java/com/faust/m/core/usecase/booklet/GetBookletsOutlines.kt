@@ -16,22 +16,39 @@ class GetBookletsOutlines(private val cardRepository: CardRepository) {
             cardRepository
                 .getAllCardShellsForBooklets(booklets.map(Booklet::id))
                 .forEach { key, cardShells ->
-                    append(key, BookletOutline(cardShells.size, cardShells.cardToReviewCount()))
+                    append(key, BookletOutline(
+                        cardShells.size,
+                        // It is ineffective to parse the list 3 times, but it makes small code
+                        // and the size of list are not expected to be over 100,
+                        // so the performance impact is low
+                        cardShells.countNewCard(),
+                        cardShells.countInReviewCard(),
+                        cardShells.countLearnedCards(),
+                        cardShells.countToReviewCard()
+                    ))
                 }
         }
 
-    /**
-     * Return a number of card to review depending on the rating of the cards as well as the
-     * last_seen and create_at date. To be eligible for review, a card must have a rating
-     * inferior to 5 (5 means the card is learned), and it must have not have been reviewed today
-     */
-    private fun List<Card>.cardToReviewCount() =
+    private fun List<Card>.countNewCard() =
+        filter(Card::isNew).size
+
+    private fun List<Card>.countInReviewCard() =
+        filter(Card::isInReview).size
+
+    private fun List<Card>.countLearnedCards() =
+        filter(Card::isLearned).size
+
+    private fun List<Card>.countToReviewCard() =
         filter(Card::needReview).size
 }
 
-data class BookletOutline(val cardTotalCount: Int, val cardToReviewCount: Int) {
+data class BookletOutline(val cardTotalCount: Int,
+                          val cardNewCount: Int,
+                          val cardInReviewCount: Int,
+                          val cardLearnedCount: Int,
+                          val cardToReviewCount: Int) {
 
     companion object {
-        val EMPTY = BookletOutline(0, 0)
+        val EMPTY = BookletOutline(0, 0, 0, 0, 0)
     }
 }

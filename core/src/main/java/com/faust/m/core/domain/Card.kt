@@ -50,10 +50,24 @@ data class Card (
 
     fun copyWithoutContent() = this.copy(content = EnumMap(CardContentType::class.java))
 
+    /**
+     * To be eligible for review, a card must have a rating inferior to 5
+     * (5 means the card is learned), and it must have not have been reviewed today
+     */
     internal fun needReview(): Boolean {
         return rating < 5 && needReviewToday()
     }
 
+    internal fun isNew() = rating == 0
+
+    internal fun isInReview() = (rating in 1..4)
+
+    internal fun isLearned() = rating >= 5
+
+    /**
+     * If lastSeen = createdAt, this card can need review
+     * Else, this card only need review if last seen is not today
+     */
     private fun needReviewToday(): Boolean {
         if (this.lastSeen == this.createdAt)
             return true
