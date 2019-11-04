@@ -18,6 +18,7 @@ import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
+import com.faust.m.flashcardm.presentation.view_library_booklet.displayCardCount
 import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import kotlinx.android.synthetic.main.fragment_review_card_content.*
 import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
@@ -59,6 +60,7 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             RecyclerViewLibraryBookletsBinding.inflate(this, insert_point, true)
         }.apply {
             displayShortName()
+            displayCardCount()
             booklet = LibraryBooklet.LOADING
         }
 

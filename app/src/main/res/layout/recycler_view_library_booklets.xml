@@ -56,10 +56,23 @@
             android:paddingRight="@dimen/large_margin"
             android:text="@{@plurals/cards_to_review(booklet.cardToReviewCount, booklet.cardToReviewCount)}"
             android:textSize="@dimen/font_size_h3"
-            app:layout_constraintTop_toBottomOf="@id/recycler_view_booklet_name"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_highlight"
+            app:layout_constraintTop_toBottomOf="@id/recycler_view_booklet_name" />
+
+        <com.faust.m.flashcardm.presentation.view_library_booklet.CardStatisticView
+            android:id="@+id/view_advancement"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/medium_margin"
+            android:visibility="gone"
+            app:count_in_review="@{booklet.inReviewCount}"
+            app:count_learned="@{booklet.learnedCount}"
+            app:count_new="@{booklet.newCount}"
+            app:spacing="@dimen/medium_margin"
             app:layout_constraintEnd_toStartOf="@id/guideline"
-            app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_highlight" />
+            app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_count"
+            android:baselineAlignBottom="true"
+            app:layout_constraintBaseline_toBaselineOf="@+id/recycler_view_booklet_count" />
 
         <ImageView
             android:id="@+id/iv_info"

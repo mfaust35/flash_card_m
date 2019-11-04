@@ -5,4 +5,11 @@
         <attr name="card_text" format="string"/>
     </declare-styleable>
 
+    <declare-styleable name="CardStatisticView">
+        <attr name="count_new" format="integer"/>
+        <attr name="count_in_review" format="integer"/>
+        <attr name="count_learned" format="integer"/>
+        <attr name="spacing" format="dimension"/>
+    </declare-styleable>
+
 </resources>
