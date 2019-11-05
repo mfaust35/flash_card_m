@@ -5,11 +5,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.widget.ImageView
+import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.databinding.BindingAdapter
 import com.faust.m.flashcardm.R
-import org.jetbrains.anko.dimen
 
 
 @BindingAdapter(value = ["count_new", "count_in_review", "count_learned"], requireAll = false)
@@ -27,7 +26,7 @@ class CardStatisticView
     @JvmOverloads
     constructor(context: Context,
                 attrs: AttributeSet? = null,
-                defStyleAttr: Int = 0) : ImageView(context, attrs, defStyleAttr) {
+                defStyleAttr: Int = 0) : View(context, attrs, defStyleAttr) {
 
     // Used to draw rectangles on canvas representing the different cards
     private val paint = Paint()
@@ -39,14 +38,43 @@ class CardStatisticView
     )
 
     // Customization for view
-    private val spacing = attrs?.let {
-        context
-            .obtainStyledAttributes(it, R.styleable.CardStatisticView)
-            .getDimensionPixelSize(
-                R.styleable.CardStatisticView_spacing,
-                context.dimen(R.dimen.large_margin)
-            )
-    } ?: context.dimen(R.dimen.large_margin)
+    private val customSpacing: Int
+    private val spacingMatchHeight: Boolean
+    private val baselineAlignBottom: Boolean
+
+    init {
+        if (null == attrs) {
+            customSpacing = 0
+            spacingMatchHeight = true
+            baselineAlignBottom = false
+        }
+        else {
+            context.obtainStyledAttributes(attrs, R.styleable.CardStatisticView).also {
+                // If we define a custom spacing, automatically set spacingMatchHeight to false
+                // and get the custom spacing value
+                if (it.hasValue(R.styleable.CardStatisticView_spacing)) {
+                    customSpacing = it.getDimensionPixelSize(
+                        R.styleable.CardStatisticView_spacing,
+                        0
+                    )
+                    spacingMatchHeight = false
+                }
+                // If there is no custom spacing, get the custom spacingMatchHeight value if any
+                else {
+                    customSpacing = 0
+                    spacingMatchHeight = it.getBoolean(
+                        R.styleable.CardStatisticView_spacing_match_height,
+                        true
+                    )
+                }
+                // Get the baselineAlignBottom value anyways
+                baselineAlignBottom = it.getBoolean(
+                    R.styleable.CardStatisticView_android_baselineAlignBottom,
+                    false
+                )
+            }.recycle()
+        }
+    }
 
     // Data to draw
     var countNew = 0
@@ -66,6 +94,7 @@ class CardStatisticView
             }
             else {
                 // Check how much space we can have between each square
+                val idealSpacing = if (spacingMatchHeight) height else customSpacing
                 val totalWidthForSpacing = width - (totalCount*squareSideSize)
                 val customSpacing = when (totalCount) {
                     1 -> 0 // No spacing when there is only one square
@@ -73,8 +102,8 @@ class CardStatisticView
                 }
                 // Draw square either with custom spacing or with default spacing
                 when {
-                    customSpacing < spacing -> drawSquares(it, customSpacing, squareSideSize)
-                    else -> drawSquares(it, spacing, squareSideSize)
+                    customSpacing < idealSpacing -> drawSquares(it, customSpacing, squareSideSize)
+                    else -> drawSquares(it, idealSpacing, squareSideSize)
                 }
             }
         }
@@ -132,4 +161,10 @@ class CardStatisticView
             rect.right += customSpacing
         }
     }
+
+    /**
+     * Need to override this method to be able to align the baseline of this view with
+     * the baseline of a textView. Code taken from android's implementation of imageView
+     */
+    override fun getBaseline(): Int = if (baselineAlignBottom) measuredHeight else -1
 }

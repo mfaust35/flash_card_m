@@ -68,7 +68,6 @@
             app:count_in_review="@{booklet.inReviewCount}"
             app:count_learned="@{booklet.learnedCount}"
             app:count_new="@{booklet.newCount}"
-            app:spacing="@dimen/medium_margin"
             app:layout_constraintEnd_toStartOf="@id/guideline"
             app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_count"
             android:baselineAlignBottom="true"
