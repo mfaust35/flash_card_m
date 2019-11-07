@@ -30,13 +30,13 @@ class GetBookletsOutlines(private val cardRepository: CardRepository) {
         }
 
     private fun List<Card>.countNewCard() =
-        filter(Card::isNew).size
+        filter { c -> c.hasRatingLevel(Card.RatingLevel.NEW) }.size
 
     private fun List<Card>.countInReviewCard() =
-        filter(Card::isInReview).size
+        filter { c -> c.hasRatingLevel(Card.RatingLevel.TRAINING) }.size
 
     private fun List<Card>.countLearnedCards() =
-        filter(Card::isLearned).size
+        filter { c -> c.hasRatingLevel(Card.RatingLevel.FAMILIAR) }.size
 
     private fun List<Card>.countToReviewCard() =
         filter(Card::needReview).size

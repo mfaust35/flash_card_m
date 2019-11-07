@@ -24,19 +24,16 @@ class FragmentReviewActions: Fragment(), LiveDataObserver {
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        val result =
-            inflater.inflate(R.layout.fragment_review_actions, container, false)
-
-        viewModel =
-            getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        viewModel.reviewCard.observeData(this.viewLifecycleOwner, ::onCurrentCardChanged)
-
-        return result
-    }
+                              savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.fragment_review_actions, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Init viewModel
+        viewModel =
+            getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
+        viewModel.reviewCard.observeData(this.viewLifecycleOwner, ::onCurrentCardChanged)
 
         // Setup button click listener
         bt_show_answer.setNoArgOnClickListener(::onShowAnswerClicked)

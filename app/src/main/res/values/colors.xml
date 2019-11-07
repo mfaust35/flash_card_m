@@ -19,7 +19,7 @@
     <color name="colorHighlight6">#00796B</color>
 
     <color name="colorNewCard">#FFDCBF</color>
-    <color name="colorInReviewCard">#FFA84D</color>
-    <color name="colorLearnedCard">#FF7E00</color>
+    <color name="colorTrainingCard">#FFB05C</color>
+    <color name="colorFamiliarCard">#FF7E00</color>
 
 </resources>

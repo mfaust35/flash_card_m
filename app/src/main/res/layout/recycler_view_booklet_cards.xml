@@ -18,6 +18,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <View
+            android:layout_margin="@dimen/small_margin"
+            android:layout_width="@dimen/medium_margin"
+            android:layout_height="match_parent"
+            android:background="@drawable/recycler_view_booklet_background"
+            android:backgroundTint="@{context.getColor(card.color)}" />
+
         <TextView
             android:text="@{card.front}"
             android:layout_width="0dp"
