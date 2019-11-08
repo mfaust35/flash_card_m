@@ -126,19 +126,19 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         showEmptyRecyclerView(false)
     }
 
-    private fun onEvenManageCardsForBooklet(bookletId: Long) {
-        startActivity<BookletActivity>(
-            BOOKLET_ID to bookletId
-        )
-    }
+    private fun onEvenManageCardsForBooklet(bookletId: Long) =
+        startActivity<BookletActivity>(BOOKLET_ID to bookletId)
 
     private fun onEventReviewBooklet(bookletId: Long) {
         when(bookletId) {
+            // Empty booklet = Show snack bar to quickly add cards to the booklet
             LibraryViewModel.EMPTY_BOOKLET ->
-                activity_library_main_view.longSnackbar(R.string.empty_booklet_for_review)
-            else -> startActivity<ReviewActivity>(
-                BOOKLET_ID to bookletId
-            )
+                activity_library_main_view.longSnackbar(
+                    R.string.empty_booklet_for_review_message,
+                    R.string.empty_booklet_for_review_action
+                ) { startActivity<BookletActivity>(BOOKLET_ID to bookletId)}
+            // Else start review booklet
+            else -> startActivity<ReviewActivity>(BOOKLET_ID to bookletId)
         }
     }
 

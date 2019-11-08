@@ -113,6 +113,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
 
     fun makeFABAnimation(enable: Boolean) {
         fab_add_card.apply {
+            if (isEnabled == enable) return // Prevent animation if same state is requested
             clearAnimation()
             val animId = if (enable) R.anim.pop_up else R.anim.pop_down
             startAnimation(AnimationUtils.loadAnimation(activity, animId))
