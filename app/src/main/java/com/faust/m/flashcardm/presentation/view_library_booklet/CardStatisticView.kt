@@ -33,8 +33,8 @@ class CardStatisticView
     private val rect = Rect()
     private val colors = listOf(
         ContextCompat.getColor(context, R.color.colorNewCard),
-        ContextCompat.getColor(context, R.color.colorInReviewCard),
-        ContextCompat.getColor(context, R.color.colorLearnedCard)
+        ContextCompat.getColor(context, R.color.colorTrainingCard),
+        ContextCompat.getColor(context, R.color.colorFamiliarCard)
     )
 
     // Customization for view

@@ -32,10 +32,13 @@ class FragmentCardList: Fragment(), LiveDataObserver {
 
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        val result =
-            inflater.inflate(R.layout.fragment_card_list, container, false)
+                              savedInstanceState: Bundle?): View? =
+        inflater.inflate(R.layout.fragment_card_list, container, false)
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Init viewModel
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         with(this.viewLifecycleOwner) {
@@ -43,12 +46,6 @@ class FragmentCardList: Fragment(), LiveDataObserver {
             viewModel.bookletCards.observeData(this, ::onCardsChanged)
             viewModel.cardRemovalStatus.observeData(this, ::onDeleteCardStateChanged)
         }
-
-        return result
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         // Initialize LibraryBookletBinding
         libraryBookletBinding = with(LayoutInflater.from(insert_point.context)) {
@@ -127,6 +124,10 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         PopupMenu(activity, view).apply {
             menuInflater.inflate(R.menu.menu_card, this.menu)
             setOnMenuItemClickListener(::onInfoMenuClick)
+            menu.findItem(R.id.menu_action_switch_show_rating_level).setTitle(
+                if (viewModel.showRatingLevel) R.string.menu_action_hide_learning_stage
+                else R.string.menu_action_show_learning_stage
+            )
             show()
         }
     }
@@ -135,6 +136,10 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         return when (menuItem?.itemId) {
             R.id.menu_action_delete_card -> {
                 viewModel.startRemoveCards()
+                true
+            }
+            R.id.menu_action_switch_show_rating_level -> {
+                viewModel.switchShowRatingLevel()
                 true
             }
             else -> false

@@ -22,6 +22,7 @@ import com.faust.m.flashcardm.presentation.view_library_booklet.displayCardCount
 import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import kotlinx.android.synthetic.main.fragment_review_card_content.*
 import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
+import org.jetbrains.anko.find
 import org.koin.android.ext.android.getKoin
 
 class FragmentReviewCardContent: Fragment(), LiveDataObserver {
@@ -34,10 +35,28 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
     override fun onCreateView(inflater: LayoutInflater,
                               container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+        // Initialize main view binding
         cardBinding =
             FragmentReviewCardContentBinding.inflate(inflater, container, false)
-        cardBinding.card = ReviewCard.LOADING
+                .apply { card = ReviewCard.LOADING }
 
+        // Initialize LibraryBookletBinding and insert it into the main view
+        val insertPoint = cardBinding.root.find<ViewGroup>(R.id.insert_point)
+        libraryBookletBinding =
+            RecyclerViewLibraryBookletsBinding.inflate(inflater, insertPoint, true)
+                .apply {
+                    displayShortName()
+                    displayCardCount()
+                    booklet = LibraryBooklet.LOADING
+                }
+
+        return cardBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Init viewModel
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         with(this.viewLifecycleOwner) {
@@ -45,28 +64,13 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             viewModel.booklet.observeData(this, ::onBookletChanged)
         }
 
-        return cardBinding.root
+        iv_info.setOnClickListener(::onBookletInfoClicked)
     }
+
 
     private fun onBookletChanged(booklet: LibraryBooklet) {
         libraryBookletBinding.booklet = booklet
     }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Initialize LibraryBookletBinding
-        libraryBookletBinding = with(LayoutInflater.from(insert_point.context)) {
-            RecyclerViewLibraryBookletsBinding.inflate(this, insert_point, true)
-        }.apply {
-            displayShortName()
-            displayCardCount()
-            booklet = LibraryBooklet.LOADING
-        }
-
-        iv_info.setOnClickListener(::onBookletInfoClicked)
-    }
-
 
     private fun onBookletInfoClicked(view: View) {
         PopupMenu(activity, view).apply {

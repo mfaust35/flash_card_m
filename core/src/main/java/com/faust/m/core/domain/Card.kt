@@ -1,5 +1,6 @@
 package com.faust.m.core.domain
 
+import com.faust.m.core.domain.Card.RatingLevel.*
 import com.faust.m.core.domain.CardContentType.BACK
 import com.faust.m.core.domain.CardContentType.FRONT
 import java.util.*
@@ -55,14 +56,16 @@ data class Card (
      * (5 means the card is learned), and it must have not have been reviewed today
      */
     internal fun needReview(): Boolean {
-        return rating < 5 && needReviewToday()
+        return ratingLevel() != FAMILIAR && needReviewToday()
     }
 
-    internal fun isNew() = rating == 0
+    fun ratingLevel() = when(rating) {
+        0 -> NEW
+        in 1..4 -> TRAINING
+        else -> FAMILIAR
+    }
 
-    internal fun isInReview() = (rating in 1..4)
-
-    internal fun isLearned() = rating >= 5
+    internal fun hasRatingLevel(ratingLevel: RatingLevel) = ratingLevel() == ratingLevel
 
     /**
      * If lastSeen = createdAt, this card can need review
@@ -81,4 +84,6 @@ data class Card (
             return today.after(Calendar.getInstance().apply { time = lastSeen })
         }
     }
+
+    enum class RatingLevel { NEW, TRAINING, FAMILIAR }
 }

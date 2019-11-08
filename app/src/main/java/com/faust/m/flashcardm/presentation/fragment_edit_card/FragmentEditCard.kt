@@ -35,14 +35,19 @@ class FragmentEditCard: Fragment(), LiveDataObserver, AnkoLogger {
                               savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_edit_card, container, false)
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         initializeViewModel()
         with(this.viewLifecycleOwner) {
             viewModel.cardEditionState.observeData(this, ::onCardEditionStateChanged)
             viewModel.cardToEdit.observeData(this, ::onCardChanged)
         }
+
+        // Setup view listeners
+        bt_close.setNoArgOnClickListener(::onClose)
+        et_card_front.addTextChangedListener(ValidationTextWatcher(FRONT))
+        et_card_back.addTextChangedListener(ValidationTextWatcher(BACK))
     }
 
     private fun initializeViewModel() {
@@ -105,14 +110,6 @@ class FragmentEditCard: Fragment(), LiveDataObserver, AnkoLogger {
     }
 
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Setup view listeners
-        bt_close.setNoArgOnClickListener(::onClose)
-        et_card_front.addTextChangedListener(ValidationTextWatcher(FRONT))
-        et_card_back.addTextChangedListener(ValidationTextWatcher(BACK))
-    }
 
     private fun onAddCardClicked() {
         et_card_front.clearFocus()
