@@ -63,11 +63,12 @@
         <com.faust.m.flashcardm.presentation.view_library_booklet.CardStatisticView
             android:id="@+id/view_advancement"
             android:layout_width="0dp"
-            android:layout_height="@dimen/medium_margin"
+            android:layout_height="@dimen/dimen_card_statistic_height"
             android:visibility="gone"
             app:count_in_review="@{booklet.inReviewCount}"
             app:count_learned="@{booklet.learnedCount}"
             app:count_new="@{booklet.newCount}"
+            app:shrinking="@dimen/dimen_card_statistic_shrinking"
             app:layout_constraintEnd_toStartOf="@id/guideline"
             app:layout_constraintStart_toEndOf="@id/recycler_view_booklet_count"
             android:baselineAlignBottom="true"
