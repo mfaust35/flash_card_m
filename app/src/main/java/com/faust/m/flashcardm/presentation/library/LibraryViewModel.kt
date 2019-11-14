@@ -24,6 +24,9 @@ import org.jetbrains.anko.warn
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 
+
+const val DEFAULT_REVIEW_AHEAD_CARD_NUMBER = 20
+
 class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     private val bookletUseCases: BookletUseCases by inject()
@@ -125,6 +128,11 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
         }
     }
 
+    fun maxCardCountToReviewAheadForCurrentBooklet() = selectedBooklet?.countReviewAheadCards ?: 0
+
+    fun defaultCardCountToReviewAheadForCurrentBooklet() =
+        maxCardCountToReviewAheadForCurrentBooklet().coerceAtMost(DEFAULT_REVIEW_AHEAD_CARD_NUMBER)
+
     fun manageCardsForCurrentBooklet() {
         selectedBooklet?.let {
             _eventManageCardsForBooklet.postEvent(it.id)
@@ -210,6 +218,8 @@ data class LibraryBooklet(val name: String,
     fun isCompletedForToday() = cardToReviewCount == 0
 
     fun canReviewAhead() = totalCardCount > cardToReviewCount
+
+    val countReviewAheadCards = totalCardCount - cardToReviewCount
 }
 
 
