@@ -10,14 +10,20 @@
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/menu_action_rename_booklet"
+        android:id="@+id/menu_action_review_ahead"
         android:orderInCategory="2"
+        android:title="@string/menu_action_review_ahead"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_action_rename_booklet"
+        android:orderInCategory="3"
         android:title="@string/menu_action_rename_booklet"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/menu_action_delete"
-        android:orderInCategory="3"
+        android:orderInCategory="4"
         android:title="@string/menu_action_delete"
         app:showAsAction="ifRoom" />
 

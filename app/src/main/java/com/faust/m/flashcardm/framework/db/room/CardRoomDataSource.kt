@@ -72,6 +72,40 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
     override fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> =
         cardDao.countCardsForBooklets(bookletIds).map { it.bookletId to it.count }.toMap()
 
+    /**
+     * Will modify X card in booklet so that they will be inReview again. This method will ignore
+     * all cards that already in review state. It will always try to modify the card will the
+     * lower rating first. Modifications include updating `createdAt` and / or `rating`, so that
+     * the card will appear as in review
+     * @param count: the number of card to modify
+     * @param bookletId: will only select card in this booklet
+     */
+    override fun resetForReview(count: Int, bookletId: Long) {
+        val cardShells =
+            cardDao.getAllCardsShellsForBooklets(listOf(bookletId)).map { it.toDomainModel() }
+                .filterNot(Card::needReview)
+        val cardToReset = mutableListOf<Card>()
+        var ratingToAdd = -1
+        // Take cards starting by lowest rating until we reach the number of cards to reset
+        while (cardToReset.count() < count && ++ratingToAdd <= 5) {
+            cardToReset.addAll(cardShells.filter { it.rating == ratingToAdd })
+        }
+        val totalPossibleCard = cardToReset.count()
+        if (totalPossibleCard <= 0) return
+        // Take the first X ones and reset date and/or rating
+        val updateAt = Date()
+        cardToReset
+            .shuffled()
+            .slice(0 until count.coerceAtMost(totalPossibleCard))
+            .forEach { cEntity ->
+                val cardCopy = when(cEntity.rating) {
+                    5 -> cEntity.copy(createdAt = updateAt, rating = 4)
+                    else -> cEntity.copy(createdAt = updateAt)
+                }
+                cardDao.update(cardCopy.toEntityModel())
+            }
+    }
+
     override fun deleteCard(card: Card): Int =
         cardDao.delete(card.toEntityModel())
 

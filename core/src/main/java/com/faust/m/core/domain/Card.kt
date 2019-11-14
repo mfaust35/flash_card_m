@@ -55,7 +55,7 @@ data class Card (
      * To be eligible for review, a card must have a rating inferior to 5
      * (5 means the card is learned), and it must have not have been reviewed today
      */
-    internal fun needReview(): Boolean {
+    fun needReview(): Boolean {
         return ratingLevel() != FAMILIAR && needReviewToday()
     }
 

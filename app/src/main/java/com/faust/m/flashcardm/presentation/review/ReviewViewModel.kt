@@ -35,7 +35,6 @@ class ReviewViewModel @JvmOverloads constructor(
 
 
     private val cardUseCases: CardUseCases by inject()
-    //private val viewModelLibraryBooklet = DelegateLibraryBooklet(bookletId)
 
 
     // Current card used to make reviewCard on display

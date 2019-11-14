@@ -16,6 +16,8 @@ class CardRepository(private val dataSource: CardDataSource) {
     fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArray<MutableList<Card>> =
         dataSource.getAllCardShellsForBooklets(bookletIds)
 
+    fun resetForReview(count: Int, bookletId: Long) = dataSource.resetForReview(count, bookletId)
+
     fun countCardForBooklets(bookletIds: List<Long>): Map<Long, Int> =
         dataSource.countCardsForBooklets(bookletIds)
 

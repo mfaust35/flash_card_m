@@ -18,7 +18,7 @@ fun View.setNoArgOnClickListener(listener: () -> Unit) {
     setOnClickListener {_ -> listener.invoke()}
 }
 
-fun AlertDialog.Builder.setPositiveButton(textId: Int, listener: () -> Unit): AlertDialog.Builder {
+fun AlertDialog.Builder.setNoArgPositiveButton(textId: Int, listener: () -> Unit): AlertDialog.Builder {
     return setPositiveButton(textId) { _, _ -> listener.invoke() }
 }
 

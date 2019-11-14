@@ -5,6 +5,16 @@
     <string name="confirm_new_booklet">Add</string>
     <string name="confirm_rename_booklet">Rename</string>
 
+    <string name="title_dialog_review_ahead">Review cards ahead</string>
+    <string name="message_dialog_review_ahead">CAUTION: Reviewing too many cards on the same day might not be beneficial.
+        If you still want to review more cards now, select the number of additional cards to review now:</string>
+    <string name="hint_card_number_for_review">Number of cards to review now</string>
+    <string name="confirm_review_card">Review</string>
+    <string name="error_max_card_for_review_ahead">"Maximum allowed: %d"</string>
+    <string name="error_min_card_for_review_ahead">"Minimum: 1 card"</string>
+    <string name="completed_for_today_booklet_for_review_message">"No card to review"</string>
+    <string name="completed_for_today_booklet_for_review_action">"Review ahead"</string>
+
     <string name="empty_booklet_list">"You don't have any booklets to review yet. Try adding one with the bottom left button"</string>
     <string name="empty_booklet_for_review_message">"No card to review"</string>
     <string name="empty_booklet_for_review_action">"Add"</string>
@@ -12,5 +22,6 @@
     <string name="menu_action_show_about">About</string>
     <string name="menu_action_manage_cards">Manage cards</string>
     <string name="menu_action_rename_booklet">Rename this booklet</string>
+    <string name="menu_action_review_ahead">Review ahead</string>
     <string name="menu_action_delete">Delete this booklet</string>
 </resources>

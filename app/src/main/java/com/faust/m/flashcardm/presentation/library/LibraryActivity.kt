@@ -22,6 +22,7 @@ import org.jetbrains.anko.startActivity
 import org.koin.android.ext.android.getKoin
 
 const val TAG_FRAGMENT_ADD_BOOKLET = "add_booklet"
+const val TAG_FRAGMENT_REVIEW_AHEAD = "review_ahead"
 
 class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
@@ -74,6 +75,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
         PopupMenu(this, view).apply {
             menuInflater.inflate(R.menu.menu_booklet, this.menu)
+            // Disable the option to review ahead if we can't add more cards to review
+            menu.findItem(R.id.menu_action_review_ahead).isEnabled = booklet.canReviewAhead()
             setOnMenuItemClickListener(::onInfoMenuClick)
             show()
         }
@@ -83,6 +86,10 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         return when (menuItem?.itemId) {
             R.id.menu_action_delete -> {
                 viewModel.deleteCurrentBooklet()
+                true
+            }
+            R.id.menu_action_review_ahead -> {
+                showFragmentReviewAhead()
                 true
             }
             R.id.menu_action_manage_cards -> {
@@ -100,6 +107,8 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     private fun showFragmentNameBooklet() =
         FragmentNameBooklet().show(supportFragmentManager, TAG_FRAGMENT_ADD_BOOKLET)
 
+    private fun showFragmentReviewAhead() =
+        FragmentReviewAhead().show(supportFragmentManager, TAG_FRAGMENT_REVIEW_AHEAD)
 
     private fun onBookletClicked(booklet: LibraryBooklet) {
         viewModel.reviewBooklet(booklet)
@@ -129,16 +138,26 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     private fun onEvenManageCardsForBooklet(bookletId: Long) =
         startActivity<BookletActivity>(BOOKLET_ID to bookletId)
 
-    private fun onEventReviewBooklet(bookletId: Long) {
-        when(bookletId) {
-            // Empty booklet = Show snack bar to quickly add cards to the booklet
-            LibraryViewModel.EMPTY_BOOKLET ->
+    private fun onEventReviewBooklet(booklet: LibraryBooklet) {
+        when {
+            booklet.isEmpty() -> {
+                // Empty booklet, user probably wants to add new cards,
+                // show snackbar with action add
                 activity_library_main_view.longSnackbar(
                     R.string.empty_booklet_for_review_message,
                     R.string.empty_booklet_for_review_action
-                ) { startActivity<BookletActivity>(BOOKLET_ID to bookletId)}
-            // Else start review booklet
-            else -> startActivity<ReviewActivity>(BOOKLET_ID to bookletId)
+                ) { startActivity<BookletActivity>(BOOKLET_ID to booklet.id)}
+            }
+            booklet.isCompletedForToday() -> {
+                // Every card reviewed for today, user might want to review more,
+                // show snackbar with action reviewAhead
+                activity_library_main_view.longSnackbar(
+                    R.string.completed_for_today_booklet_for_review_message,
+                    R.string.completed_for_today_booklet_for_review_action
+                ) { showFragmentReviewAhead() }
+            }
+            else -> // Start reviewing booklet
+                startActivity<ReviewActivity>(BOOKLET_ID to booklet.id)
         }
     }
 
