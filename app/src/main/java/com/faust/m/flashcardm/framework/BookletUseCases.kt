@@ -7,5 +7,6 @@ class BookletUseCases(val addBooklet: AddBooklet,
                       val getBooklet: GetBooklet,
                       val getBooklets: GetBooklets,
                       val getBookletsOutlines: GetBookletsOutlines,
-                      val renameBooklet: RenameBooklet
+                      val renameBooklet: RenameBooklet,
+                      val resetForReview: ResetForReview
 )

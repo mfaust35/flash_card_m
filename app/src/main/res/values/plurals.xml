@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <plurals name="cards_to_review">
-        <item quantity="one">"%d card to review"</item>
-        <item quantity="other">"%d cards to review"</item>
+        <item quantity="one">"%d card to review today"</item>
+        <item quantity="other">"%d cards to review today"</item>
+    </plurals>
+    <plurals name="error_max_card_for_review_ahead">
+        <item quantity="one">"Maximum allowed: %d card"</item>
+        <item quantity="other">"Maximum allowed: %d cards"</item>
     </plurals>
 </resources>

@@ -26,18 +26,14 @@ import org.koin.core.inject
 
 class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
-    companion object {
-        const val EMPTY_BOOKLET: Long = -1
-    }
-
-    private val cardUseCases: BookletUseCases by inject()
+    private val bookletUseCases: BookletUseCases by inject()
 
 
     private val _booklets: MutableLibraryBooklets = MutableLibraryBooklets()
     val booklets: LiveData<MutableList<LibraryBooklet>> =
         Transformations.switchMap(getKoin().get<FlashViewModel>().bookletsState) {
             GlobalScope.launch {
-                loadLibraryBooklets()
+                postLibraryBooklets()
             }
             _booklets
         }
@@ -48,11 +44,11 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val _bookletRemoved: MutableLiveEvent<BookletRemovalStatus> = MutableLiveEvent()
     val bookletRemoved: LiveData<Event<BookletRemovalStatus>> = _bookletRemoved
 
-    private val _eventManageCardsForBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
+    private val _eventManageCardsForBooklet: MutableLiveEvent<Long> = MutableLiveEvent()
     val eventManageCardsForBooklet: LiveData<Event<Long>> = _eventManageCardsForBooklet
 
-    private val _eventReviewBooklet: MutableLiveData<Event<Long>> = MutableLiveData()
-    val eventReviewBooklet: LiveData<Event<Long>> = _eventReviewBooklet
+    private val _eventReviewBooklet: MutableLiveEvent<LibraryBooklet> = MutableLiveEvent()
+    val eventReviewBooklet: LiveData<Event<LibraryBooklet>> = _eventReviewBooklet
 
     var selectedBooklet: LibraryBooklet? = null
 
@@ -62,7 +58,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     private fun renameBooklet(newName: String, libraryBooklet: LibraryBooklet) {
         GlobalScope.launch {
-            when(cardUseCases.renameBooklet(newName, libraryBooklet.id)) {
+            when(bookletUseCases.renameBooklet(newName, libraryBooklet.id)) {
                 true -> {
                     verbose { "Booklet renamed oldName: ${libraryBooklet.name} | newName: $newName" }
                     val copy = libraryBooklet.copy(name = newName)
@@ -81,7 +77,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private fun addBooklet(newName: String) {
         _bookletAdded.postValue(Event(AddedBooklet(state = ONGOING)))
         GlobalScope.launch {
-            cardUseCases.addBooklet(Booklet(newName)).let {
+            bookletUseCases.addBooklet(Booklet(newName)).let {
                 verbose { "Booklet $it added" }
                 val newBooklet = LibraryBooklet(it, BookletOutline.EMPTY)
                 val position = _booklets.addSilent(newBooklet)
@@ -93,7 +89,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     fun deleteCurrentBooklet() {
         selectedBooklet?.let { libraryBooklet ->
             GlobalScope.launch {
-                cardUseCases.deleteBooklet(libraryBooklet.toBooklet()).let { result: Int ->
+                bookletUseCases.deleteBooklet(libraryBooklet.toBooklet()).let { result: Int ->
                     if (0 == result) {
                         warn { "Booklet $libraryBooklet not deleted" }
                         return@launch
@@ -110,31 +106,45 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     fun reviewBooklet(booklet: LibraryBooklet) {
-        when(booklet.cardToReviewCount) {
-            0 -> _eventReviewBooklet.postValue(Event(EMPTY_BOOKLET))
-            else -> _eventReviewBooklet.postValue(Event(booklet.id))
+        selectedBooklet = booklet
+        _eventReviewBooklet.postEvent(booklet)
+    }
+
+    fun addCardsToReviewAheadForCurrentBooklet(count: Int) {
+        selectedBooklet?.let { tBooklet ->
+            GlobalScope.launch {
+                bookletUseCases.resetForReview(count, tBooklet.id)
+                // Reload LibraryBooklet
+                val newBooklets = loadLibraryBooklet()
+                _booklets.postValue(newBooklets)
+                // Ask to review the booklet for which we just added card to review
+                newBooklets.find { nBooklet -> nBooklet.id == tBooklet.id }?.let {
+                    _eventReviewBooklet.postEvent(it)
+                }
+            }
         }
     }
 
     fun manageCardsForCurrentBooklet() {
         selectedBooklet?.let {
-            _eventManageCardsForBooklet.postValue(Event(it.id))
+            _eventManageCardsForBooklet.postEvent(it.id)
         } ?: warn { "Could not find booklet to add cards to" }
     }
 
-    private fun loadLibraryBooklets() = mutableListOf<LibraryBooklet>()
+    private fun postLibraryBooklets() = loadLibraryBooklet().let {
+        _booklets.postValue(it)
+    }
+
+    private fun loadLibraryBooklet() = mutableListOf<LibraryBooklet>()
         .apply {
-            val tBooklets: List<Booklet> = cardUseCases.getBooklets()
+            val tBooklets: List<Booklet> = bookletUseCases.getBooklets()
             val tBookletsOutlines: LongSparseArray<BookletOutline> =
-                cardUseCases.getBookletsOutlines(tBooklets)
+                bookletUseCases.getBookletsOutlines(tBooklets)
 
             for (tBooklet: Booklet in tBooklets) {
                 val tOutline = tBookletsOutlines[tBooklet.id] ?: BookletOutline.EMPTY
                 add(LibraryBooklet(tBooklet, tOutline))
             }
-        }
-        .also {
-            _booklets.postValue(it)
         }
 }
 
@@ -194,6 +204,12 @@ data class LibraryBooklet(val name: String,
     val color: Int = colors[kotlin.math.abs(hashCode() % 6)]
 
     fun toBooklet() = Booklet(name, id)
+
+    fun isEmpty() = totalCardCount == 0
+
+    fun isCompletedForToday() = cardToReviewCount == 0
+
+    fun canReviewAhead() = totalCardCount > cardToReviewCount
 }
 
 

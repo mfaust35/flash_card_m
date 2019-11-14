@@ -20,5 +20,7 @@ interface CardDataSource {
 
     fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> // booklet_id -> count
 
+    fun resetForReview(count: Int, bookletId: Long)
+
     fun deleteCard(card: Card): Int
 }

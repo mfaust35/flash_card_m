@@ -59,6 +59,7 @@ val bookletUseCases = module {
     single { GetBooklets(get()) }
     single { GetBookletsOutlines(get()) }
     single { RenameBooklet(get()) }
-    single { BookletUseCases(get(), get(), get(), get(), get(), get()) }
+    single { ResetForReview(get()) }
+    single { BookletUseCases(get(), get(), get(), get(), get(), get(), get()) }
 
 }

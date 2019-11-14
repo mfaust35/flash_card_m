@@ -12,7 +12,7 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.EditorAction
 import com.faust.m.flashcardm.presentation.setEditorActionListener
-import com.faust.m.flashcardm.presentation.setPositiveButton
+import com.faust.m.flashcardm.presentation.setNoArgPositiveButton
 import com.google.android.material.textfield.TextInputEditText
 import org.koin.android.ext.android.getKoin
 
@@ -48,7 +48,7 @@ class FragmentNameBooklet : DialogFragment() {
             _dialog = AlertDialog.Builder(it)
                 .setTitle(titleStringId)
                 .setView(rootView)
-                .setPositiveButton(positiveButtonStringId, ::onPositiveButtonClicked)
+                .setNoArgPositiveButton(positiveButtonStringId, ::onPositiveButtonClicked)
                 .setNegativeButton(android.R.string.cancel) { _, _ -> dismiss() }
                 .create()
 
