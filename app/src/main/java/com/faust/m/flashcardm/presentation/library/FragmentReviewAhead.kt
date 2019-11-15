@@ -1,122 +1,79 @@
 package com.faust.m.flashcardm.presentation.library
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
-import android.view.WindowManager.LayoutParams
-import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.DialogFragment
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.BaseViewModelFactory
-import com.faust.m.flashcardm.presentation.EditorAction
+import com.faust.m.flashcardm.presentation.EditTextDialogFragment
 import com.faust.m.flashcardm.presentation.library.FragmentReviewAhead.CountValidationState.*
-import com.faust.m.flashcardm.presentation.setEditorActionListener
-import com.faust.m.flashcardm.presentation.setNoArgPositiveButton
-import com.google.android.material.textfield.TextInputEditText
-import org.jetbrains.anko.find
 import org.koin.android.ext.android.getKoin
 
-const val DEFAULT_REVIEW_AHEAD_CARD_NUMBER = 20
+class FragmentReviewAhead : EditTextDialogFragment() {
 
-class FragmentReviewAhead : DialogFragment() {
-
-    private lateinit var editNumber: TextInputEditText
-    private var _dialog: AlertDialog? = null
     private lateinit var viewModel: LibraryViewModel
-    private var maxCardCount = 0
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
-    }
-
+    @SuppressLint("InflateParams")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // Create dialog
-        return activity?.let {
-            val rootView =
-                it.layoutInflater.inflate(R.layout.dialog_review_ahead, null)
-            editNumber = rootView.find(R.id.et_number_card_to_review_ahead)
-            editNumber.setEditorActionListener(::onEditorAction)
-            // TODO: could probably refactor this as it is duplicated code from FragmentNameBooklet
-            editNumber.addTextChangedListener(ValidationTextWatcher())
+        viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
 
-            // Build dialog
-            _dialog = AlertDialog.Builder(it)
-                .setTitle(R.string.title_dialog_review_ahead)
-                .setView(rootView)
-                .setNoArgPositiveButton(R.string.confirm_review_card, ::onPositiveButtonClicked)
-                .setNegativeButton(android.R.string.cancel) { _, _ -> dismiss() }
-                .create()
+        val customView =
+            requireActivity().layoutInflater.inflate(R.layout.dialog_review_ahead, null)
 
-            // Use dialog window to focus on edit text and show soft input keyboard
-            editNumber.requestFocus()
-            _dialog?.window?.setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        val builder =
+            AlertDialog.Builder(requireContext()).setTitle(R.string.title_dialog_review_ahead)
 
-            _dialog
-        } ?: throw IllegalStateException("Activity cannot be null")
-
-    }
-
-    private fun onPositiveButtonClicked() {
-        editNumber.text.toString().toIntOrNull()?.let {
-            viewModel.addCardsToReviewAheadForCurrentBooklet(it)
-        }
-    }
-
-    private fun onEditorAction(textView: TextView, editorAction: EditorAction): Boolean {
-        textView.text.toString().let { count ->
-            if (editorAction.isDone() && count.validationState() == VALID) {
-                viewModel.addCardsToReviewAheadForCurrentBooklet(count.toInt())
-                dismiss()
-                return true
-            }
-            return false
-        }
+        return createDialog(R.string.confirm_review_card,
+            R.id.et_number_card_to_review_ahead, customView, builder)
     }
 
     override fun onResume() {
         super.onResume()
-
-        viewModel.selectedBooklet?.let { maxCardCount = it.totalCardCount - it.cardToReviewCount}
-        maxCardCount
-            .coerceAtMost(DEFAULT_REVIEW_AHEAD_CARD_NUMBER)
-            .toString()
+        // Display default value in editText
+        viewModel.defaultCardCountToReviewAheadForCurrentBooklet().toString()
             .let { defaultCardCount ->
-                editNumber.setText(defaultCardCount)
-                editNumber.setSelection(0, defaultCardCount.length)
+                editText.setText(defaultCardCount)
+                editText.setSelection(0, defaultCardCount.length)
             }
     }
 
+    override fun onConfirm(value: String): Boolean =
+        // Double check that value is valid && ask viewModel to add cards for review
+        value.validateCount() == VALID &&
+        value.toIntOrNull()?.let { count ->
+            viewModel.addCardsToReviewAheadForCurrentBooklet(count)
+            true
+        } ?: false
 
-    private inner class ValidationTextWatcher: TextWatcher {
-
-        override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-        override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
-
-        override fun afterTextChanged(editable: Editable?) {
-            val validationState = editable?.toString().validationState()
-            // Enable button if text is valid
-            _dialog?.getButton(Dialog.BUTTON_POSITIVE)?.isEnabled = (validationState == VALID)
+    /**
+     * Depending on text value (valid or not), this method will:
+     * - enable/disable positive button
+     * - show/hide error on textView
+     */
+    override fun onDisplayValidationState(value: String) {
+        value.validateCount().let { validationState ->
+            // Enable button only if text is valid
+            enablePositiveButton(validationState == VALID)
             // Show error if text invalid, hide error if text valid
-            editNumber.error = when (editable?.toString().validationState()) {
+            editText.error = when (validationState) {
                 VALID -> null
                 TOO_LOW -> getString(R.string.error_min_card_for_review_ahead)
-                TOO_HIGH -> resources.getQuantityString(
-                        R.plurals.error_max_card_for_review_ahead, maxCardCount, maxCardCount)
+                TOO_HIGH -> {
+                    val max = viewModel.maxCardCountToReviewAheadForCurrentBooklet()
+                    resources.getQuantityString(
+                        R.plurals.error_max_card_for_review_ahead, max, max)
+                }
             }
         }
     }
 
-    private fun String?.validationState(): CountValidationState {
+    private fun String?.validateCount(): CountValidationState {
         return this?.toIntOrNull()?.let {
             when {
                 it < 1 -> TOO_LOW
-                it > maxCardCount -> TOO_HIGH
+                it > viewModel.maxCardCountToReviewAheadForCurrentBooklet() -> TOO_HIGH
                 else -> VALID
             }
         } ?: TOO_LOW

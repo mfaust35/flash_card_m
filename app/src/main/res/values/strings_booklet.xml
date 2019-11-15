@@ -2,6 +2,7 @@
     <string name="title_dialog_add_booklet">Add a booklet</string>
     <string name="title_dialog_rename_booklet">Rename a booklet</string>
     <string name="hint_enter_new_booklet_name">"Booklet's name"</string>
+    <string name="error_booklet_name_must_not_be_null">"Must not be empty"</string>
     <string name="confirm_new_booklet">Add</string>
     <string name="confirm_rename_booklet">Rename</string>
 
