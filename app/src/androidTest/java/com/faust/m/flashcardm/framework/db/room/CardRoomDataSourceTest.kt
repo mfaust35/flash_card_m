@@ -1,9 +1,9 @@
 package com.faust.m.flashcardm.framework.db.room
 
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
-import com.faust.m.core.domain.Card
-import com.faust.m.core.domain.CardContent
-import com.faust.m.core.domain.CardContentType.FRONT
+import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.domain.CardContent
+import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.*
 import io.mockk.every

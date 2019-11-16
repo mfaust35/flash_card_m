@@ -38,11 +38,12 @@ android {
 }
 
 dependencies {
-    implementation project(':core')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // Base kotlin
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "androidx.collection:collection-ktx:$collection_version"
     // Co-routine implementation
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
     // Anko implementation
     implementation "org.jetbrains.anko:anko-commons:$anko_version"
     implementation "org.jetbrains.anko:anko-design:$anko_version"
@@ -53,14 +54,23 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     // Koin implementation
     implementation "org.koin:koin-android:$koin_version"
+    // Lifecycle implementation
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
     // About page
     implementation 'com.github.medyo:android-about-page:1.2.5'
 
+    // Canary for debugImplementation
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.0-beta-3'
 
-    // Base testing
+    // JUnit base testing
+    testImplementation "junit:junit:4.12"
+    // Mockking
+    testImplementation "io.mockk:mockk:1.9.3"
+    // AssertJ for more beautiful assertion
+    testImplementation 'org.assertj:assertj-core:3.14.0'
+
+    // Android espresso base testing
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-intents:3.2.0'

@@ -1,7 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
 import androidx.room.*
-import com.faust.m.core.domain.CardContentType
+import com.faust.m.flashcardm.core.domain.CardContentType
 import java.util.*
 
 const val CardContentTableName = "card_contents"

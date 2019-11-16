@@ -1,10 +1,10 @@
 package com.faust.m.flashcardm.framework.db.room
 
-import com.faust.m.core.LongSparseArrayList
-import com.faust.m.core.data.CardDataSource
-import com.faust.m.core.domain.Card
-import com.faust.m.core.domain.CardContent
-import com.faust.m.core.domain.CardContentType
+import com.faust.m.flashcardm.core.LongSparseArrayList
+import com.faust.m.flashcardm.core.data.CardDataSource
+import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.domain.CardContent
+import com.faust.m.flashcardm.core.domain.CardContentType
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
