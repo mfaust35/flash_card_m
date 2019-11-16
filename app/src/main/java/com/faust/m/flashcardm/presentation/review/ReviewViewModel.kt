@@ -3,7 +3,7 @@ package com.faust.m.flashcardm.presentation.review
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.faust.m.core.domain.Card
+import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.framework.CardUseCases
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard

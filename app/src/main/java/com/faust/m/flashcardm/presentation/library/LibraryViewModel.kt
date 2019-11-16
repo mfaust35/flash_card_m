@@ -5,8 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.faust.m.core.domain.Booklet
-import com.faust.m.core.usecase.booklet.BookletOutline
+import com.faust.m.flashcardm.core.domain.Booklet
+import com.faust.m.flashcardm.core.usecase.booklet.BookletOutline
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.framework.BookletUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel

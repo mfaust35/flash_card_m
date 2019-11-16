@@ -1,7 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room
 
-import com.faust.m.core.data.BookletDataSource
-import com.faust.m.core.domain.Booklet
+import com.faust.m.flashcardm.core.data.BookletDataSource
+import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.framework.db.room.model.BookletDao
 import com.faust.m.flashcardm.framework.db.room.model.BookletEntity
 

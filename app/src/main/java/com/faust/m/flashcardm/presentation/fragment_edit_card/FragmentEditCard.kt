@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
-import com.faust.m.core.domain.Card
+import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.presentation.*
 import com.faust.m.flashcardm.presentation.booklet.BookletActivity

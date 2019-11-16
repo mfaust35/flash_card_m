@@ -2,9 +2,9 @@ package com.faust.m.flashcardm.framework.db.room.definition
 
 import android.content.Context
 import androidx.room.*
-import com.faust.m.core.domain.CardContentType
-import com.faust.m.core.domain.CardContentType.BACK
-import com.faust.m.core.domain.CardContentType.FRONT
+import com.faust.m.flashcardm.core.domain.CardContentType
+import com.faust.m.flashcardm.core.domain.CardContentType.BACK
+import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
 import com.faust.m.flashcardm.framework.db.room.model.*
 import java.util.*
 

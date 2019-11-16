@@ -2,7 +2,7 @@ package com.faust.m.flashcardm.presentation.fragment_edit_card
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.faust.m.core.domain.Card
+import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.framework.CardUseCases
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
