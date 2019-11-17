@@ -8,7 +8,7 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
-import com.faust.m.flashcardm.framework.CardUseCases
+import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.*
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
