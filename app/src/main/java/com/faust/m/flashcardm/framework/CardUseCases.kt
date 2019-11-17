@@ -1,6 +1,6 @@
 package com.faust.m.flashcardm.framework
 
-import com.faust.m.core.usecase.card.*
+import com.faust.m.flashcardm.core.usecase.card.*
 
 class CardUseCases(val addCard: AddCard,
                    val deleteCard: DeleteCard,

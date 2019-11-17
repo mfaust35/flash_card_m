@@ -4,10 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.faust.m.core.domain.Card
-import com.faust.m.core.domain.Card.RatingLevel.NEW
-import com.faust.m.core.domain.Card.RatingLevel.TRAINING
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
+import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
 import com.faust.m.flashcardm.framework.CardUseCases
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.*

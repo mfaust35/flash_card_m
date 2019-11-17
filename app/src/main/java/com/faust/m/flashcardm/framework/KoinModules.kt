@@ -1,11 +1,11 @@
 package com.faust.m.flashcardm.framework
 
-import com.faust.m.core.data.BookletDataSource
-import com.faust.m.core.data.BookletRepository
-import com.faust.m.core.data.CardDataSource
-import com.faust.m.core.data.CardRepository
-import com.faust.m.core.usecase.booklet.*
-import com.faust.m.core.usecase.card.*
+import com.faust.m.flashcardm.core.data.BookletDataSource
+import com.faust.m.flashcardm.core.data.BookletRepository
+import com.faust.m.flashcardm.core.data.CardDataSource
+import com.faust.m.flashcardm.core.data.CardRepository
+import com.faust.m.flashcardm.core.usecase.booklet.*
+import com.faust.m.flashcardm.core.usecase.card.*
 import com.faust.m.flashcardm.framework.db.room.BookletRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.CardRoomDataSource
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase

@@ -2,7 +2,7 @@ package com.faust.m.flashcardm.presentation.view_library_booklet
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.faust.m.core.usecase.booklet.BookletOutline
+import com.faust.m.flashcardm.core.usecase.booklet.BookletOutline
 import com.faust.m.flashcardm.framework.BookletUseCases
 import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
