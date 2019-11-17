@@ -5,6 +5,8 @@ import androidx.collection.set
 import com.faust.m.flashcardm.core.data.CardRepository
 import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.usecase.BookletOutline
+import com.faust.m.flashcardm.core.usecase.GetBookletsOutlines
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
