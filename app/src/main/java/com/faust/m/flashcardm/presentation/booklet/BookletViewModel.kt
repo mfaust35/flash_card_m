@@ -14,8 +14,8 @@ import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.*
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
 import com.faust.m.flashcardm.presentation.notifyObserver
-import com.faust.m.flashcardm.presentation.view_library_booklet.DelegateLibraryBooklet
-import com.faust.m.flashcardm.presentation.view_library_booklet.ViewModelLibraryBooklet
+import com.faust.m.flashcardm.presentation.view_library_booklet.DelegateBookletBanner
+import com.faust.m.flashcardm.presentation.view_library_booklet.ViewModelBookletBanner
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -26,11 +26,11 @@ import org.koin.core.inject
 class BookletViewModel @JvmOverloads constructor(
     private val bookletId: Long,
     private val delegateEditCard: ViewModelEditCard = DelegateEditCard(bookletId),
-    private val delegateLibraryBooklet: ViewModelLibraryBooklet = DelegateLibraryBooklet(bookletId)
+    private val delegateBookletBanner: ViewModelBookletBanner = DelegateBookletBanner(bookletId)
 ): ViewModel(),
     KoinComponent,
     ViewModelEditCard by delegateEditCard,
-    ViewModelLibraryBooklet by delegateLibraryBooklet,
+    ViewModelBookletBanner by delegateBookletBanner,
     AnkoLogger {
 
     // Initialize the delegate for card edition with listeners for onCardEdited & onCardCreated
@@ -68,7 +68,7 @@ class BookletViewModel @JvmOverloads constructor(
 
 
     override fun loadData() {
-        delegateLibraryBooklet.loadData()
+        delegateBookletBanner.loadData()
         GlobalScope.launch {
             cardUseCases.getCardsForBooklet(bookletId).let {
                 _cards.postValue(it.toMutableList())

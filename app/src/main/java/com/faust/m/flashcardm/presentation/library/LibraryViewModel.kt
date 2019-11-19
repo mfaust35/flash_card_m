@@ -29,33 +29,33 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val bookletUseCases: BookletUseCases by inject()
 
 
-    private val _booklets: MutableLiveList<LibraryBooklet> = MutableLiveList()
-    val booklets: LiveData<MutableList<LibraryBooklet>> =
+    private val _booklets: MutableLiveList<BookletBannerData> = MutableLiveList()
+    val booklets: LiveData<MutableList<BookletBannerData>> =
         Transformations.switchMap(bookletUseCases.getLiveOutlinedLibrary()) { outlinedLibrary ->
-            _booklets.postValue(outlinedLibrary.toSortedLibraryBooklets())
+            _booklets.postValue(outlinedLibrary.toSortedBookletBanners())
             _booklets
         }
 
     private val _eventManageCardsForBooklet: MutableLiveEvent<Long> = MutableLiveEvent()
     val eventManageCardsForBooklet: LiveData<Event<Long>> = _eventManageCardsForBooklet
 
-    private val _eventReviewBooklet: MutableLiveEvent<LibraryBooklet> = MutableLiveEvent()
-    val eventReviewBooklet: LiveData<Event<LibraryBooklet>> = _eventReviewBooklet
+    private val _eventReviewBooklet: MutableLiveEvent<BookletBannerData> = MutableLiveEvent()
+    val eventReviewBooklet: LiveData<Event<BookletBannerData>> = _eventReviewBooklet
 
-    var selectedBooklet: LibraryBooklet? = null
+    var selectedBooklet: BookletBannerData? = null
 
 
     fun nameBooklet(newName: String) {
         selectedBooklet?.let { renameBooklet(newName, it) } ?: addBooklet(newName)
     }
 
-    private fun renameBooklet(newName: String, libraryBooklet: LibraryBooklet) {
+    private fun renameBooklet(newName: String, booklet: BookletBannerData) {
         GlobalScope.launch {
-            when(bookletUseCases.renameBooklet(newName, libraryBooklet.id)) {
+            when(bookletUseCases.renameBooklet(newName, booklet.id)) {
                 true ->
-                    verbose { "Booklet renamed oldName: ${libraryBooklet.name} | newName: $newName" }
+                    verbose { "Booklet renamed oldName: ${booklet.name} | newName: $newName" }
                 false ->
-                    warn { "Cannot rename booklet oldName: ${libraryBooklet.name} | newName: $newName" }
+                    warn { "Cannot rename booklet oldName: ${booklet.name} | newName: $newName" }
             }
         }
     }
@@ -68,20 +68,20 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     fun deleteCurrentBooklet() {
-        selectedBooklet?.let { libraryBooklet ->
+        selectedBooklet?.let { bookletBannerData ->
             GlobalScope.launch {
-                bookletUseCases.deleteBooklet(libraryBooklet.toBooklet()).let { result: Int ->
+                bookletUseCases.deleteBooklet(bookletBannerData.toBooklet()).let { result: Int ->
                     if (0 == result) {
-                        warn { "Booklet $libraryBooklet not deleted" }
+                        warn { "Booklet $bookletBannerData not deleted" }
                         return@launch
                     }
-                    verbose { "Booklet $libraryBooklet deleted" }
+                    verbose { "Booklet $bookletBannerData deleted" }
                 }
             }
         } ?: warn { "Could not find booklet to delete" }
     }
 
-    fun reviewBooklet(booklet: LibraryBooklet) {
+    fun reviewBooklet(booklet: BookletBannerData) {
         selectedBooklet = booklet
         _eventReviewBooklet.postEvent(booklet)
     }
@@ -112,13 +112,13 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 /**
  * Wrapper data class for easy access to the summary of cards linked to a booklet
  */
-data class LibraryBooklet(val name: String,
-                          val cardToReviewCount: Int,
-                          val totalCardCount: Int,
-                          val newCount: Int,
-                          val inReviewCount: Int,
-                          val learnedCount: Int,
-                          val id: Long = 0) {
+data class BookletBannerData(val name: String,
+                             val cardToReviewCount: Int,
+                             val totalCardCount: Int,
+                             val newCount: Int,
+                             val inReviewCount: Int,
+                             val learnedCount: Int,
+                             val id: Long = 0) {
 
     companion object {
         private val colors = arrayOf (
@@ -130,8 +130,8 @@ data class LibraryBooklet(val name: String,
             R.color.colorHighlight6
         )
 
-        val LOADING = LibraryBooklet("Loading", 0, 0, 0, 0, 0, 0)
-        val ERROR = LibraryBooklet("Error", 0, 0, 0, 0, 0, 0)
+        val LOADING = BookletBannerData("Loading", 0, 0, 0, 0, 0, 0)
+        val ERROR = BookletBannerData("Error", 0, 0, 0, 0, 0, 0)
     }
 
     constructor(booklet: Booklet, bookletOutline: BookletOutline): this(
@@ -157,13 +157,13 @@ data class LibraryBooklet(val name: String,
     val countReviewAheadCards = totalCardCount - cardToReviewCount
 }
 
-private fun OutlinedLibrary.toSortedLibraryBooklets(): MutableList<LibraryBooklet> {
-    val result = mutableListOf<LibraryBooklet>()
+private fun OutlinedLibrary.toSortedBookletBanners(): MutableList<BookletBannerData> {
+    val result = mutableListOf<BookletBannerData>()
     this.forEach { outlinedBooklet ->
-        result.add(outlinedBooklet.toLibraryBooklet())
+        result.add(outlinedBooklet.toBookletBanner())
     }
     result.sortBy { it.name.toLowerCase(Locale.getDefault()) }
     return result
 }
 
-private fun OutlinedBooklet.toLibraryBooklet(): LibraryBooklet = LibraryBooklet(booklet, outline)
+private fun OutlinedBooklet.toBookletBanner(): BookletBannerData = BookletBannerData(booklet, outline)

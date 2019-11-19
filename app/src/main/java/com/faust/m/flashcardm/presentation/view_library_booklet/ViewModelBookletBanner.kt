@@ -4,16 +4,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.faust.m.flashcardm.core.usecase.BookletOutline
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
-import com.faust.m.flashcardm.presentation.library.LibraryBooklet
+import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 
 /**
- * This viewModel extension is intended for use with a view RecyclerViewLibraryBookletsBinding.
+ * This viewModel extension is intended for use with a view ViewBookletBannerBinding.
  * To see an example of usage, look into the booklet package
- * fragment_layout should include a LinearLayout insert_point to include the libraryBookletBinding
+ * fragment_layout should include a LinearLayout insert_point to include the bookletBannerBinding
  * ActivityViewModel should delegate the booklet to DelegateEditCard, like:
     class ActivityViewModel @JvmOverloads constructor(
         private val var1: Long,
@@ -21,26 +21,26 @@ import org.koin.core.inject
     ): ViewModel(),
         OtherInterface,
         ViewModelEditCard by delegateEditCard { ... }
- * Fragment should bind the libraryBookletBinding during onViewCreated()
+ * Fragment should bind the bookletBannerBinding during onViewCreated()
  * Fragment should observe booklet from viewModel
  * Activity should loadData from viewModel during onCreate()
  */
-interface ViewModelLibraryBooklet {
+interface ViewModelBookletBanner {
 
-    val booklet: LiveData<LibraryBooklet>
+    val booklet: LiveData<BookletBannerData>
 
     fun loadData()
     fun postBookletUpdate()
 }
 
-class DelegateLibraryBooklet(private val bookletId: Long): ViewModelLibraryBooklet, KoinComponent {
+class DelegateBookletBanner(private val bookletId: Long): ViewModelBookletBanner, KoinComponent {
 
     private val bookletUseCases: BookletUseCases by inject()
 
 
     // Booklet information used to display the top banner
-    private val _booklet: MutableLiveData<LibraryBooklet> = MutableLiveData()
-    override val booklet: LiveData<LibraryBooklet> = _booklet
+    private val _booklet: MutableLiveData<BookletBannerData> = MutableLiveData()
+    override val booklet: LiveData<BookletBannerData> = _booklet
 
 
     override fun loadData() {
@@ -51,13 +51,13 @@ class DelegateLibraryBooklet(private val bookletId: Long): ViewModelLibraryBookl
 
 
     override fun postBookletUpdate() {
-        val libraryBooklet = bookletUseCases.getBooklet(bookletId)?.let { tBooklet ->
+        val bookletBannerData = bookletUseCases.getBooklet(bookletId)?.let { tBooklet ->
             val tOutlines =
                 bookletUseCases.getBookletsOutlines(listOf(tBooklet))
             val tOutline = tOutlines[tBooklet.id] ?: BookletOutline.EMPTY
-            LibraryBooklet(tBooklet, tOutline)
+            BookletBannerData(tBooklet, tOutline)
 
-        } ?: LibraryBooklet.ERROR
-        _booklet.postValue(libraryBooklet)
+        } ?: BookletBannerData.ERROR
+        _booklet.postValue(bookletBannerData)
     }
 }

@@ -67,7 +67,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         }
     }
 
-    private fun onBookletInfoClicked(booklet: LibraryBooklet, view: View) {
+    private fun onBookletInfoClicked(booklet: BookletBannerData, view: View) {
         viewModel.selectedBooklet = booklet
 
         PopupMenu(this, view).apply {
@@ -107,11 +107,11 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     private fun showFragmentReviewAhead() =
         FragmentReviewAhead().show(supportFragmentManager, TAG_FRAGMENT_REVIEW_AHEAD)
 
-    private fun onBookletClicked(booklet: LibraryBooklet) {
+    private fun onBookletClicked(booklet: BookletBannerData) {
         viewModel.reviewBooklet(booklet)
     }
 
-    private fun onBookletsChanged(booklets: MutableList<LibraryBooklet>) {
+    private fun onBookletsChanged(booklets: MutableList<BookletBannerData>) {
         bookletAdapter.replaceBooklets(booklets)
         showEmptyRecyclerView(booklets.isEmpty())
     }
@@ -123,7 +123,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
     private fun onEvenManageCardsForBooklet(bookletId: Long) =
         startActivity<BookletActivity>(BOOKLET_ID to bookletId)
 
-    private fun onEventReviewBooklet(booklet: LibraryBooklet) {
+    private fun onEventReviewBooklet(booklet: BookletBannerData) {
         when {
             booklet.isEmpty() -> {
                 // Empty booklet, user probably wants to add new cards,
