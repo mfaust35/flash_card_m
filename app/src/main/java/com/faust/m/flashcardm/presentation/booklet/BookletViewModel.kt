@@ -1,9 +1,6 @@
 package com.faust.m.flashcardm.presentation.booklet
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
@@ -16,7 +13,7 @@ import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
 import com.faust.m.flashcardm.presentation.notifyObserver
 import com.faust.m.flashcardm.presentation.view_library_booklet.DelegateBookletBanner
 import com.faust.m.flashcardm.presentation.view_library_booklet.ViewModelBookletBanner
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
@@ -67,9 +64,11 @@ class BookletViewModel @JvmOverloads constructor(
         get() = _showRatingLevel
 
 
+    override fun parentScope(): CoroutineScope? = viewModelScope
+
     override fun loadData() {
         delegateBookletBanner.loadData()
-        GlobalScope.launch {
+        viewModelScope.launch {
             cardUseCases.getCardsForBooklet(bookletId).let {
                 _cards.postValue(it.toMutableList())
             }
@@ -126,7 +125,7 @@ class BookletViewModel @JvmOverloads constructor(
             tBookletCards.removeAll(bookletCardsToRemove)
 
             // Remove card from dataSource
-            GlobalScope.launch {
+            viewModelScope.launch {
                 cardsToRemove.forEach { cardUseCases.deleteCard(it) }
 
                 _cardRemovalStatus.postValue(CardRemovalStatus(DELETED, position, tBookletCards))

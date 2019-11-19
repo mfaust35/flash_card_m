@@ -3,6 +3,7 @@ package com.faust.m.flashcardm.presentation.library
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.core.usecase.BookletOutline
@@ -12,7 +13,6 @@ import com.faust.m.flashcardm.core.usecase.OutlinedLibrary
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.MutableLiveEvent
 import com.faust.m.flashcardm.presentation.MutableLiveList
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.verbose
@@ -50,7 +50,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     private fun renameBooklet(newName: String, booklet: BookletBannerData) {
-        GlobalScope.launch {
+        viewModelScope.launch {
             when(bookletUseCases.renameBooklet(newName, booklet.id)) {
                 true ->
                     verbose { "Booklet renamed oldName: ${booklet.name} | newName: $newName" }
@@ -61,7 +61,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     private fun addBooklet(newName: String) {
-        GlobalScope.launch {
+        viewModelScope.launch {
             val newBooklet = bookletUseCases.addBooklet(Booklet(newName))
             verbose { "Booklet $newBooklet added" }
         }
@@ -69,7 +69,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     fun deleteCurrentBooklet() {
         selectedBooklet?.let { bookletBannerData ->
-            GlobalScope.launch {
+            viewModelScope.launch {
                 bookletUseCases.deleteBooklet(bookletBannerData.toBooklet()).let { result: Int ->
                     if (0 == result) {
                         warn { "Booklet $bookletBannerData not deleted" }
@@ -88,7 +88,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     fun addCardsToReviewAheadForCurrentBooklet(count: Int) {
         selectedBooklet?.let { tBooklet ->
-            GlobalScope.launch {
+            viewModelScope.launch {
                 val actualResetCount = bookletUseCases.resetForReview(count, tBooklet.id)
                 if (actualResetCount > 0) {
                     _eventReviewBooklet.postEvent(tBooklet.copy(cardToReviewCount = actualResetCount))
