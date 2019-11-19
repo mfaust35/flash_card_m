@@ -1,17 +1,15 @@
 package com.faust.m.flashcardm.presentation.review
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
+import com.faust.m.flashcardm.presentation.library.BookletBannerData
+import com.faust.m.flashcardm.presentation.library.toBookletBanner
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
-import com.faust.m.flashcardm.presentation.view_library_booklet.DelegateBookletBanner
-import com.faust.m.flashcardm.presentation.view_library_booklet.ViewModelBookletBanner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,20 +21,28 @@ import java.util.*
 
 class ReviewViewModel @JvmOverloads constructor(
     private val bookletId: Long,
-    private val delegateEditCard: DelegateEditCard = DelegateEditCard(bookletId),
-    private val delegateBookletBanner: ViewModelBookletBanner = DelegateBookletBanner(bookletId)
+    private val delegateEditCard: DelegateEditCard = DelegateEditCard(bookletId)
 ): ViewModel(),
     KoinComponent,
     ViewModelEditCard by delegateEditCard,
-    ViewModelBookletBanner by delegateBookletBanner,
     AnkoLogger {
 
     // Initialize the delegate for card edition with a listener onCardEdited
     init { delegateEditCard.onCardEdited = ::onCardEdited }
 
 
+    private val bookletUseCases: BookletUseCases by inject()
     private val cardUseCases: CardUseCases by inject()
 
+
+    // Booklet information used to display the top banner
+    private val _bookletBannerData: MutableLiveData<BookletBannerData> = MutableLiveData()
+    val bookletBannerData: LiveData<BookletBannerData> =
+        Transformations.switchMap(bookletUseCases.getLiveOutlinedBooklet(bookletId))
+        { outlineBooklet ->
+            _bookletBannerData.postValue(outlineBooklet.toBookletBanner())
+            _bookletBannerData
+        }
 
     // Current card used to make reviewCard on display
     private val _currentCard: MutableLiveData<Card?> = MutableLiveData()
@@ -50,9 +56,8 @@ class ReviewViewModel @JvmOverloads constructor(
 
     override fun parentScope(): CoroutineScope? = viewModelScope
 
-    override fun loadData() {
-        delegateBookletBanner.loadData()
-        viewModelScope.launch {
+    fun loadData() {
+        viewModelScope.launch(Dispatchers.IO) {
             cardUseCases
                 .getCardsForBooklet(bookletId, filterReviewCard = true)
                 .forEach { _cardQueue.add(it) }
@@ -68,10 +73,9 @@ class ReviewViewModel @JvmOverloads constructor(
     fun validateCurrentCard() {
         _currentCard.value?.let {
             val cardToUpdate = it.copy(rating = it.rating + 1, lastSeen = Date())
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 cardUseCases.updateCard(cardToUpdate).also { updatedCard: Card ->
                     warn { "Card updated $updatedCard" }
-                    postBookletUpdate()
                     postCardUpdate()
                 }
             }
@@ -116,7 +120,7 @@ class ReviewViewModel @JvmOverloads constructor(
     private fun onCardEdited(cardEdited: Card) {
         // Updating currentCard will trigger an update on _reviewCard
         // So I reset _reviewCard to a value which will lead to a good updated value
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.IO) {
             _currentCard.postValue(cardEdited)
             _reviewCard.value?.let {
                 _reviewCard.postValue(it.copy(

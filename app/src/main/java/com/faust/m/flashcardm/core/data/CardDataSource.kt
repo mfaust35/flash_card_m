@@ -15,6 +15,8 @@ interface CardDataSource {
 
     fun getLiveDeck(): LiveData<Deck>
 
+    fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck>
+
     fun getAllCardsForBooklet(bookletId: Long): List<Card>
 
     /**

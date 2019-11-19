@@ -13,6 +13,7 @@ import com.faust.m.flashcardm.core.usecase.OutlinedLibrary
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.MutableLiveEvent
 import com.faust.m.flashcardm.presentation.MutableLiveList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.verbose
@@ -50,7 +51,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     private fun renameBooklet(newName: String, booklet: BookletBannerData) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             when(bookletUseCases.renameBooklet(newName, booklet.id)) {
                 true ->
                     verbose { "Booklet renamed oldName: ${booklet.name} | newName: $newName" }
@@ -61,7 +62,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     private fun addBooklet(newName: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val newBooklet = bookletUseCases.addBooklet(Booklet(newName))
             verbose { "Booklet $newBooklet added" }
         }
@@ -69,7 +70,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     fun deleteCurrentBooklet() {
         selectedBooklet?.let { bookletBannerData ->
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 bookletUseCases.deleteBooklet(bookletBannerData.toBooklet()).let { result: Int ->
                     if (0 == result) {
                         warn { "Booklet $bookletBannerData not deleted" }
@@ -88,7 +89,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     fun addCardsToReviewAheadForCurrentBooklet(count: Int) {
         selectedBooklet?.let { tBooklet ->
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 val actualResetCount = bookletUseCases.resetForReview(count, tBooklet.id)
                 if (actualResetCount > 0) {
                     _eventReviewBooklet.postEvent(tBooklet.copy(cardToReviewCount = actualResetCount))
@@ -157,7 +158,7 @@ data class BookletBannerData(val name: String,
     val countReviewAheadCards = totalCardCount - cardToReviewCount
 }
 
-private fun OutlinedLibrary.toSortedBookletBanners(): MutableList<BookletBannerData> {
+fun OutlinedLibrary.toSortedBookletBanners(): MutableList<BookletBannerData> {
     val result = mutableListOf<BookletBannerData>()
     this.forEach { outlinedBooklet ->
         result.add(outlinedBooklet.toBookletBanner())
@@ -166,4 +167,4 @@ private fun OutlinedLibrary.toSortedBookletBanners(): MutableList<BookletBannerD
     return result
 }
 
-private fun OutlinedBooklet.toBookletBanner(): BookletBannerData = BookletBannerData(booklet, outline)
+fun OutlinedBooklet.toBookletBanner(): BookletBannerData = BookletBannerData(booklet, outline)
