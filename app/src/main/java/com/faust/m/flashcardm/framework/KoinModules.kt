@@ -36,7 +36,6 @@ val viewModelModule = module {
 
     factory { BaseViewModelFactory() }
     factory { BookletViewModelFactory() }
-    single { FlashViewModel(androidApplication())}
 
 }
 

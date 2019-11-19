@@ -1,10 +1,10 @@
 package com.faust.m.flashcardm.framework.db.room
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
 import com.faust.m.flashcardm.core.LongSparseArrayList
 import com.faust.m.flashcardm.core.data.CardDataSource
-import com.faust.m.flashcardm.core.domain.Card
-import com.faust.m.flashcardm.core.domain.CardContent
-import com.faust.m.flashcardm.core.domain.CardContentType
+import com.faust.m.flashcardm.core.domain.*
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
@@ -62,6 +62,13 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         return content
     }
 
+    override fun getLiveDeck(): LiveData<Deck> =
+        Transformations.map(cardDao.getLiveCards()) { cardEntities ->
+            cardEntities
+                .map { c -> c.toDomainModel() }
+                .toDeck()
+        }
+
     override fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArrayList<Card> =
         LongSparseArrayList<Card>(bookletIds.size).apply {
             cardDao.getAllCardsShellsForBooklets(bookletIds).forEach { cardShell ->
@@ -80,7 +87,7 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
      * @param count: the number of card to modify
      * @param bookletId: will only select card in this booklet
      */
-    override fun resetForReview(count: Int, bookletId: Long) {
+    override fun resetForReview(count: Int, bookletId: Long): Int {
         val cardShells =
             cardDao.getAllCardsShellsForBooklets(listOf(bookletId)).map { it.toDomainModel() }
                 .filterNot(Card::needReview)
@@ -91,9 +98,10 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
             cardToReset.addAll(cardShells.filter { it.rating == ratingToAdd })
         }
         val totalPossibleCard = cardToReset.count()
-        if (totalPossibleCard <= 0) return
+        if (totalPossibleCard <= 0) return 0
         // Take the first X ones and reset date and/or rating
         val updateAt = Date()
+        var resetCount = 0
         cardToReset
             .shuffled()
             .slice(0 until count.coerceAtMost(totalPossibleCard))
@@ -103,7 +111,9 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
                     else -> cEntity.copy(createdAt = updateAt)
                 }
                 cardDao.update(cardCopy.toEntityModel())
+                resetCount ++
             }
+        return resetCount
     }
 
     override fun deleteCard(card: Card): Int =

@@ -1,5 +1,6 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Query
 
@@ -14,4 +15,7 @@ interface BookletDao: BaseDao<BookletEntity> {
 
     @Query("SELECT * FROM $BookletTableName")
     fun getAllBooklets(): List<BookletEntity>
+
+    @Query("SELECT * FROM $BookletTableName")
+    fun getLiveBooklets(): LiveData<List<BookletEntity>>
 }

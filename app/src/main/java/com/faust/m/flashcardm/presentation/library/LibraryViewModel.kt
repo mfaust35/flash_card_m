@@ -1,21 +1,17 @@
 package com.faust.m.flashcardm.presentation.library
 
-import androidx.collection.LongSparseArray
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.R
+import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.core.usecase.BookletOutline
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
-import com.faust.m.flashcardm.framework.FlashViewModel
+import com.faust.m.flashcardm.core.usecase.OutlinedBooklet
+import com.faust.m.flashcardm.core.usecase.OutlinedLibrary
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.MutableLiveEvent
 import com.faust.m.flashcardm.presentation.MutableLiveList
-import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.ONGOING
-import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
-import com.faust.m.flashcardm.presentation.notifyObserver
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -23,6 +19,7 @@ import org.jetbrains.anko.verbose
 import org.jetbrains.anko.warn
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import java.util.*
 
 
 const val DEFAULT_REVIEW_AHEAD_CARD_NUMBER = 20
@@ -32,20 +29,12 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val bookletUseCases: BookletUseCases by inject()
 
 
-    private val _booklets: MutableLibraryBooklets = MutableLibraryBooklets()
+    private val _booklets: MutableLiveList<LibraryBooklet> = MutableLiveList()
     val booklets: LiveData<MutableList<LibraryBooklet>> =
-        Transformations.switchMap(getKoin().get<FlashViewModel>().bookletsState) {
-            GlobalScope.launch {
-                postLibraryBooklets()
-            }
+        Transformations.switchMap(bookletUseCases.getLiveOutlinedLibrary()) { outlinedLibrary ->
+            _booklets.postValue(outlinedLibrary.toSortedLibraryBooklets())
             _booklets
         }
-
-    private val _bookletAdded: MutableLiveData<Event<AddedBooklet>> = MutableLiveData()
-    val bookletAdded: LiveData<Event<AddedBooklet>> = _bookletAdded
-
-    private val _bookletRemoved: MutableLiveEvent<BookletRemovalStatus> = MutableLiveEvent()
-    val bookletRemoved: LiveData<Event<BookletRemovalStatus>> = _bookletRemoved
 
     private val _eventManageCardsForBooklet: MutableLiveEvent<Long> = MutableLiveEvent()
     val eventManageCardsForBooklet: LiveData<Event<Long>> = _eventManageCardsForBooklet
@@ -55,6 +44,7 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
 
     var selectedBooklet: LibraryBooklet? = null
 
+
     fun nameBooklet(newName: String) {
         selectedBooklet?.let { renameBooklet(newName, it) } ?: addBooklet(newName)
     }
@@ -62,15 +52,8 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private fun renameBooklet(newName: String, libraryBooklet: LibraryBooklet) {
         GlobalScope.launch {
             when(bookletUseCases.renameBooklet(newName, libraryBooklet.id)) {
-                true -> {
+                true ->
                     verbose { "Booklet renamed oldName: ${libraryBooklet.name} | newName: $newName" }
-                    val copy = libraryBooklet.copy(name = newName)
-                    _booklets.value?.let {
-                        it.remove(libraryBooklet)
-                        it.add(copy)
-                    }
-                    _booklets.notifyObserver()
-                }
                 false ->
                     warn { "Cannot rename booklet oldName: ${libraryBooklet.name} | newName: $newName" }
             }
@@ -78,14 +61,9 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     }
 
     private fun addBooklet(newName: String) {
-        _bookletAdded.postValue(Event(AddedBooklet(state = ONGOING)))
         GlobalScope.launch {
-            bookletUseCases.addBooklet(Booklet(newName)).let {
-                verbose { "Booklet $it added" }
-                val newBooklet = LibraryBooklet(it, BookletOutline.EMPTY)
-                val position = _booklets.addSilent(newBooklet)
-                _bookletAdded.postValue(Event(AddedBooklet(SUCCESS, position, newBooklet)))
-            }
+            val newBooklet = bookletUseCases.addBooklet(Booklet(newName))
+            verbose { "Booklet $newBooklet added" }
         }
     }
 
@@ -98,11 +76,6 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
                         return@launch
                     }
                     verbose { "Booklet $libraryBooklet deleted" }
-                    _booklets.removeSilent(libraryBooklet)
-                    _bookletRemoved.postEvent(BookletRemovalStatus(
-                        removedBooklet = libraryBooklet,
-                        wasLast = _booklets.value.isNullOrEmpty())
-                    )
                 }
             }
         } ?: warn { "Could not find booklet to delete" }
@@ -116,13 +89,9 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     fun addCardsToReviewAheadForCurrentBooklet(count: Int) {
         selectedBooklet?.let { tBooklet ->
             GlobalScope.launch {
-                bookletUseCases.resetForReview(count, tBooklet.id)
-                // Reload LibraryBooklet
-                val newBooklets = loadLibraryBooklet()
-                _booklets.postValue(newBooklets)
-                // Ask to review the booklet for which we just added card to review
-                newBooklets.find { nBooklet -> nBooklet.id == tBooklet.id }?.let {
-                    _eventReviewBooklet.postEvent(it)
+                val actualResetCount = bookletUseCases.resetForReview(count, tBooklet.id)
+                if (actualResetCount > 0) {
+                    _eventReviewBooklet.postEvent(tBooklet.copy(cardToReviewCount = actualResetCount))
                 }
             }
         }
@@ -137,40 +106,6 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
         selectedBooklet?.let {
             _eventManageCardsForBooklet.postEvent(it.id)
         } ?: warn { "Could not find booklet to add cards to" }
-    }
-
-    private fun postLibraryBooklets() = loadLibraryBooklet().let {
-        _booklets.postValue(it)
-    }
-
-    private fun loadLibraryBooklet() = mutableListOf<LibraryBooklet>()
-        .apply {
-            val tBooklets: List<Booklet> = bookletUseCases.getBooklets()
-            val tBookletsOutlines: LongSparseArray<BookletOutline> =
-                bookletUseCases.getBookletsOutlines(tBooklets)
-
-            for (tBooklet: Booklet in tBooklets) {
-                val tOutline = tBookletsOutlines[tBooklet.id] ?: BookletOutline.EMPTY
-                add(LibraryBooklet(tBooklet, tOutline))
-            }
-        }
-}
-
-class MutableLibraryBooklets: MutableLiveList<LibraryBooklet>() {
-
-    fun addSilent(booklet: LibraryBooklet): Int {
-        return value?.let {
-            it.add(booklet)
-            it.sortBy { booklet -> booklet.name.toLowerCase() }
-            it.indexOf(booklet)
-        } ?: -1
-    }
-
-    fun removeSilent(booklet: LibraryBooklet) = value?.remove(booklet)
-
-    override fun postValue(value: MutableList<LibraryBooklet>?) {
-        value?.sortBy(LibraryBooklet::name)
-        super.postValue(value)
     }
 }
 
@@ -222,16 +157,13 @@ data class LibraryBooklet(val name: String,
     val countReviewAheadCards = totalCardCount - cardToReviewCount
 }
 
-
-/**
- * Wrapper class for observing booklet adding procedure
- */
-data class AddedBooklet(val state: State,
-                        val position: Int = 0,
-                        val booklet: LibraryBooklet = LibraryBooklet.LOADING) {
-
-    enum class State { EMPTY, ONGOING, FAIL, SUCCESS }
+private fun OutlinedLibrary.toSortedLibraryBooklets(): MutableList<LibraryBooklet> {
+    val result = mutableListOf<LibraryBooklet>()
+    this.forEach { outlinedBooklet ->
+        result.add(outlinedBooklet.toLibraryBooklet())
+    }
+    result.sortBy { it.name.toLowerCase(Locale.getDefault()) }
+    return result
 }
 
-data class BookletRemovalStatus(val removedBooklet: LibraryBooklet,
-                                val wasLast: Boolean)
+private fun OutlinedBooklet.toLibraryBooklet(): LibraryBooklet = LibraryBooklet(booklet, outline)

@@ -9,6 +9,8 @@ class BookletRepository(private val dataSource: BookletDataSource) {
     fun renameBooklet(newName: String, bookletId: Long): Boolean =
         dataSource.renameBooklet(newName, bookletId)
 
+    fun getLiveLibrary() = dataSource.getLiveLibrary()
+
     fun getAllBooklets() = dataSource.getAllBooklet()
 
     fun getBooklet(bookletId: Long) = dataSource.getBooklet(bookletId)
