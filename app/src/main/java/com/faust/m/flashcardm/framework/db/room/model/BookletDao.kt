@@ -13,6 +13,9 @@ interface BookletDao: BaseDao<BookletEntity> {
     @Query("SELECT * FROM $BookletTableName WHERE booklet_id=:bookletId")
     fun getBooklet(bookletId: Long): BookletEntity?
 
+    @Query("SELECT * FROM $BookletTableName WHERE booklet_id=:bookletId")
+    fun getLiveBooklet(bookletId: Long): LiveData<BookletEntity?>
+
     @Query("SELECT * FROM $BookletTableName")
     fun getAllBooklets(): List<BookletEntity>
 

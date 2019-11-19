@@ -42,7 +42,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         with(this.viewLifecycleOwner) {
-            viewModel.booklet.observeData(this, ::onBookletChanged)
+            viewModel.bookletBannerData.observeData(this, ::onBookletChanged)
             viewModel.bookletCards.observeData(this, ::onCardsChanged)
             viewModel.cardRemovalStatus.observeData(this, ::onDeleteCardStateChanged)
         }

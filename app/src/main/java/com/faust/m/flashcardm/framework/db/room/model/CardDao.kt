@@ -28,6 +28,11 @@ interface CardDao: BaseDao<CardEntity> {
     @Query("""SELECT *
         FROM $CardTableName
         WHERE booklet_id = :bookletId""")
+    fun getLiveCardsForBooklet(bookletId: Long): LiveData<List<CardEntity>>
+
+    @Query("""SELECT *
+        FROM $CardTableName
+        WHERE booklet_id = :bookletId""")
     fun getAllCardsForBooklet(bookletId: Long): List<CardEntity>
 
     @Query("""SELECT *

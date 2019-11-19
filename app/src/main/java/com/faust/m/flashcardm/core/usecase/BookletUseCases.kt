@@ -1,21 +1,17 @@
 package com.faust.m.flashcardm.core.usecase
 
-import androidx.collection.LongSparseArray
-import androidx.collection.forEach
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.faust.m.flashcardm.core.data.BookletRepository
 import com.faust.m.flashcardm.core.data.CardRepository
 import com.faust.m.flashcardm.core.domain.Booklet
-import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Deck
 import com.faust.m.flashcardm.core.domain.Library
 
 class BookletUseCases private constructor(val addBooklet: AddBooklet,
                                           val deleteBooklet: DeleteBooklet,
-                                          val getBooklet: GetBooklet,
                                           val getLiveOutlinedLibrary: GetLiveOutlinedLibrary,
-                                          val getBookletsOutlines: GetBookletsOutlines,
+                                          val getLiveOutlinedBooklet: GetLiveOutlinedBooklet,
                                           val renameBooklet: RenameBooklet,
                                           val resetForReview: ResetForReview) {
 
@@ -23,9 +19,8 @@ class BookletUseCases private constructor(val addBooklet: AddBooklet,
                 cardRepository: CardRepository): this(
         AddBooklet(bookletRepository),
         DeleteBooklet(bookletRepository),
-        GetBooklet(bookletRepository),
         GetLiveOutlinedLibrary(bookletRepository, cardRepository),
-        GetBookletsOutlines(cardRepository),
+        GetLiveOutlinedBooklet(bookletRepository, cardRepository),
         RenameBooklet(bookletRepository),
         ResetForReview(cardRepository)
     )
@@ -41,54 +36,24 @@ class DeleteBooklet(private val bookletRepository: BookletRepository) {
     operator fun invoke(booklet: Booklet): Int = bookletRepository.delete(booklet)
 }
 
-class GetBooklet(private val bookletRepository: BookletRepository) {
-
-    operator fun invoke(bookletId: Long): Booklet? = bookletRepository.getBooklet(bookletId)
-}
-
 class GetLiveOutlinedLibrary(private val bookletRepository: BookletRepository,
                              private val cardRepository: CardRepository) {
 
     operator fun invoke(): LiveData<OutlinedLibrary> =
         MediatorOutlinedLibrary(
             bookletRepository.getLiveLibrary(),
-            cardRepository.getLiveDeck())
+            cardRepository.getLiveDeck()
+        )
 }
 
-class GetBookletsOutlines(private val cardRepository: CardRepository) {
+class GetLiveOutlinedBooklet(private val bookletRepository: BookletRepository,
+                             private val cardRepository: CardRepository) {
 
-    /**
-     * Return a map of bookletId -> BookletOutline
-     */
-    operator fun invoke(booklets: List<Booklet>): LongSparseArray<BookletOutline> =
-        LongSparseArray<BookletOutline>().apply {
-            cardRepository
-                .getAllCardShellsForBooklets(booklets.map(Booklet::id))
-                .forEach { key, cardShells ->
-                    append(key, BookletOutline(
-                        cardShells.size,
-                        // It is ineffective to parse the list 3 times, but it makes small code
-                        // and the size of list are not expected to be over 100,
-                        // so the performance impact is low
-                        cardShells.countNewCard(),
-                        cardShells.countInReviewCard(),
-                        cardShells.countLearnedCards(),
-                        cardShells.countToReviewCard()
-                    ))
-                }
-        }
-
-    private fun List<Card>.countNewCard() =
-        filter { c -> c.hasRatingLevel(Card.RatingLevel.NEW) }.size
-
-    private fun List<Card>.countInReviewCard() =
-        filter { c -> c.hasRatingLevel(Card.RatingLevel.TRAINING) }.size
-
-    private fun List<Card>.countLearnedCards() =
-        filter { c -> c.hasRatingLevel(Card.RatingLevel.FAMILIAR) }.size
-
-    private fun List<Card>.countToReviewCard() =
-        filter(Card::needReview).size
+    operator fun invoke(bookletId: Long): LiveData<OutlinedBooklet> =
+        MediatorOutlinedBooklet(
+            bookletRepository.getLiveBooklet(bookletId),
+            cardRepository.getLiveDeckForBooklet(bookletId)
+        )
 }
 
 class RenameBooklet(private val bookletRepository: BookletRepository) {
@@ -104,8 +69,8 @@ class ResetForReview(private val cardRepository: CardRepository) {
 }
 
 
-class MediatorOutlinedLibrary(private val librarySource: LiveData<Library>,
-                              private val deckSource: LiveData<Deck>)
+private class MediatorOutlinedLibrary(private val librarySource: LiveData<Library>,
+                                      private val deckSource: LiveData<Deck>)
     : MediatorLiveData<OutlinedLibrary>() {
 
     init {
@@ -123,6 +88,23 @@ class MediatorOutlinedLibrary(private val librarySource: LiveData<Library>,
                 OutlinedBooklet(booklet, outline)
             }
             .toOutlinedLibrary()
+    }
+}
+
+private class MediatorOutlinedBooklet(private val bookletSource: LiveData<Booklet>,
+                                      private val deckSource: LiveData<Deck>)
+    : MediatorLiveData<OutlinedBooklet>() {
+
+    init {
+        addSource(bookletSource) { combineNotNullValues() }
+        addSource(deckSource) { combineNotNullValues() }
+    }
+
+    private fun combineNotNullValues() {
+        val booklet = bookletSource.value ?: return
+        val deck = deckSource.value ?: return
+
+        value = OutlinedBooklet(booklet, deck.toBookletOutlineOrEmpty())
     }
 }
 
@@ -145,13 +127,14 @@ data class BookletOutline(val cardTotalCount: Int,
     )
 }
 
+
+data class OutlinedBooklet(val booklet: Booklet, val outline: BookletOutline)
+
 fun Deck?.toBookletOutlineOrEmpty(): BookletOutline =
     if (this == null) BookletOutline.EMPTY else BookletOutline(this)
 
-data class OutlinedBooklet(val booklet: Booklet, val outline: BookletOutline)
 
 class OutlinedLibrary(outlinedBooklets: MutableList<OutlinedBooklet>)
     : MutableList<OutlinedBooklet> by outlinedBooklets
 
 fun List<OutlinedBooklet>.toOutlinedLibrary() = OutlinedLibrary(this.toMutableList())
-

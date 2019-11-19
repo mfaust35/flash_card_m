@@ -10,6 +10,8 @@ interface BookletDataSource {
 
     fun renameBooklet(newName: String, bookletId: Long): Boolean
 
+    fun getLiveBooklet(bookletId: Long): LiveData<Booklet>
+
     fun getLiveLibrary(): LiveData<Library>
 
     fun getAllBooklet(): List<Booklet>

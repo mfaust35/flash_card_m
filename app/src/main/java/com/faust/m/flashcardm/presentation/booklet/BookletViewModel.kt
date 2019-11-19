@@ -5,15 +5,17 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
+import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.*
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
+import com.faust.m.flashcardm.presentation.library.BookletBannerData
+import com.faust.m.flashcardm.presentation.library.toBookletBanner
 import com.faust.m.flashcardm.presentation.notifyObserver
-import com.faust.m.flashcardm.presentation.view_library_booklet.DelegateBookletBanner
-import com.faust.m.flashcardm.presentation.view_library_booklet.ViewModelBookletBanner
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
@@ -22,12 +24,10 @@ import org.koin.core.inject
 
 class BookletViewModel @JvmOverloads constructor(
     private val bookletId: Long,
-    private val delegateEditCard: ViewModelEditCard = DelegateEditCard(bookletId),
-    private val delegateBookletBanner: ViewModelBookletBanner = DelegateBookletBanner(bookletId)
+    private val delegateEditCard: ViewModelEditCard = DelegateEditCard(bookletId)
 ): ViewModel(),
     KoinComponent,
     ViewModelEditCard by delegateEditCard,
-    ViewModelBookletBanner by delegateBookletBanner,
     AnkoLogger {
 
     // Initialize the delegate for card edition with listeners for onCardEdited & onCardCreated
@@ -37,11 +37,21 @@ class BookletViewModel @JvmOverloads constructor(
     }
 
 
+    private val bookletUseCases: BookletUseCases by inject()
     private val cardUseCases: CardUseCases by inject()
 
 
     // List of cards in booklet
     private val _cards: MutableLiveList<Card> = MutableLiveList()
+
+    // Booklet information used to display the top banner
+    private val _bookletBannerData: MutableLiveData<BookletBannerData> = MutableLiveData()
+    val bookletBannerData: LiveData<BookletBannerData> =
+        Transformations.switchMap(bookletUseCases.getLiveOutlinedBooklet(bookletId))
+        { outlineBooklet ->
+            _bookletBannerData.postValue(outlineBooklet.toBookletBanner())
+            _bookletBannerData
+        }
 
     // Mirror cards in booklet with values that view can display
     // An update on _cards will automatically trigger an update on _bookletCards
@@ -66,9 +76,8 @@ class BookletViewModel @JvmOverloads constructor(
 
     override fun parentScope(): CoroutineScope? = viewModelScope
 
-    override fun loadData() {
-        delegateBookletBanner.loadData()
-        viewModelScope.launch {
+    fun loadData() {
+        viewModelScope.launch(Dispatchers.IO) {
             cardUseCases.getCardsForBooklet(bookletId).let {
                 _cards.postValue(it.toMutableList())
             }
@@ -125,11 +134,10 @@ class BookletViewModel @JvmOverloads constructor(
             tBookletCards.removeAll(bookletCardsToRemove)
 
             // Remove card from dataSource
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 cardsToRemove.forEach { cardUseCases.deleteCard(it) }
 
                 _cardRemovalStatus.postValue(CardRemovalStatus(DELETED, position, tBookletCards))
-                postBookletUpdate()
             }
         }
     }
@@ -162,12 +170,10 @@ class BookletViewModel @JvmOverloads constructor(
 
     private fun onCardCreated(newCard: Card) {
         _cards.add(newCard)
-        postBookletUpdate()
     }
 
     private fun onCardEdited(cardEdited: Card) {
         _cards.updateCardValue(cardEdited)
-        postBookletUpdate()
     }
 
     private fun MutableLiveList<Card>.updateCardValue(updatedCard: Card) =

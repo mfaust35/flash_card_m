@@ -24,8 +24,15 @@ class BookletRoomDataSource(private val bookletDao: BookletDao): BookletDataSour
     override fun getAllBooklet(): List<Booklet> =
         bookletDao.getAllBooklets().map { it.toDomainModel() }
 
+    override fun getLiveBooklet(bookletId: Long): LiveData<Booklet> =
+        Transformations.map(bookletDao.getLiveBooklet(bookletId))
+        { bookletEntity ->
+            bookletEntity?.toDomainModel()
+        }
+
     override fun getLiveLibrary(): LiveData<Library> =
-        Transformations.map(bookletDao.getLiveBooklets()) { bookletEntities ->
+        Transformations.map(bookletDao.getLiveBooklets())
+        { bookletEntities ->
             bookletEntities
                 .map { it.toDomainModel() }
                 .toLibrary()
