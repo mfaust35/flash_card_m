@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.usecase.CardUseCases
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.verbose
@@ -38,6 +38,8 @@ interface ViewModelEditCard {
     var onCardCreated: ((newCard: Card) -> Unit)?
     var onCardEdited: ((editedCard: Card) -> Unit)?
 
+    fun parentScope(): CoroutineScope?
+
     fun addCard(front: String, back: String)
     fun editCard(front: String, back: String)
     fun startCardAddition()
@@ -64,11 +66,13 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
     override var onCardEdited: ((editedCard: Card) -> Unit)? = null
 
 
+    override fun parentScope(): CoroutineScope? = null
+
     override fun addCard(front: String, back: String) {
         _cardToEdit.value?.let {
             it.addFrontAsText(front)
             it.addBackAsText(back)
-            GlobalScope.launch {
+            parentScope()?.launch {
                 cardUseCases.addCard(it).also { newCard ->
                     verbose { "Created a new card: $newCard" }
                     _cardToEdit.postValue(Card(bookletId = bookletId))
@@ -82,7 +86,7 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
         _cardToEdit.value?.copy(createdAt = Date())?.let { cardToUpdate ->
             cardToUpdate.editFrontAsText(front)
             cardToUpdate.editBackAsText(back)
-            GlobalScope.launch {
+            parentScope()?.launch {
                 cardUseCases.updateCardContent(cardToUpdate).also { updatedCard ->
                     verbose { "Updated a card: $updatedCard" }
                     onCardEdited?.invoke(updatedCard)
@@ -93,7 +97,9 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
 
     override fun startCardAddition() {
         _cardEditionState.postValue(CardEditionState.ADD)
-        when { _cardToEdit.value == null -> _cardToEdit.postValue(Card(bookletId = bookletId)) }
+        when (_cardToEdit.value) {
+            null -> _cardToEdit.postValue(Card(bookletId = bookletId))
+        }
     }
 
     override fun startCardEdition(card: Card?) {

@@ -12,22 +12,22 @@ import androidx.fragment.app.Fragment
 import androidx.transition.TransitionManager
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.FragmentReviewCardContentBinding
-import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
+import com.faust.m.flashcardm.databinding.ViewBookletBannerBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.library.LibraryBooklet
+import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
 import com.faust.m.flashcardm.presentation.view_library_booklet.displayCardCount
 import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import kotlinx.android.synthetic.main.fragment_review_card_content.*
-import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
+import kotlinx.android.synthetic.main.view_booklet_banner.*
 import org.jetbrains.anko.find
 import org.koin.android.ext.android.getKoin
 
 class FragmentReviewCardContent: Fragment(), LiveDataObserver {
 
-    private lateinit var libraryBookletBinding: RecyclerViewLibraryBookletsBinding
+    private lateinit var bookletBannerBinding: ViewBookletBannerBinding
     private lateinit var viewModel: ReviewViewModel
     private lateinit var cardBinding: FragmentReviewCardContentBinding
 
@@ -40,14 +40,14 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             FragmentReviewCardContentBinding.inflate(inflater, container, false)
                 .apply { card = ReviewCard.LOADING }
 
-        // Initialize LibraryBookletBinding and insert it into the main view
+        // Initialize BookletBannerBinding and insert it into the main view
         val insertPoint = cardBinding.root.find<ViewGroup>(R.id.insert_point)
-        libraryBookletBinding =
-            RecyclerViewLibraryBookletsBinding.inflate(inflater, insertPoint, true)
+        bookletBannerBinding =
+            ViewBookletBannerBinding.inflate(inflater, insertPoint, true)
                 .apply {
                     displayShortName()
                     displayCardCount()
-                    booklet = LibraryBooklet.LOADING
+                    booklet = BookletBannerData.LOADING
                 }
 
         return cardBinding.root
@@ -68,8 +68,8 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
     }
 
 
-    private fun onBookletChanged(booklet: LibraryBooklet) {
-        libraryBookletBinding.booklet = booklet
+    private fun onBookletChanged(booklet: BookletBannerData) {
+        bookletBannerBinding.booklet = booklet
     }
 
     private fun onBookletInfoClicked(view: View) {

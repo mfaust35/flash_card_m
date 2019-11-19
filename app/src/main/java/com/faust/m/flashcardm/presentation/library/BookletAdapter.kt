@@ -6,22 +6,22 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.flashcardm.R
-import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
+import com.faust.m.flashcardm.databinding.ViewBookletBannerBinding
 import com.faust.m.flashcardm.presentation.library.BookletAdapter.ChangeSet.Insert
 import com.faust.m.flashcardm.presentation.library.BookletAdapter.ChangeSet.Remove
 import org.jetbrains.anko.find
 
-class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
-                     var onItemClick: ((value: LibraryBooklet) -> Unit)? = null,
-                     var onInfoClick: ((value: LibraryBooklet, infoView: View) -> Unit)? = null):
+class BookletAdapter(booklets: Collection<BookletBannerData>? = null,
+                     var onItemClick: ((value: BookletBannerData) -> Unit)? = null,
+                     var onInfoClick: ((value: BookletBannerData, infoView: View) -> Unit)? = null):
     RecyclerView.Adapter<BookletAdapter.Holder>() {
 
-    private val booklets: MutableList<LibraryBooklet> =
+    private val booklets: MutableList<BookletBannerData> =
         if (booklets.isNullOrEmpty()) mutableListOf() else ArrayList(booklets)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder =
         with(LayoutInflater.from(parent.context)) {
-            Holder(RecyclerViewLibraryBookletsBinding.inflate(this, parent, false))
+            Holder(ViewBookletBannerBinding.inflate(this, parent, false))
         }
 
     override fun getItemCount(): Int = booklets.size
@@ -30,7 +30,7 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
         holder.bindBooklet(booklets[position])
 
 
-    fun replaceBooklets(newBooklets: List<LibraryBooklet>) {
+    fun replaceBooklets(newBooklets: List<BookletBannerData>) {
         val changeSet = diff(booklets, newBooklets)
 
         booklets.clear()
@@ -44,10 +44,10 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
     }
 
 
-    inner class Holder(private val binding: RecyclerViewLibraryBookletsBinding):
+    inner class Holder(private val binding: ViewBookletBannerBinding):
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bindBooklet(booklet: LibraryBooklet) {
+        fun bindBooklet(booklet: BookletBannerData) {
             binding.booklet = booklet
             binding.executePendingBindings()
 
@@ -59,7 +59,7 @@ class BookletAdapter(booklets: Collection<LibraryBooklet>? = null,
     }
 
 
-    private fun diff(oldBooklets: List<LibraryBooklet>, newBooklets: List<LibraryBooklet>): ChangeSet {
+    private fun diff(oldBooklets: List<BookletBannerData>, newBooklets: List<BookletBannerData>): ChangeSet {
         val oldSize = oldBooklets.size
         val newSize = newBooklets.size
 

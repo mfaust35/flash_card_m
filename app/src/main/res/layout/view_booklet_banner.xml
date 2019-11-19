@@ -5,7 +5,7 @@
     <data>
         <variable
             name="booklet"
-            type="com.faust.m.flashcardm.presentation.library.LibraryBooklet"/>
+            type="com.faust.m.flashcardm.presentation.library.BookletBannerData"/>
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

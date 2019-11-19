@@ -11,22 +11,22 @@ import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.faust.m.flashcardm.R
-import com.faust.m.flashcardm.databinding.RecyclerViewLibraryBookletsBinding
+import com.faust.m.flashcardm.databinding.ViewBookletBannerBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
-import com.faust.m.flashcardm.presentation.library.LibraryBooklet
+import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.android.synthetic.main.fragment_card_list.*
-import kotlinx.android.synthetic.main.recycler_view_library_booklets.*
+import kotlinx.android.synthetic.main.view_booklet_banner.*
 import org.jetbrains.anko.find
 import org.koin.android.ext.android.getKoin
 
 class FragmentCardList: Fragment(), LiveDataObserver {
 
     private lateinit var bookletCardAdapter: BookletCardAdapter
-    private lateinit var libraryBookletBinding: RecyclerViewLibraryBookletsBinding
+    private lateinit var bookletBannerBinding: ViewBookletBannerBinding
     private lateinit var viewModel: BookletViewModel
 
 
@@ -47,12 +47,12 @@ class FragmentCardList: Fragment(), LiveDataObserver {
             viewModel.cardRemovalStatus.observeData(this, ::onDeleteCardStateChanged)
         }
 
-        // Initialize LibraryBookletBinding
-        libraryBookletBinding = with(LayoutInflater.from(insert_point.context)) {
-            RecyclerViewLibraryBookletsBinding.inflate(this, insert_point, true)
+        // Initialize BookletBannerBinding
+        bookletBannerBinding = with(LayoutInflater.from(insert_point.context)) {
+            ViewBookletBannerBinding.inflate(this, insert_point, true)
         }.apply {
             displayShortName()
-            booklet = LibraryBooklet.LOADING
+            booklet = BookletBannerData.LOADING
         }
 
         // Initialize adapter
@@ -67,8 +67,8 @@ class FragmentCardList: Fragment(), LiveDataObserver {
 
     private fun onEditCard(card: BookletCard) = viewModel.startCardEdition(card)
 
-    private fun onBookletChanged(booklet: LibraryBooklet) {
-        libraryBookletBinding.booklet = booklet
+    private fun onBookletChanged(booklet: BookletBannerData) {
+        bookletBannerBinding.booklet = booklet
     }
 
     private fun onCardsChanged(cards: MutableList<BookletCard>) {
@@ -82,13 +82,13 @@ class FragmentCardList: Fragment(), LiveDataObserver {
 
     private fun onDeleteCardStateChanged(deleteCard: CardRemovalStatus) {
         if (deleteCard.state == CardRemovalStatus.State.SELECTING) {
-            libraryBookletBinding.animateToCancelButton()
+            bookletBannerBinding.animateToCancelButton()
             fab_add_card.animateToConfirmDeleteFAB()
             bookletCardAdapter.switchMode(true, ::onSelectItem)
             bookletCardAdapter.notifyDataSetChanged()
         }
         else {
-            libraryBookletBinding.animateToInfoButton()
+            bookletBannerBinding.animateToInfoButton()
             fab_add_card.animateToAddCardFAB()
             bookletCardAdapter.switchMode(false, ::onEditCard)
             if (deleteCard.state == CardRemovalStatus.State.DELETED) {
@@ -161,7 +161,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         setNoArgOnClickListener(::onConfirmDeleteClicked)
     }
 
-    private fun RecyclerViewLibraryBookletsBinding.animateToCancelButton() =
+    private fun ViewBookletBannerBinding.animateToCancelButton() =
         root.find<ImageView>(R.id.iv_info).let {
             it.setImageResource(R.drawable.ic_cancel_white_24dp)
             it.clearAnimation()
@@ -169,7 +169,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
             it.setNoArgOnClickListener(::onCancelDeleteClicked)
         }
 
-    private fun RecyclerViewLibraryBookletsBinding.animateToInfoButton() =
+    private fun ViewBookletBannerBinding.animateToInfoButton() =
         root.find<ImageView>(R.id.iv_info).let {
             it.setImageResource(R.drawable.ic_info_white_24dp)
             it.clearAnimation()
