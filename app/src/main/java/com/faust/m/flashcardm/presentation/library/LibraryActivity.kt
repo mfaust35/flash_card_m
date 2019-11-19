@@ -13,7 +13,6 @@ import com.faust.m.flashcardm.presentation.BaseViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.about.AboutActivity
 import com.faust.m.flashcardm.presentation.booklet.BookletActivity
-import com.faust.m.flashcardm.presentation.library.AddedBooklet.State.SUCCESS
 import com.faust.m.flashcardm.presentation.review.ReviewActivity
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import kotlinx.android.synthetic.main.activity_library.*
@@ -45,8 +44,6 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
         viewModel = getKoin().get<BaseViewModelFactory>().createViewModelFrom(this)
         viewModel.booklets.observeData(this, ::onBookletsChanged)
-        viewModel.bookletRemoved.observeEvent(this, ::onEventBookletRemoved)
-        viewModel.bookletAdded.observeEvent(this, ::onEventBookletAdded)
         viewModel.eventManageCardsForBooklet.observeEvent(this, ::onEvenManageCardsForBooklet)
         viewModel.eventReviewBooklet.observeEvent(this, ::onEventReviewBooklet)
 
@@ -121,18 +118,6 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
 
     private fun showEmptyRecyclerView(show: Boolean) {
         iv_empty_recycler_view.visibility = if (show) View.VISIBLE else View.GONE
-    }
-
-    private fun onEventBookletRemoved(bookletRemovalStatus: BookletRemovalStatus) {
-        bookletAdapter.bookletRemoved(bookletRemovalStatus.removedBooklet)
-        showEmptyRecyclerView(bookletRemovalStatus.wasLast)
-    }
-
-    private fun onEventBookletAdded(addedBooklet: AddedBooklet) {
-        if (addedBooklet.state == SUCCESS) {
-            bookletAdapter.bookletAdded(addedBooklet)
-        }
-        showEmptyRecyclerView(false)
     }
 
     private fun onEvenManageCardsForBooklet(bookletId: Long) =

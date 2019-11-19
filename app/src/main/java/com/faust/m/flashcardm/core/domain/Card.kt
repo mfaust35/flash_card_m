@@ -4,6 +4,7 @@ import com.faust.m.flashcardm.core.domain.Card.RatingLevel.*
 import com.faust.m.flashcardm.core.domain.CardContentType.BACK
 import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
 import java.util.*
+import kotlin.collections.HashMap
 
 enum class CardContentType { FRONT, BACK }
 
@@ -87,3 +88,32 @@ data class Card (
 
     enum class RatingLevel { NEW, TRAINING, FAMILIAR }
 }
+
+/**
+ * Redefine MutableList<Card> as a Deck
+ * A Deck can contains cards that do not belong to the same booklet
+ */
+class Deck(cards: MutableList<Card>): MutableList<Card> by cards {
+
+    fun countNewCard() = filter { it.hasRatingLevel(NEW) }.size
+    fun countTrainingCard() = filter { it.hasRatingLevel(TRAINING) }.size
+    fun countFamiliarCard() = filter { it.hasRatingLevel(FAMILIAR) }.size
+    fun countToReviewCard() = filter { it.needReview() }.size
+
+    fun mapDecksByBookletId(): Map<Long, Deck> {
+        val result: HashMap<Long, Deck> = HashMap()
+        this.forEach { result.add(it) }
+        return result
+    }
+
+    private fun HashMap<Long, Deck>.add(card: Card) {
+        var deck = this[card.bookletId]
+        if (deck == null) {
+            deck = Deck(mutableListOf())
+            this[card.bookletId] = deck
+        }
+        deck.add(card)
+    }
+}
+
+fun List<Card>.toDeck(): Deck = Deck(this.toMutableList())

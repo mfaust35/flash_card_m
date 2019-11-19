@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.faust.m.flashcardm.core.usecase.BookletOutline
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
-import com.faust.m.flashcardm.framework.FlashViewModel
 import com.faust.m.flashcardm.presentation.library.LibraryBooklet
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -37,7 +36,6 @@ interface ViewModelLibraryBooklet {
 class DelegateLibraryBooklet(private val bookletId: Long): ViewModelLibraryBooklet, KoinComponent {
 
     private val bookletUseCases: BookletUseCases by inject()
-    private val flashViewModel: FlashViewModel by inject()
 
 
     // Booklet information used to display the top banner
@@ -53,7 +51,6 @@ class DelegateLibraryBooklet(private val bookletId: Long): ViewModelLibraryBookl
 
 
     override fun postBookletUpdate() {
-        flashViewModel.bookletsStateChanged()
         val libraryBooklet = bookletUseCases.getBooklet(bookletId)?.let { tBooklet ->
             val tOutlines =
                 bookletUseCases.getBookletsOutlines(listOf(tBooklet))

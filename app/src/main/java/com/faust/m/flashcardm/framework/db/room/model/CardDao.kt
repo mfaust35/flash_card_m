@@ -1,5 +1,6 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
+import androidx.lifecycle.LiveData
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Query
@@ -20,6 +21,9 @@ interface CardDao: BaseDao<CardEntity> {
 
     @Query("SELECT * FROM $CardTableName")
     fun getAllCards(): List<CardEntity>
+
+    @Query("SELECT * FROM $CardTableName")
+    fun getLiveCards(): LiveData<List<CardEntity>>
 
     @Query("""SELECT *
         FROM $CardTableName

@@ -1,7 +1,11 @@
 package com.faust.m.flashcardm.framework.db.room
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
 import com.faust.m.flashcardm.core.data.BookletDataSource
 import com.faust.m.flashcardm.core.domain.Booklet
+import com.faust.m.flashcardm.core.domain.Library
+import com.faust.m.flashcardm.core.domain.toLibrary
 import com.faust.m.flashcardm.framework.db.room.model.BookletDao
 import com.faust.m.flashcardm.framework.db.room.model.BookletEntity
 
@@ -19,6 +23,13 @@ class BookletRoomDataSource(private val bookletDao: BookletDao): BookletDataSour
 
     override fun getAllBooklet(): List<Booklet> =
         bookletDao.getAllBooklets().map { it.toDomainModel() }
+
+    override fun getLiveLibrary(): LiveData<Library> =
+        Transformations.map(bookletDao.getLiveBooklets()) { bookletEntities ->
+            bookletEntities
+                .map { it.toDomainModel() }
+                .toLibrary()
+        }
 
     override fun getBooklet(bookletId: Long): Booklet? =
         bookletDao.getBooklet(bookletId)?.toDomainModel()
