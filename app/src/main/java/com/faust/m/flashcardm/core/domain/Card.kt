@@ -77,12 +77,12 @@ data class Card (
             return true
         if (this.lastSeen.before(this.createdAt))
             return true
-        Calendar.getInstance().let { today: Calendar ->
+        Calendar.getInstance(Locale.getDefault()).let { today: Calendar ->
             today.set(Calendar.HOUR, 0)
             today.set(Calendar.MINUTE, 0)
             today.set(Calendar.SECOND, 0)
             today.set(Calendar.MILLISECOND, 0)
-            return today.after(Calendar.getInstance().apply { time = lastSeen })
+            return today.after(Calendar.getInstance(Locale.getDefault()).apply { time = lastSeen })
         }
     }
 

@@ -15,6 +15,9 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun getLiveDeck(): LiveData<Deck> = dataSource.getLiveDeck()
 
+    fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck> =
+        dataSource.getLiveDeckForBooklet(bookletId)
+
     fun getAllCardsForBooklet(bookletId: Long) = dataSource.getAllCardsForBooklet(bookletId)
 
     fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArray<MutableList<Card>> =

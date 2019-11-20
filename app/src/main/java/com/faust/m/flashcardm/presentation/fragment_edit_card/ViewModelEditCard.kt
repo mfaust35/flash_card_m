@@ -5,6 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.verbose
@@ -72,7 +74,7 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
         _cardToEdit.value?.let {
             it.addFrontAsText(front)
             it.addBackAsText(back)
-            parentScope()?.launch {
+            GlobalScope.launch {
                 cardUseCases.addCard(it).also { newCard ->
                     verbose { "Created a new card: $newCard" }
                     _cardToEdit.postValue(Card(bookletId = bookletId))
@@ -86,7 +88,7 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
         _cardToEdit.value?.copy(createdAt = Date())?.let { cardToUpdate ->
             cardToUpdate.editFrontAsText(front)
             cardToUpdate.editBackAsText(back)
-            parentScope()?.launch {
+            GlobalScope.launch {
                 cardUseCases.updateCardContent(cardToUpdate).also { updatedCard ->
                     verbose { "Updated a card: $updatedCard" }
                     onCardEdited?.invoke(updatedCard)

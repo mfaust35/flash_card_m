@@ -44,7 +44,6 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         card
     }
 
-
     override fun getAllCardsForBooklet(bookletId: Long): List<Card> =
         cardDao.getAllCardsForBooklet(bookletId).map {
             Card(it.rating, it.lastSeen, it.createdAt, buildCardEntities(it.id), it.bookletId, it.id)
@@ -62,12 +61,11 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         return content
     }
 
+    override fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck> =
+        Transformations.map(cardDao.getLiveCardsForBooklet(bookletId), ::mapCardEntitiesToDeck)
+
     override fun getLiveDeck(): LiveData<Deck> =
-        Transformations.map(cardDao.getLiveCards()) { cardEntities ->
-            cardEntities
-                .map { c -> c.toDomainModel() }
-                .toDeck()
-        }
+        Transformations.map(cardDao.getLiveCards(), ::mapCardEntitiesToDeck)
 
     override fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArrayList<Card> =
         LongSparseArrayList<Card>(bookletIds.size).apply {
@@ -131,4 +129,7 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
 
     private fun CardContent.toEntityModel(newCardId: Long = -1): CardContentEntity =
         CardContentEntity(value, type, if (-1L != newCardId) newCardId else cardId, id)
+
+    private fun mapCardEntitiesToDeck(cardEntities: List<CardEntity>): Deck =
+        cardEntities.map {c -> c.toDomainModel()}.toDeck()
 }

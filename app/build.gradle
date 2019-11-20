@@ -13,7 +13,7 @@ android {
         targetSdkVersion 29
         versionCode 4
         versionName "0.3.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "com.faust.m.flashcardm.framework.TestApplicationJUnitRunner"
     }
     kapt {
         arguments {
@@ -69,7 +69,7 @@ dependencies {
     // Mockking
     testImplementation "io.mockk:mockk:1.9.3"
     // AssertJ for more beautiful assertion
-    testImplementation 'org.assertj:assertj-core:3.14.0'
+    testImplementation 'org.assertj:assertj-core:2.9.1'
 
     // Android espresso base testing
     androidTestImplementation 'androidx.test:runner:1.2.0'
@@ -84,4 +84,6 @@ dependencies {
     // works for lower android version.
     // See https://joel-costigliola.github.io/assertj/assertj-core-quick-start.html
     androidTestImplementation 'org.assertj:assertj-core:2.9.1'
+    // Lifecycle testing
+    androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
 }

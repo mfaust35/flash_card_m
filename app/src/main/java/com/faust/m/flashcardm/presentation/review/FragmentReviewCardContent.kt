@@ -61,7 +61,7 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         with(this.viewLifecycleOwner) {
             viewModel.reviewCard.observeData(this, ::onCurrentCardChanged)
-            viewModel.booklet.observeData(this, ::onBookletChanged)
+            viewModel.bookletBannerData.observeData(this, ::onBookletChanged)
         }
 
         iv_info.setOnClickListener(::onBookletInfoClicked)
