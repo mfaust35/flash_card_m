@@ -4,8 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.usecase.CardUseCases
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -37,11 +35,6 @@ interface ViewModelEditCard {
     val cardToEdit: LiveData<Card?>
     val cardEditionState: LiveData<CardEditionState>
 
-    var onCardCreated: ((newCard: Card) -> Unit)?
-    var onCardEdited: ((editedCard: Card) -> Unit)?
-
-    fun parentScope(): CoroutineScope?
-
     fun addCard(front: String, back: String)
     fun editCard(front: String, back: String)
     fun startCardAddition()
@@ -64,12 +57,7 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
     private val _cardToEdit: MutableLiveData<Card?> = MutableLiveData()
     override val cardToEdit: LiveData<Card?> = _cardToEdit
 
-    override var onCardCreated: ((newCard: Card) -> Unit)? = null
-    override var onCardEdited: ((editedCard: Card) -> Unit)? = null
-
-
-    override fun parentScope(): CoroutineScope? = null
-
+    
     override fun addCard(front: String, back: String) {
         _cardToEdit.value?.let {
             it.addFrontAsText(front)
@@ -78,7 +66,6 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
                 cardUseCases.addCard(it).also { newCard ->
                     verbose { "Created a new card: $newCard" }
                     _cardToEdit.postValue(Card(bookletId = bookletId))
-                    onCardCreated?.invoke(newCard)
                 }
             }
         }
@@ -91,7 +78,6 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
             GlobalScope.launch {
                 cardUseCases.updateCardContent(cardToUpdate).also { updatedCard ->
                     verbose { "Updated a card: $updatedCard" }
-                    onCardEdited?.invoke(updatedCard)
                 }
             }
         }

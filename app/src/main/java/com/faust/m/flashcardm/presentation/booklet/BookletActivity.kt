@@ -28,7 +28,6 @@ class BookletActivity: AppCompatActivity(), LiveDataObserver {
 
         viewModel = getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         viewModel.cardEditionState.observeData(this, ::onCardEditionStateChanged)
-        viewModel.loadData()
     }
 
     private fun onCardEditionStateChanged(cardEditionState: CardEditionState) =

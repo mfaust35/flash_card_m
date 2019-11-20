@@ -104,6 +104,25 @@ open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
     }
 }
 
+/**
+ * MutableLiveSet is a mutable set that can be used as a liveData. Observers will be called
+ * only when there is an addition to the set.
+ * (Probably could be refactored to also trigger when an object is removed from the set, I'll see
+ * to it when I actually need that functionality)
+ */
+class MutableLiveSet<T> private constructor(private val inner :HashSet<T>) :
+    MutableLiveData<MutableSet<T>>(HashSet()), MutableSet<T> by inner {
+
+    constructor(): this(HashSet())
+
+    override fun add(element: T): Boolean {
+        val result = inner.add(element)
+        if (result)
+            value = value
+        return result
+    }
+}
+
 class MutableLiveEvent<T>: MutableLiveData<Event<T>>() {
 
     fun postEvent(event: T) {

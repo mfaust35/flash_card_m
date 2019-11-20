@@ -14,19 +14,12 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun getLiveDeck(): LiveData<Deck> = dataSource.getLiveDeck()
 
-    fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck> =
-        dataSource.getLiveDeckForBooklet(bookletId)
-
-    fun getAllCardsForBooklet(bookletId: Long) = dataSource.getAllCardsForBooklet(bookletId)
-
     fun getLiveDeckForBooklet(bookletId: Long,
                               attachCardContent: Boolean = false,
                               filterToReviewCard: Boolean = false): LiveData<Deck> =
         dataSource.getLiveDeckForBooklet(bookletId, attachCardContent, filterToReviewCard)
 
     fun resetForReview(count: Int, bookletId: Long): Int = dataSource.resetForReview(count, bookletId)
-
-    fun deleteCard(card: Card): Int = dataSource.deleteCard(card)
 
     fun deleteCards(cards: List<Card>): Int = dataSource.deleteCards(cards)
 }

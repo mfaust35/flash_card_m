@@ -2,19 +2,19 @@ package com.faust.m.flashcardm.presentation.review
 
 import androidx.lifecycle.*
 import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.domain.Deck
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
+import com.faust.m.flashcardm.presentation.MutableLiveSet
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
 import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.library.toBookletBanner
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.warn
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import java.util.*
@@ -26,10 +26,6 @@ class ReviewViewModel @JvmOverloads constructor(
     KoinComponent,
     ViewModelEditCard by delegateEditCard,
     AnkoLogger {
-
-    // Initialize the delegate for card edition with a listener onCardEdited
-    init { delegateEditCard.onCardEdited = ::onCardEdited }
-
 
     private val bookletUseCases: BookletUseCases by inject()
     private val cardUseCases: CardUseCases by inject()
@@ -45,92 +41,93 @@ class ReviewViewModel @JvmOverloads constructor(
         }
 
     // Current card used to make reviewCard on display
-    private val _currentCard: MutableLiveData<Card?> = MutableLiveData()
-    // Current reviewCard on display
-    private val _reviewCard: MutableLiveData<ReviewCard> = MutableLiveData()
-    val reviewCard: LiveData<ReviewCard> = _reviewCard
+    private var _currentCard: Card? = null
 
-    // Queue of cards (only cards to review) for the booklet on review
-    private var _cardQueue = LinkedList<Card>()
+    // Current deck of cards to review for booklet
+    private val _liveDeck =
+        cardUseCases.getLiveDeck(bookletId, attachCardContent = true, filterToReviewCard = true)
+    // List of id of card that have been marked as reviewLater
+    private val _liveCardsToRepeat: MutableLiveSet<Long> = MutableLiveSet()
 
-
-    override fun parentScope(): CoroutineScope? = viewModelScope
-
-    fun loadData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            cardUseCases
-                .getCardsForBooklet(bookletId, filterReviewCard = true)
-                .forEach { _cardQueue.add(it) }
-            postCardUpdate()
-        }
+    // reviewCard: Receive data from _liveDeck for each updates on the deck of cards to review
+    // and event from _cardsToRepeat when a new card has been marked for repeat later
+    val reviewCard: MediatorLiveData<ReviewCard> = MediatorLiveData<ReviewCard>().apply {
+        addSource(_liveDeck) { postReviewCards() }
+        addSource(_liveCardsToRepeat) { postReviewCards() }
     }
 
 
-    fun flipCurrentCard() {
-        postCardUpdate()
-    }
+    fun flipCurrentCard() =
+        reviewCard.value?.copy(state = RATING, animate = true).let { reviewCard.postValue(it) }
 
     fun validateCurrentCard() {
-        _currentCard.value?.let {
-            val cardToUpdate = it.copy(rating = it.rating + 1, lastSeen = Date())
-            viewModelScope.launch(Dispatchers.IO) {
-                cardUseCases.updateCard(cardToUpdate).also { updatedCard: Card ->
-                    warn { "Card updated $updatedCard" }
-                    postCardUpdate()
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            _currentCard?.let { card ->
+                card.copy(rating = card.rating + 1, lastSeen = Date())
+                    .let{ cardUseCases.updateCard(it) }
             }
         }
     }
 
     fun repeatCurrentCard() {
-        _currentCard.value?.let { _cardQueue.add(it) }
-        postCardUpdate()
+        _currentCard?.let { card -> _liveCardsToRepeat.add(card.id) }
     }
 
-    fun startEditCard() =
-        delegateEditCard.startCardEdition(_currentCard.value)
-
-
-    private fun postCardUpdate() {
-        val card =
-            if (_reviewCard.value.isFinished()) {
-                when {
-                    _cardQueue.isNotEmpty() -> _cardQueue.remove()
-                    else -> null
-                }
-            } else {
-                _currentCard.value
-            }
-        _currentCard.postValue(card)
-
-        val tReviewCard =
-            if (null != card) reviewCardFrom(card, _reviewCard.value)
-            else ReviewCard.EMPTY
-        _reviewCard.postValue(tReviewCard)
+    fun startEditCard() {
+        delegateEditCard.startCardEdition(_currentCard)
     }
 
-    private fun reviewCardFrom(card: Card, previousReviewCard: ReviewCard?): ReviewCard =
-        if (previousReviewCard.isFinished()) {
-            ReviewCard(card, ASKING, true)
-        }
-        else {
-            previousReviewCard!!.copy(state = RATING, animate = true)
-        }
 
-    private fun onCardEdited(cardEdited: Card) {
-        // Updating currentCard will trigger an update on _reviewCard
-        // So I reset _reviewCard to a value which will lead to a good updated value
-        viewModelScope.launch(Dispatchers.IO) {
-            _currentCard.postValue(cardEdited)
-            _reviewCard.value?.let {
-                _reviewCard.postValue(it.copy(
-                    front = cardEdited.frontAsTextOrNull() ?: "",
-                    back = cardEdited.backAsTextOrNull() ?: "",
+    /*
+     * Cranky mechanic of choosing which card to review in the deck and
+     * how to update reviewCard value. I intend to change it once I add a `nextReviewDate` on Card
+     */
+    private fun postReviewCards() {
+        val deck = _liveDeck.value ?: return
+        val nextCardInLine = nextCardFromDeck(deck)
+        when (nextCardInLine?.id) {
+            _currentCard?.id -> updateReviewCardValueFromCurrentCard()
+            else -> updateReviewCardValueFrom(nextCardInLine)
+        }
+    }
+
+    private fun nextCardFromDeck(deck: Deck): Card? {
+        // If all cards left have been marked as "to repeat", then remove all card from cardsToRepeat
+        // It will enable card to be reviewed once more during this "review session"
+        if (deck.size == _liveCardsToRepeat.size) {
+            _liveCardsToRepeat.clear()
+        }
+        return deck.firstOrNull { c -> !_liveCardsToRepeat.contains(c.id) }
+    }
+
+    private fun updateReviewCardValueFromCurrentCard() = reviewCard.value?.let { reviewCardValue ->
+        if (reviewCardValue.needUpdateFrom(_currentCard)) {
+            reviewCardValue
+                .copy(
+                    front = _currentCard?.frontAsTextOrNull() ?: "",
+                    back = _currentCard?.backAsTextOrNull() ?: "",
                     animate = false
-                ))
-            }
+                )
+                .let { reviewCard.postValue(it) }
         }
     }
+
+    private fun ReviewCard?.needUpdateFrom(card: Card?): Boolean {
+        return this != null && card != null &&
+                (front != card.frontAsTextOrNull() || back != card.backAsTextOrNull())
+    }
+
+    private fun updateReviewCardValueFrom(card: Card?) {
+        _currentCard = card
+        reviewCardFrom(card, reviewCard.value).let { reviewCard.postValue(it)  }
+    }
+
+    private fun reviewCardFrom(card: Card?, previousReviewCard: ReviewCard?): ReviewCard =
+        when {
+            card == null -> ReviewCard.EMPTY
+            previousReviewCard.isFinished() -> ReviewCard(card, ASKING, true)
+            else -> previousReviewCard!!.copy(state = RATING, animate = true)
+        }
 }
 
 /**
