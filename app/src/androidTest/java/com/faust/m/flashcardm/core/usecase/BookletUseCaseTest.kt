@@ -1,11 +1,13 @@
 package com.faust.m.flashcardm.core.usecase
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.*
+import androidx.lifecycle.MutableLiveData
 import com.faust.m.flashcardm.core.data.BookletRepository
 import com.faust.m.flashcardm.core.data.CardRepository
 import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.framework.db.room.OneTimeObserverRule
+import com.faust.m.flashcardm.framework.db.room.observeOnce
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
@@ -25,6 +27,8 @@ class BookletUseCaseTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
+    @get:Rule
+    val oneTimeRule = OneTimeObserverRule()
 
     @Test
     fun testGetOutlinedBookletShouldContainBookletFromRepo() {
@@ -37,7 +41,7 @@ class BookletUseCaseTest {
         every { cardRepo.getLiveDeckForBooklet(bookletId) } returns MutableLiveData(deckMockk)
 
         // When I get liveOutlinedBooklet for bookletId
-        bookletUseCases.getLiveOutlinedBooklet(bookletId).observeOnce { result ->
+        bookletUseCases.getLiveOutlinedBooklet(bookletId).observeOnce(oneTimeRule) { result ->
 
             // Then outlinedBooklet contains the booklet
             assertThat(result.booklet).isEqualTo(bookletMockk)
@@ -60,7 +64,7 @@ class BookletUseCaseTest {
         every { cardRepo.getLiveDeckForBooklet(bookletId) } returns MutableLiveData(deckMockk)
 
         // When I get liveOutlinedBooklet for bookletId
-        bookletUseCases.getLiveOutlinedBooklet(bookletId).observeOnce { result ->
+        bookletUseCases.getLiveOutlinedBooklet(bookletId).observeOnce(oneTimeRule) { result ->
 
             // Then outlinedBooklet contains a bookletOutline with correct counts
             assertThat(result.outline).isEqualTo(
@@ -78,26 +82,4 @@ class BookletUseCaseTest {
             every { countFamiliarCard() } returns familiar
             every { countToReviewCard() } returns toReview
         }
-}
-
-/**
- * Helper code taken from https://alediaferia.com/2018/12/17/testing-livedata-room-android/
- */
-fun <T> LiveData<T>.observeOnce(onChangeHandler: (T) -> Unit) {
-    val observer = OneTimeObserver(handler = onChangeHandler)
-    observe(observer, observer)
-}
-
-class OneTimeObserver<T>(private val handler: (T) -> Unit) : Observer<T>, LifecycleOwner {
-    private val lifecycle = LifecycleRegistry(this)
-    init {
-        lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    }
-
-    override fun getLifecycle(): Lifecycle = lifecycle
-
-    override fun onChanged(t: T) {
-        handler(t)
-        lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    }
 }

@@ -30,7 +30,6 @@ class ReviewActivity: AppCompatActivity(), LiveDataObserver {
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
         viewModel.reviewCard.observeData(this, ::onCurrentCardChanged)
         viewModel.cardEditionState.observeData(this, ::onCardEditionStateChanged)
-        viewModel.loadData()
     }
 
     private fun onCurrentCardChanged(reviewCard: ReviewCard) {

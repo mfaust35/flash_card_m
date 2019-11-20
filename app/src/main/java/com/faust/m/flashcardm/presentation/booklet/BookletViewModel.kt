@@ -6,16 +6,14 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
+import com.faust.m.flashcardm.core.domain.Deck
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
-import com.faust.m.flashcardm.presentation.MutableLiveList
 import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.*
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
 import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.library.toBookletBanner
-import com.faust.m.flashcardm.presentation.notifyObserver
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -31,19 +29,10 @@ class BookletViewModel @JvmOverloads constructor(
     ViewModelEditCard by delegateEditCard,
     AnkoLogger {
 
-    // Initialize the delegate for card edition with listeners for onCardEdited & onCardCreated
-    init {
-        delegateEditCard.onCardCreated = ::onCardCreated
-        delegateEditCard.onCardEdited = ::onCardEdited
-    }
-
 
     private val bookletUseCases: BookletUseCases by inject()
     private val cardUseCases: CardUseCases by inject()
 
-
-    // List of cards in booklet
-    private val _cards: MutableLiveList<Card> = MutableLiveList()
 
     // Booklet information used to display the top banner
     private val _bookletBannerData: MutableLiveData<BookletBannerData> = MutableLiveData()
@@ -54,20 +43,27 @@ class BookletViewModel @JvmOverloads constructor(
             _bookletBannerData
         }
 
-    // Mirror cards in booklet with values that view can display
-    // An update on _cards will automatically trigger an update on _bookletCards
-    private val _bookletCards: MutableLiveList<BookletCard> = MutableLiveList()
-    val bookletCards: LiveData<MutableList<BookletCard>> =
-        Transformations.switchMap(_cards) {
-            _bookletCards.postValue(
-                it.map { c -> BookletCard(c, _showRatingLevel) }.toMutableList()
-            )
-            _bookletCards
-        }
+
+    // List of cards in booklet
+    private val _cards: LiveData<Deck> =
+        cardUseCases.getLiveDeck(
+            bookletId,
+            attachCardContent = true,
+            filterToReviewCard = false)
 
     // State of deletion process
     private val _cardRemovalStatus: MutableLiveData<CardRemovalStatus> = MutableLiveData()
     val cardRemovalStatus: LiveData<CardRemovalStatus> =_cardRemovalStatus
+
+    // Card display data
+    val bookletCards: MutableLiveData<MutableList<BookletCard>> = MediatorLiveData<MutableList<BookletCard>>()
+        .apply {
+            addSource(_cards) { deck ->
+                this.value = deck
+                    .map { c -> c.toBookletCard(showRatingLevel) }
+                    .toMutableList()
+            }
+    }
 
     // Display or hide an indicator of ratingLevel
     private var _showRatingLevel = false
@@ -75,65 +71,53 @@ class BookletViewModel @JvmOverloads constructor(
         get() = _showRatingLevel
 
 
-    override fun parentScope(): CoroutineScope? = viewModelScope
-
-    fun loadData() {
-        viewModelScope.launch(Dispatchers.IO) {
-            cardUseCases.getCardsForBooklet(bookletId).let {
-                _cards.postValue(it.toMutableList())
-            }
-        }
-    }
-
-
-    fun startCardEdition(card: BookletCard) =
-        delegateEditCard.startCardEdition(_cards.value?.find { it.id == card.id })
+    fun startCardEdition(bookletCard: BookletCard) =
+        delegateEditCard.startCardEdition(_cards.value?.find { it.id == bookletCard.id })
 
     fun startRemoveCards() {
         _cardRemovalStatus.postValue(SELECTING)
-        _bookletCards.postCopyForEach { it.copy(showSelection = true, isSelected = false) }
+        bookletCards.postCopyForEach { it.copy(showSelection = true, isSelected = false) }
     }
 
     fun stopRemoveCard() {
         _cardRemovalStatus.postValue(OFF)
-        _bookletCards.postCopyForEach { it.copy(showSelection = false, isSelected = false) }
+        bookletCards.postCopyForEach { it.copy(showSelection = false, isSelected = false) }
     }
 
-    private fun MutableLiveList<BookletCard>
-            .postCopyForEach(transformation: (oldCard :BookletCard) -> BookletCard) {
+    private fun MutableLiveData<MutableList<BookletCard>>
+            .postCopyForEach(transformation: (oldBookletCard :BookletCard) -> BookletCard) {
         value?.let { oldBookletCards ->
             oldBookletCards
                 .map { bookletCard ->
                     transformation(bookletCard)
                 }
                 .toMutableList()
-                .let { _bookletCards.postValue(it) }
+                .let { this.postValue(it) }
         }
     }
 
     /**
-     * Mark or unmark bookletCard as selected and trigger a redraw of card
+     * Mark bookletCard as selected or not and trigger a redraw of card
      */
     fun switchBookletCardForRemoval(bookletCard: BookletCard) {
-        _bookletCards.value?.let { oldBookletCards ->
-            val indexOfCard = oldBookletCards.indexOf(bookletCard)
+        bookletCards.value?.let { oldBookletCards ->
             oldBookletCards
                 .toMutableList()
-                .apply { set(indexOfCard, bookletCard.switchSelection()) }
-                .let {_bookletCards.postValue(it) }
+                .replaceBookletCardWithCopy(bookletCard, bookletCard.switchSelection())
+                .let { bookletCards.postValue(it) }
         }
     }
 
-    fun deleteSelectedBookletCards() {
-        _bookletCards.value?.let { tBookletCards ->
-            val idsToDelete = tBookletCards.filter { it.isSelected }.map { it.id }.toSet()
-            val oldCards = _cards.value ?: return
+    private fun MutableList<BookletCard>.replaceBookletCardWithCopy(oldValue: BookletCard, copy :BookletCard) :
+            MutableList<BookletCard> = this.apply {
+        val indexOfCard = indexOf(oldValue)
+        set(indexOfCard, copy)
+    }
 
-            // Remove cards from _cards in memory
-            val cardsToRemove = oldCards.filter { idsToDelete.contains(it.id) }
-            oldCards
-                .apply { removeAll(cardsToRemove) }
-                .let { _cards.postValue(it) }
+    fun deleteSelectedBookletCards() {
+        bookletCards.value?.let { tBookletCards ->
+            val idsToDelete = tBookletCards.filter { it.isSelected }.map { it.id }.toSet()
+            val cardsToRemove = _cards.value?.filter { idsToDelete.contains(it.id) } ?: return
 
             // Remove cards from database
             viewModelScope.launch(Dispatchers.IO) {
@@ -146,7 +130,7 @@ class BookletViewModel @JvmOverloads constructor(
 
     fun switchShowRatingLevel() {
         _showRatingLevel = !_showRatingLevel
-        _bookletCards.postCopyForEach { it.copy(showRating = _showRatingLevel) }
+        bookletCards.postCopyForEach { it.copy(showRating = _showRatingLevel) }
     }
 
     override fun onBackPressed(): Boolean =
@@ -161,28 +145,6 @@ class BookletViewModel @JvmOverloads constructor(
                 true
             }
             else -> false
-        }
-
-
-    private fun onCardCreated(newCard: Card) {
-        _cards.add(newCard)
-    }
-
-    private fun onCardEdited(cardEdited: Card) {
-        _cards.updateCardValue(cardEdited)
-    }
-
-    private fun MutableLiveList<Card>.updateCardValue(updatedCard: Card) =
-        value?.let { cardsValue ->
-            cardsValue.find { it.id == updatedCard.id }?.let { cardFound ->
-                val indexOf = cardsValue.indexOf(cardFound)
-                cardsValue.remove(cardFound)
-                val newCard = cardFound.copyWithoutContent()
-                updatedCard.frontAsTextOrNull()?.let { newCard.addFrontAsText(it) }
-                updatedCard.backAsTextOrNull()?.let { newCard.addBackAsText(it) }
-                cardsValue.add(indexOf, newCard)
-                notifyObserver()
-            }
         }
 }
 
@@ -220,3 +182,5 @@ private fun Card.RatingLevel.toColor(): Int = when(this) {
     }
 
 enum class CardRemovalStatus { OFF, DELETED, SELECTING }
+
+private fun Card.toBookletCard(showRating: Boolean): BookletCard = BookletCard(this, showRating)
