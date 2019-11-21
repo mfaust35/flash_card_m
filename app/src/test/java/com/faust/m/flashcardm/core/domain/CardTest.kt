@@ -1,5 +1,7 @@
 package com.faust.m.flashcardm.core.domain
 
+import com.faust.m.flashcardm.core.domain.CardContentType.BACK
+import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.*
@@ -168,6 +170,38 @@ class CardTest {
         deck.countToReviewCard().let { result ->
             assertThat(result).isEqualTo(1)
         }
+    }
+
+    @Test
+    fun testCardEqualsShouldBeTrueWhenRosterContainSameCardContent() {
+        val card = Card(
+            rating = 2,
+            lastSeen = Date(30),
+            createdAt = Date(20),
+            roster = mutableListOf(CardContent(
+                value = "to learn",
+                type = FRONT,
+                cardId = 35,
+                id = 22
+            )).toRoster(),
+            bookletId = 14,
+            id = 35
+        )
+        val identicalCard = Card(
+            rating = 2,
+            lastSeen = Date(30),
+            createdAt = Date(20),
+            roster = mutableListOf(CardContent(
+                value = "to learn",
+                type = FRONT,
+                cardId = 35,
+                id = 22
+            )).toRoster(),
+            bookletId = 14,
+            id = 35
+        )
+
+        assertThat(card).isEqualTo(identicalCard)
     }
 
 
