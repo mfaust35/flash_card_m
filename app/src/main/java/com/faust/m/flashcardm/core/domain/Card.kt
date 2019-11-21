@@ -15,25 +15,58 @@ data class CardContent (
     val id: Long = 0
 )
 
+/**
+ * Redefine MutableList<CardContent> as Roster
+ * A Roster can contain cardContent that do not belong to the same card
+ */
+data class Roster(private val cardContents: MutableList<CardContent>) :
+    MutableList<CardContent> by cardContents {
+
+    constructor(): this(mutableListOf())
+
+    fun mapRosterByCardId(): Map<Long, Roster> {
+        val result: HashMap<Long, Roster> = HashMap()
+        cardContents.forEach { result.add(it) }
+        return result
+    }
+
+    private fun HashMap<Long, Roster>.add(cardContent: CardContent) {
+        var roster = this[cardContent.cardId]
+        if (roster == null) {
+            roster = Roster(mutableListOf())
+            this[cardContent.cardId] = roster
+        }
+        roster.add(cardContent)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return cardContents == other
+    }
+
+    override fun hashCode(): Int {
+        return cardContents.hashCode()
+    }
+}
+
+fun List<CardContent>.toRoster(): Roster = Roster(this.toMutableList())
+
+
 data class Card (
     val rating: Int = 0,
     val lastSeen: Date = Date(),
     val createdAt: Date = lastSeen,
-    val content: EnumMap<CardContentType, MutableList<CardContent>> =
-        EnumMap(CardContentType::class.java),
+    val roster: Roster = Roster(),
     val bookletId: Long = 0,
     val id: Long = 0
 ) {
 
     fun add(cardContent: CardContent): Card = apply {
-        content
-            .getOrPut(cardContent.type) { mutableListOf() }
-            .add(cardContent)
+        roster.add(cardContent)
     }
 
-    fun frontAsTextOrNull() = content[FRONT]?.firstOrNull()?.value
+    fun frontAsTextOrNull() = roster.firstOrNull { c -> c.type == FRONT }?.value
 
-    fun backAsTextOrNull() = content[BACK]?.firstOrNull()?.value
+    fun backAsTextOrNull() = roster.firstOrNull { c -> c.type == BACK }?.value
 
     fun addFrontAsText(text: String) = add(CardContent(text, FRONT))
 
@@ -41,16 +74,15 @@ data class Card (
 
     fun editFrontAsText(newValue: String) = editAsText(newValue, FRONT)
 
-    private fun editAsText(newValue: String, type: CardContentType) = content[type]?.let {
-        it.firstOrNull()?.run {
-            it.remove(this)
-            it.add(this.copy(value = newValue))
+    private fun editAsText(newValue: String, type: CardContentType) =
+        roster.firstOrNull { c -> c.type == type }?.run {
+            roster.remove(this)
+            roster.add(this.copy(value = newValue))
         }
-    }
 
     fun editBackAsText(newValue: String) = editAsText(newValue, BACK)
 
-    fun copyWithoutContent() = this.copy(content = EnumMap(CardContentType::class.java))
+    fun copyWithoutContent() = this.copy(roster = Roster())
 
     /**
      * To be eligible for review, a card must have a rating inferior to 5

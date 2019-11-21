@@ -2,7 +2,6 @@ package com.faust.m.flashcardm.framework.db.room
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
-import com.faust.m.flashcardm.core.LongSparseArrayList
 import com.faust.m.flashcardm.core.data.CardDataSource
 import com.faust.m.flashcardm.core.domain.*
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
@@ -20,11 +19,11 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
     override fun add(card: Card): Card = database.runInTransaction<Card> {
         // Save the card first
         val cardCopy: Card = cardDao.add(card.toEntityModel()).let {
-            card.copy(id = it, content = EnumMap(CardContentType::class.java))
+            card.copy(id = it, roster = Roster())
         }
 
         // Then save the cardContent
-        card.content.values.flatten().toList().forEach {
+        card.roster.forEach {
             val contentForCardCopy = it.copy(cardId = cardCopy.id)
             cardContentDao.add(contentForCardCopy.toEntityModel()).run {
                 cardCopy.add(contentForCardCopy.copy(id = this))
@@ -38,7 +37,7 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
 
     override fun updateCardContent(card: Card): Card = database.runInTransaction<Card> {
         cardDao.updateCreatedAt(card.createdAt, card.id)
-        card.content.values.flatten().toList().forEach {
+        card.roster.forEach {
             cardContentDao.update(it.toEntityModel())
         }
         card
@@ -49,33 +48,19 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
             Card(it.rating, it.lastSeen, it.createdAt, buildCardEntities(it.id), it.bookletId, it.id)
         }
 
-    private fun buildCardEntities(cardId: Long): EnumMap<CardContentType, MutableList<CardContent>> {
-        val cardContentEntities =
-            cardContentDao.getAllCardContentsForCard(cardId)
-        val content = EnumMap<CardContentType, MutableList<CardContent>>(CardContentType::class.java)
-        for (cardContentEntity in cardContentEntities) {
-            content
-                .getOrPut(cardContentEntity.type) { mutableListOf() }
-                .add(cardContentEntity.toDomainModel())
-        }
-        return content
-    }
+    private fun buildCardEntities(cardId: Long): Roster =
+            cardContentDao
+                .getAllCardContentsForCard(cardId)
+                .map { c ->
+                    c.toDomainModel()
+                }
+                .toRoster()
 
     override fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck> =
         Transformations.map(cardDao.getLiveCardsForBooklet(bookletId), ::mapCardEntitiesToDeck)
 
     override fun getLiveDeck(): LiveData<Deck> =
         Transformations.map(cardDao.getLiveCards(), ::mapCardEntitiesToDeck)
-
-    override fun getAllCardShellsForBooklets(bookletIds: List<Long>): LongSparseArrayList<Card> =
-        LongSparseArrayList<Card>(bookletIds.size).apply {
-            cardDao.getAllCardsShellsForBooklets(bookletIds).forEach { cardShell ->
-                addOrPutInEmptyList(cardShell.bookletId, cardShell.toDomainModel())
-            }
-        }
-
-    override fun countCardsForBooklets(bookletIds: List<Long>): Map<Long, Int> =
-        cardDao.countCardsForBooklets(bookletIds).map { it.bookletId to it.count }.toMap()
 
     /**
      * Will modify X card in booklet so that they will be inReview again. This method will ignore
