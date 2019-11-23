@@ -1,5 +1,6 @@
 package com.faust.m.flashcardm.presentation.booklet
 
+import android.view.View
 import androidx.lifecycle.*
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Card
@@ -8,7 +9,7 @@ import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.MutableLiveList
-import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.State.*
+import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.*
 import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
 import com.faust.m.flashcardm.presentation.library.BookletBannerData
@@ -89,74 +90,69 @@ class BookletViewModel @JvmOverloads constructor(
         delegateEditCard.startCardEdition(_cards.value?.find { it.id == card.id })
 
     fun startRemoveCards() {
-        _bookletCards.value?.let { oldBookletCards ->
-            oldBookletCards
-                .map { bookletCard -> bookletCard.copy(isSelected = false) }
-                .toMutableList()
-                .let { copyBookletCards ->
-                    _bookletCards.postValue(copyBookletCards)
-                }
-        }
-        _cardRemovalStatus.postValue(CardRemovalStatus(SELECTING))
+        _cardRemovalStatus.postValue(SELECTING)
+        _bookletCards.postCopyForEach { it.copy(showSelection = true, isSelected = false) }
     }
 
     fun stopRemoveCard() {
-        _cardRemovalStatus.postValue(CardRemovalStatus(OFF))
+        _cardRemovalStatus.postValue(OFF)
+        _bookletCards.postCopyForEach { it.copy(showSelection = false, isSelected = false) }
+    }
+
+    private fun MutableLiveList<BookletCard>
+            .postCopyForEach(transformation: (oldCard :BookletCard) -> BookletCard) {
+        value?.let { oldBookletCards ->
+            oldBookletCards
+                .map { bookletCard ->
+                    transformation(bookletCard)
+                }
+                .toMutableList()
+                .let { _bookletCards.postValue(it) }
+        }
     }
 
     /**
      * Mark or unmark bookletCard as selected and trigger a redraw of card
      */
     fun switchBookletCardForRemoval(bookletCard: BookletCard) {
-        bookletCard.isSelected = !bookletCard.isSelected
-        _bookletCards.notifyObserver()
+        _bookletCards.value?.let { oldBookletCards ->
+            val indexOfCard = oldBookletCards.indexOf(bookletCard)
+            oldBookletCards
+                .toMutableList()
+                .apply { set(indexOfCard, bookletCard.switchSelection()) }
+                .let {_bookletCards.postValue(it) }
+        }
     }
 
     fun deleteSelectedBookletCards() {
         _bookletCards.value?.let { tBookletCards ->
-            val position = mutableSetOf<Int>()
-            val bookletCardsToRemove = mutableListOf<BookletCard>()
-            val cardsToRemove = mutableListOf<Card>()
-            tBookletCards.forEachIndexed { index, tBookletCard ->
-                if (tBookletCard.isSelected) {
-                    position.add(index)
-                    bookletCardsToRemove.add(tBookletCard)
-                    _cards.value?.let {
-                        it.find { c -> c.id == tBookletCard.id }?.let { c ->
-                            cardsToRemove.add(c)
-                        }
-                    }
-                }
-            }
+            val idsToDelete = tBookletCards.filter { it.isSelected }.map { it.id }.toSet()
+            val oldCards = _cards.value ?: return
 
-            // Remove cards and bookletsCard from _cards and _bookletCards
-            _cards.value?.run { removeAll(cardsToRemove) }
-            tBookletCards.removeAll(bookletCardsToRemove)
+            // Remove cards from _cards in memory
+            val cardsToRemove = oldCards.filter { idsToDelete.contains(it.id) }
+            oldCards
+                .apply { removeAll(cardsToRemove) }
+                .let { _cards.postValue(it) }
 
-            // Remove card from dataSource
+            // Remove cards from database
             viewModelScope.launch(Dispatchers.IO) {
-                cardsToRemove.forEach { cardUseCases.deleteCard(it) }
-
-                _cardRemovalStatus.postValue(CardRemovalStatus(DELETED, position, tBookletCards))
+                cardUseCases.deleteCards(cardsToRemove)
             }
+
+            _cardRemovalStatus.postValue(DELETED)
         }
     }
 
     fun switchShowRatingLevel() {
         _showRatingLevel = !_showRatingLevel
-        _bookletCards.value?.let { tOldBCards ->
-            val tNewBCards = mutableListOf<BookletCard>()
-            tOldBCards.forEach { oldBCard ->
-                tNewBCards.add(oldBCard.copy(showRating = _showRatingLevel))
-            }
-            _bookletCards.postValue(tNewBCards)
-        }
+        _bookletCards.postCopyForEach { it.copy(showRating = _showRatingLevel) }
     }
 
     override fun onBackPressed(): Boolean =
         when {
             delegateEditCard.onBackPressed() -> true
-            _cardRemovalStatus.value?.state == SELECTING -> {
+            _cardRemovalStatus.value == SELECTING -> {
                 stopRemoveCard()
                 true
             }
@@ -194,7 +190,8 @@ data class BookletCard(val front: String,
                        val back: String,
                        val _color: Int,
                        val showRating: Boolean,
-                       var isSelected: Boolean,
+                       val showSelection: Boolean,
+                       val isSelected: Boolean,
                        val id: Long = 0) {
 
     constructor(card: Card, showRating: Boolean): this(
@@ -203,11 +200,17 @@ data class BookletCard(val front: String,
         card.ratingLevel().toColor(),
         showRating,
         false,
+        false,
         card.id
     )
 
     val color: Int
         get() = if (showRating) _color else R.color.colorWhite
+
+    val selectedVisibility: Int
+        get() = if (showSelection) View.VISIBLE else View.GONE
+
+    fun switchSelection(): BookletCard = copy(isSelected = !isSelected)
 }
 
 private fun Card.RatingLevel.toColor(): Int = when(this) {
@@ -216,9 +219,4 @@ private fun Card.RatingLevel.toColor(): Int = when(this) {
         else -> R.color.colorFamiliarCard
     }
 
-data class CardRemovalStatus(val state: State,
-                             val position: Set<Int> = setOf(),
-                             val bookletCards: List<BookletCard> = listOf()) {
-
-    enum class State { OFF, DELETED, SELECTING }
-}
+enum class CardRemovalStatus { OFF, DELETED, SELECTING }

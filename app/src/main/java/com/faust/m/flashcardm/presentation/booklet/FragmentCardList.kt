@@ -14,6 +14,7 @@ import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.ViewBookletBannerBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
 import com.faust.m.flashcardm.presentation.LiveDataObserver
+import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.SELECTING
 import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.setNoArgOnClickListener
 import com.faust.m.flashcardm.presentation.view_library_booklet.displayShortName
@@ -65,15 +66,15 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         iv_info.setOnClickListener(::onBookletInfoClicked)
     }
 
-    private fun onEditCard(card: BookletCard) = viewModel.startCardEdition(card)
+    private fun onEditCard(cardData: BookletCard) = viewModel.startCardEdition(cardData)
 
     private fun onBookletChanged(booklet: BookletBannerData) {
         bookletBannerBinding.booklet = booklet
     }
 
-    private fun onCardsChanged(cards: MutableList<BookletCard>) {
-        bookletCardAdapter.replaceCards(cards)
-        showEmptyRecyclerView(cards.isEmpty())
+    private fun onCardsChanged(cardsData: MutableList<BookletCard>) {
+        bookletCardAdapter.submitList(cardsData)
+        showEmptyRecyclerView(cardsData.isEmpty())
     }
 
     private fun showEmptyRecyclerView(show: Boolean) {
@@ -81,32 +82,30 @@ class FragmentCardList: Fragment(), LiveDataObserver {
     }
 
     private fun onDeleteCardStateChanged(deleteCard: CardRemovalStatus) {
-        if (deleteCard.state == CardRemovalStatus.State.SELECTING) {
-            bookletBannerBinding.animateToCancelButton()
-            fab_add_card.animateToConfirmDeleteFAB()
-            bookletCardAdapter.switchMode(true, ::onSelectItem)
-            bookletCardAdapter.notifyDataSetChanged()
+        when (deleteCard) {
+            SELECTING -> animateUIToSelectingStateOn()
+            else -> animateUIToSelectionStateOff()
         }
-        else {
-            bookletBannerBinding.animateToInfoButton()
-            fab_add_card.animateToAddCardFAB()
-            bookletCardAdapter.switchMode(false, ::onEditCard)
-            if (deleteCard.state == CardRemovalStatus.State.DELETED) {
-                bookletCardAdapter.notifyItemDeleted(deleteCard.position, deleteCard.bookletCards)
-                showEmptyRecyclerView(deleteCard.bookletCards.isEmpty())
-            }
-            else {
-                bookletCardAdapter.notifyDataSetChanged()
-            }
-        }
+    }
+
+    private fun animateUIToSelectingStateOn() {
+        bookletBannerBinding.animateToCancelButton()
+        fab_add_card.animateToConfirmDeleteFAB()
+        bookletCardAdapter.onItemClick = ::onSelectItem
+    }
+
+    private fun animateUIToSelectionStateOff() {
+        bookletBannerBinding.animateToInfoButton()
+        fab_add_card.animateToAddCardFAB()
+        bookletCardAdapter.onItemClick = ::onEditCard
     }
 
     private fun onCancelDeleteClicked() = viewModel.stopRemoveCard()
 
     private fun onConfirmDeleteClicked() = viewModel.deleteSelectedBookletCards()
 
-    private fun onSelectItem(card: BookletCard) =
-        viewModel.switchBookletCardForRemoval(card)
+    private fun onSelectItem(cardData: BookletCard) =
+        viewModel.switchBookletCardForRemoval(cardData)
 
     private fun onAddCardClicked() = viewModel.startCardAddition()
 
