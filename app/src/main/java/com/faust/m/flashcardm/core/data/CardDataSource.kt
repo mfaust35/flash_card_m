@@ -16,9 +16,15 @@ interface CardDataSource {
 
     fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck>
 
+    fun getLiveDeckForBooklet(bookletId: Long,
+                              attachCardContent: Boolean = false,
+                              filterToReviewCard: Boolean = false): LiveData<Deck>
+
     fun getAllCardsForBooklet(bookletId: Long): List<Card>
 
     fun resetForReview(count: Int, bookletId: Long): Int
 
     fun deleteCard(card: Card): Int
+
+    fun deleteCards(cards: List<Card>): Int
 }

@@ -9,8 +9,8 @@ import kotlin.collections.HashMap
 enum class CardContentType { FRONT, BACK }
 
 data class CardContent (
-    val value: String,
-    val type: CardContentType,
+    val value: String = "",
+    val type: CardContentType = FRONT,
     val cardId: Long = 0,
     val id: Long = 0
 )
@@ -19,7 +19,7 @@ data class CardContent (
  * Redefine MutableList<CardContent> as Roster
  * A Roster can contain cardContent that do not belong to the same card
  */
-data class Roster(private val cardContents: MutableList<CardContent>) :
+class Roster(private val cardContents: MutableList<CardContent>) :
     MutableList<CardContent> by cardContents {
 
     constructor(): this(mutableListOf())
@@ -126,6 +126,8 @@ data class Card (
  * A Deck can contains cards that do not belong to the same booklet
  */
 class Deck(cards: MutableList<Card>): MutableList<Card> by cards {
+
+    constructor(): this(mutableListOf())
 
     fun countNewCard() = filter { it.hasRatingLevel(NEW) }.size
     fun countTrainingCard() = filter { it.hasRatingLevel(TRAINING) }.size

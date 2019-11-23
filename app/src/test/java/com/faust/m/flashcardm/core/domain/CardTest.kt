@@ -8,14 +8,28 @@ import java.util.*
 
 class CardTest {
 
-    private val card11: Card = Card(bookletId = 1, id = 1) // Booklet: 1
-    private val card12: Card = Card(bookletId = 1, id = 2) // Booklet: 1
-    private val card31: Card = Card(bookletId = 3, id = 1) // Booklet: 3
+    // Default cards and cardContent
+    // Booklet1                 id(1          )
+    // + -- Card1B1             id(+ -- 1     )
+    //      + -- CardContent1B1 id(     + -- 1)
+    //      + -- CardContent2B1 id(     + -- 2)
+    // + -- Card2B1             id(+ -- 2     )
+    // Booklet3                 id(3          )
+    // + -- Card3B3             id(+ -- 3     )
+    //      + -- CardContent3B3 id(     + -- 3)
+    private val card1B1: Card = Card(bookletId = 1, id = 1)
+    private val card2B1: Card = Card(bookletId = 1, id = 2)
+    private val card3B3: Card = Card(bookletId = 3, id = 3)
+
+    private val content1B1: CardContent = CardContent(cardId = 1, id = 1)
+    private val content2B1: CardContent = CardContent(cardId = 1, id = 2)
+    private val content3B3: CardContent = CardContent(cardId = 3, id = 3)
+
 
     @Test
     fun testMapDecksGivenEmptyDeckShouldReturnEmptyMap() {
         // Given an empty deck
-        val emptyDeck = listOf<Card>().toDeck()
+        val emptyDeck = Deck()
 
         emptyDeck.mapDecksByBookletId().let { result ->
             assertThat(result).isEmpty()
@@ -25,12 +39,13 @@ class CardTest {
     @Test
     fun testMapDecksGivenDeckWithOneBookletShouldReturnMapWithOneBooklet() {
         // Given a deck with a card in booklet1
-        val deck = listOf(card11).toDeck()
+        val deck = listOf(card1B1).toDeck()
 
         deck.mapDecksByBookletId().let { result ->
+
             // Result map contain one bookletId, with a deck of previous card
             assertThat(result).hasSize(1)
-            assertThat(result[1]).containsExactly(card11)
+            assertThat(result[1]).containsExactly(card1B1)
         }
 
     }
@@ -38,25 +53,26 @@ class CardTest {
     @Test
     fun testMapDecksGivenDeckWithTwoBookletsShouldReturnMapWithTwoBooklets() {
         // Given a deck with 1 card in booklet1 and 1 card in booklet3
-        val deck = listOf(card11, card31).toDeck()
+        val deck = listOf(card1B1, card3B3).toDeck()
 
         deck.mapDecksByBookletId().let { result ->
+
             // Result map contain 2 bookletIds, with decks containing previous cards
             assertThat(result).hasSize(2)
-            assertThat(result[1]).containsExactly(card11)
-            assertThat(result[3]).containsExactly(card31)
+            assertThat(result[1]).containsExactly(card1B1)
+            assertThat(result[3]).containsExactly(card3B3)
         }
     }
 
     @Test
     fun testMapDecksGivenDeckWithMultipleCardsForSameBookletShouldReturnMapWithDeck() {
         // Given a deck with 2 card in booklet1
-        val deck = listOf(card11, card12).toDeck()
+        val deck = listOf(card1B1, card2B1).toDeck()
 
         deck.mapDecksByBookletId().let { result ->
             // Result map contain 1 bookletId. with a deck of 2 previous cards
             assertThat(result).hasSize(1)
-            assertThat(result[1]).containsExactlyInAnyOrder(card11, card12)
+            assertThat(result[1]).containsExactlyInAnyOrder(card1B1, card2B1)
         }
     }
 
@@ -86,7 +102,7 @@ class CardTest {
     @Test
     fun testCountTrainingCardShouldNotCountCardWithRatingInferiorTo1OrSuperiorTo4() {
         // Given a deck with a card with rating superior to 4 (= not training)
-        val deck = listOf(Card(rating = 5)).toDeck()
+        val deck = listOf(Card(rating = 5), Card(rating = 0)).toDeck()
 
         deck.countTrainingCard().let { result ->
             assertThat(result).isEqualTo(0)
@@ -95,9 +111,9 @@ class CardTest {
 
     @Test
     fun testCountTrainingCardShouldCountCardWithRatingBetween1And4() {
-        // Given a deck with 2 card with rating 2 (= training) and another
+        // Given a deck with 2 card with rating 3 (= training) and another
         val deck = listOf(
-            Card(rating = 2), Card(rating = 2), Card(rating = 5)
+            Card(rating = 3), Card(rating = 3), Card(rating = 5)
         ).toDeck()
 
         deck.countTrainingCard().let { result ->
@@ -204,6 +220,84 @@ class CardTest {
         assertThat(card).isEqualTo(identicalCard)
     }
 
+    @Test
+    fun testCardEqualShouldBeFalseWhenRosterContainDifferentCardContent() {
+        val card = Card(
+            rating = 2,
+            lastSeen = Date(30),
+            createdAt = Date(20),
+            roster = mutableListOf(CardContent(
+                value = "to learn",
+                type = FRONT,
+                cardId = 35,
+                id = 22
+            )).toRoster(),
+            bookletId = 14,
+            id = 35
+        )
+        val identicalCard = Card(
+            rating = 2,
+            lastSeen = Date(30),
+            createdAt = Date(20),
+            roster = mutableListOf(CardContent(
+                value = "to learn",
+                type = BACK,
+                cardId = 35,
+                id = 22
+            )).toRoster(),
+            bookletId = 14,
+            id = 35
+        )
+
+        assertThat(card).isNotEqualTo(identicalCard)
+    }
+
+    @Test
+    fun testMapRosterGivenEmptyRosterShouldReturnEmptyMap() {
+        // Given an empty roster
+        val emptyRoster = listOf<CardContent>().toRoster()
+
+        emptyRoster.mapRosterByCardId().let { result ->
+            assertThat(result).isEmpty()
+        }
+    }
+
+    @Test
+    fun testMapRosterGivenRosterWithOneCardShouldReturnMapWithOneCardId() {
+        // Given a roster with a cardContent in card1
+        val roster = listOf(content1B1).toRoster()
+
+        roster.mapRosterByCardId().let { result ->
+            // Result map contain one cardId, with a roster of previous cardContent
+            assertThat(result).hasSize(1)
+            assertThat(result[1]).containsExactly(content1B1)
+        }
+    }
+
+    @Test
+    fun testMapRosterGivenRosterWithTwoCardsShouldReturnMapWithTwoCardId() {
+        // Given a roster with 1 cardContent in card1 and 1 cardContent in card3
+        val roster = listOf(content1B1, content3B3).toRoster()
+
+        roster.mapRosterByCardId().let { result ->
+            // Result map should contain 2 cardId, with roster containing correct cardContent
+            assertThat(result).hasSize(2)
+            assertThat(result[1]).containsExactly(content1B1)
+            assertThat(result[3]).containsExactly(content3B3)
+        }
+    }
+
+    @Test
+    fun testMapRosterGivenRosterWithMultipleCardContentForSameCardShouldReturnMapWithFullRoster() {
+        // Given a roster with 2 cardContent in card1
+        val roster = listOf(content1B1, content2B1).toRoster()
+
+        roster.mapRosterByCardId().let { result ->
+            // Result map should contain 1 cardId, with a roster containing both cardContent
+            assertThat(result).hasSize(1)
+            assertThat(result[1]).containsExactly(content1B1, content2B1)
+        }
+    }
 
     private fun now(): Date = Date()
     private fun today(): Date =

@@ -1,6 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Transformations
 import com.faust.m.flashcardm.core.data.CardDataSource
 import com.faust.m.flashcardm.core.domain.*
@@ -37,8 +38,8 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
 
     override fun updateCardContent(card: Card): Card = database.runInTransaction<Card> {
         cardDao.updateCreatedAt(card.createdAt, card.id)
-        card.roster.forEach {
-            cardContentDao.update(it.toEntityModel())
+        card.roster.map { it.toEntityModel() }.toTypedArray().let { params ->
+            cardContentDao.updateAll(*params)
         }
         card
     }
@@ -58,6 +59,48 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
 
     override fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck> =
         Transformations.map(cardDao.getLiveCardsForBooklet(bookletId), ::mapCardEntitiesToDeck)
+
+    override fun getLiveDeckForBooklet(bookletId: Long,
+                                       attachCardContent: Boolean,
+                                       filterToReviewCard: Boolean): LiveData<Deck>  {
+        val result = MediatorLiveData<Deck>()
+        val cardSource = cardDao.getLiveCardsForBooklet(bookletId)
+
+        if (!attachCardContent) {
+            result.addSource(cardSource) { cardEntities ->
+                result.value =
+                    mergeRostersToCardEntities(cardEntities, filterToReviewCard = filterToReviewCard)
+            }
+        }
+        else {
+            val contentSource =
+                cardContentDao.getLiveCardContentsForBooklet(bookletId)
+
+            fun combineData() {
+                val cardEntities = cardSource.value ?: return
+                val contentEntities = contentSource.value?.map { c -> c.toDomainModel() }?.toRoster()
+                    ?.mapRosterByCardId() ?: return
+
+                result.value = mergeRostersToCardEntities(cardEntities, contentEntities, filterToReviewCard)
+            }
+
+            result.addSource(cardSource) { combineData() }
+            result.addSource(contentSource) { combineData() }
+        }
+
+        return result
+    }
+
+    private fun mergeRostersToCardEntities(cardEntities: List<CardEntity>,
+                                           rosters: Map<Long, Roster> = HashMap(),
+                                           filterToReviewCard: Boolean): Deck {
+        val cards = cardEntities.map { c ->
+            val roster = rosters[c.id] ?: Roster()
+            c.toDomainModel(roster)
+        }
+        return if (filterToReviewCard) cards.filter(Card::needReview).toDeck()
+        else cards.toDeck()
+    }
 
     override fun getLiveDeck(): LiveData<Deck> =
         Transformations.map(cardDao.getLiveCards(), ::mapCardEntitiesToDeck)
@@ -102,6 +145,13 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
     override fun deleteCard(card: Card): Int =
         cardDao.delete(card.toEntityModel())
 
+    override fun deleteCards(cards: List<Card>): Int =
+        cards.map { c -> c.toEntityModel() }.toTypedArray().let { cardEntities ->
+            return cardDao.deleteAll(*cardEntities)
+        }
+
+    private fun CardEntity.toDomainModel(roster: Roster = Roster()): Card =
+        Card(rating, lastSeen, createdAt, roster = roster, bookletId = bookletId, id = id)
 
     private fun CardEntity.toDomainModel(): Card =
         Card(rating, lastSeen, createdAt, bookletId = bookletId, id = id)
