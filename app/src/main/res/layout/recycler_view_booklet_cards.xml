@@ -46,6 +46,8 @@
         <CheckBox
             android:id="@+id/cb_selected"
             android:clickable="false"
+            android:visibility="@{card.selectedVisibility}"
+            android:checked="@{card.isSelected}"
             android:layout_marginStart="@dimen/large_margin"
             android:layout_marginEnd="@dimen/large_margin_inside_recycled_view"
             android:layout_width="@dimen/dimen_icon_h1_5"

@@ -4,14 +4,14 @@ import com.faust.m.flashcardm.core.data.CardRepository
 import com.faust.m.flashcardm.core.domain.Card
 
 class CardUseCases private constructor(val addCard: AddCard,
-                                       val deleteCard: DeleteCard,
+                                       val deleteCards: DeleteCards,
                                        val getCardsForBooklet: GetCardsForBooklet,
                                        val updateCard: UpdateCard,
                                        val updateCardContent: UpdateCardContent) {
 
     constructor(cardRepository: CardRepository): this(
         AddCard(cardRepository),
-        DeleteCard(cardRepository),
+        DeleteCards(cardRepository),
         GetCardsForBooklet(cardRepository),
         UpdateCard(cardRepository),
         UpdateCardContent(cardRepository)
@@ -23,9 +23,9 @@ class AddCard(private val cardRepository: CardRepository) {
     operator fun invoke(card: Card): Card = cardRepository.addCard(card)
 }
 
-class DeleteCard(private val cardRepository: CardRepository) {
+class DeleteCards(private val cardRepository: CardRepository) {
 
-    operator fun invoke(card: Card): Int = cardRepository.deleteCard(card)
+    operator fun invoke(cards :List<Card>): Int = cardRepository.deleteCards(cards)
 }
 
 class GetCardsForBooklet(private val cardRepository: CardRepository) {
