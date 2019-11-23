@@ -17,6 +17,12 @@ interface BaseDao<T> {
     @Update
     fun update(value: T): Int
 
+    @Update
+    fun updateAll(vararg objects: T): Int
+
     @Delete
     fun delete(value: T): Int
+
+    @Delete
+    fun deleteAll(vararg values: T): Int
 }
