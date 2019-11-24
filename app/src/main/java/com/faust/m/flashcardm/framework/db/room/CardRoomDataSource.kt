@@ -37,28 +37,13 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         cardDao.update(card.toEntityModel()).let { card.copy(id = it.toLong()) }
 
     override fun updateCardContent(card: Card): Card = database.runInTransaction<Card> {
+        // TODO: Should also update rating (maybe back to 0, or 4)
         cardDao.updateCreatedAt(card.createdAt, card.id)
         card.roster.map { it.toEntityModel() }.toTypedArray().let { params ->
             cardContentDao.updateAll(*params)
         }
         card
     }
-
-    override fun getAllCardsForBooklet(bookletId: Long): List<Card> =
-        cardDao.getAllCardsForBooklet(bookletId).map {
-            Card(it.rating, it.lastSeen, it.createdAt, buildCardEntities(it.id), it.bookletId, it.id)
-        }
-
-    private fun buildCardEntities(cardId: Long): Roster =
-            cardContentDao
-                .getAllCardContentsForCard(cardId)
-                .map { c ->
-                    c.toDomainModel()
-                }
-                .toRoster()
-
-    override fun getLiveDeckForBooklet(bookletId: Long): LiveData<Deck> =
-        Transformations.map(cardDao.getLiveCardsForBooklet(bookletId), ::mapCardEntitiesToDeck)
 
     override fun getLiveDeckForBooklet(bookletId: Long,
                                        attachCardContent: Boolean,
@@ -103,7 +88,7 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
     }
 
     override fun getLiveDeck(): LiveData<Deck> =
-        Transformations.map(cardDao.getLiveCards(), ::mapCardEntitiesToDeck)
+        Transformations.map(cardDao.getLiveCards()) { it.toDeck() }
 
     /**
      * Will modify X card in booklet so that they will be inReview again. This method will ignore
@@ -142,9 +127,6 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         return resetCount
     }
 
-    override fun deleteCard(card: Card): Int =
-        cardDao.delete(card.toEntityModel())
-
     override fun deleteCards(cards: List<Card>): Int =
         cards.map { c -> c.toEntityModel() }.toTypedArray().let { cardEntities ->
             return cardDao.deleteAll(*cardEntities)
@@ -165,6 +147,6 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
     private fun CardContent.toEntityModel(newCardId: Long = -1): CardContentEntity =
         CardContentEntity(value, type, if (-1L != newCardId) newCardId else cardId, id)
 
-    private fun mapCardEntitiesToDeck(cardEntities: List<CardEntity>): Deck =
-        cardEntities.map {c -> c.toDomainModel()}.toDeck()
+    private fun List<CardEntity>.toDeck(): Deck =
+        this.map { it.toDomainModel() }.toDeck()
 }
