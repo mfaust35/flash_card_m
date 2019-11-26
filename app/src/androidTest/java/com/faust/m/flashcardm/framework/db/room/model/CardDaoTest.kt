@@ -31,7 +31,8 @@ class CardDaoTest: BaseDaoTest() {
     private val cardEntity =
         CardEntity(
             rating = 1,
-            lastSeen = Date(30),
+            nextReview = Date(30),
+            updatedAt = Date(70),
             createdAt = Date(30),
             bookletId = 42,
             id = 10
@@ -106,42 +107,11 @@ class CardDaoTest: BaseDaoTest() {
         assertThat(cardDao.getAllCardsShellsForBooklets(listOf(42, 3)))
             .containsExactlyInAnyOrder(
                 cardEntity,
-                CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 3),
-                CardEntity(rating = 3, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 4)
+                CardEntity(rating = 2, nextReview = Date(30),
+                    updatedAt = Date(70), createdAt = Date(30), bookletId = 3, id = 3),
+                CardEntity(rating = 3, nextReview = Date(30),
+                    updatedAt = Date(70), createdAt = Date(30), bookletId = 3, id = 4)
             )
-    }
-
-    @Test
-    fun testUpdateCreatedAtShouldUpdateFieldCreatedAtOnly() {
-        defaultTriple.saveInDatabase()
-
-        cardDao.updateCreatedAt(Date(4000), 10) // Method under test
-
-        cardDao.getAllCardsForBooklet(42).let { result ->
-
-            // The card contain a new createdAt value
-            assertThat(result).containsExactly(cardEntity.copy(createdAt = Date(4000)))
-        }
-    }
-
-    @Test
-    fun testUpdateCreatedAtShouldReturnTheNumberOfRowUpdated() {
-        defaultTriple.saveInDatabase()
-
-        cardDao.updateCreatedAt(Date(4000), 10).let { result ->
-
-            assertThat(result).`as`("Number of row updated").isEqualTo(1)
-        }
-    }
-
-    @Test
-    fun testUpdateCreatedAtFailedShouldReturnZero() {
-        defaultTriple.saveInDatabase()
-
-        cardDao.updateCreatedAt(Date(4000), 2000).let { result ->
-
-            assertThat(result).`as`("No card (id:2000) = no row updated").isEqualTo(0)
-        }
     }
 
     @Test
@@ -212,8 +182,10 @@ class CardDaoTest: BaseDaoTest() {
         defaultTriple.saveInDatabase()
         bookletDao.add(BookletEntity("", 3))
 
-        cardDao.add(CardEntity(rating = 2, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 3))
-        cardDao.add(CardEntity(rating = 3, lastSeen = Date(30), createdAt = Date(30), bookletId = 3, id = 4))
+        cardDao.add(CardEntity(rating = 2, nextReview = Date(30),
+            updatedAt = Date(70), createdAt = Date(30), bookletId = 3, id = 3))
+        cardDao.add(CardEntity(rating = 3, nextReview = Date(30),
+            updatedAt = Date(70), createdAt = Date(30), bookletId = 3, id = 4))
     }
 
     private fun countCardForDefaultBooklet(): Int {
@@ -245,7 +217,8 @@ class CardDaoTest: BaseDaoTest() {
         val distinctCardEntity =
             CardEntity(
                 rating = 2,
-                lastSeen = Date(20000),
+                nextReview = Date(20000),
+                updatedAt = Date(70000),
                 createdAt = Date(30000),
                 bookletId = 1,
                 id = 4

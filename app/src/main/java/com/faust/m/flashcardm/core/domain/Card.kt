@@ -6,6 +6,8 @@ import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
 import java.util.*
 import kotlin.collections.HashMap
 
+const val ONE_DAY_IN_MS = 86400000L
+
 enum class CardContentType { FRONT, BACK }
 
 data class CardContent (
@@ -15,12 +17,17 @@ data class CardContent (
     val id: Long = 0
 )
 
+interface IRoster: MutableList<CardContent> {
+
+    fun firstTextValue(type: CardContentType): CardContent? = firstOrNull { it.type == type }
+}
+
 /**
  * Redefine MutableList<CardContent> as Roster
  * A Roster can contain cardContent that do not belong to the same card
  */
 class Roster(private val cardContents: MutableList<CardContent>) :
-    MutableList<CardContent> by cardContents {
+    IRoster, MutableList<CardContent> by cardContents {
 
     constructor(): this(mutableListOf())
 
@@ -53,43 +60,42 @@ fun List<CardContent>.toRoster(): Roster = Roster(this.toMutableList())
 
 data class Card (
     val rating: Int = 0,
-    val lastSeen: Date = Date(),
-    val createdAt: Date = lastSeen,
+    val nextReview: Date = Date(),
+    val updatedAt: Date = nextReview,
+    val createdAt: Date = nextReview,
     val roster: Roster = Roster(),
     val bookletId: Long = 0,
     val id: Long = 0
-) {
+): IRoster by roster {
 
-    fun add(cardContent: CardContent): Card = apply {
-        roster.add(cardContent)
+    fun frontAsTextOrNull() = firstTextValue(FRONT)?.value
+
+    fun backAsTextOrNull() = firstTextValue(BACK)?.value
+
+    fun updateTextValues(front: String, back: String): Card {
+        updateTextContentIfExist(FRONT, front) ?: add(CardContent(front, FRONT))
+        updateTextContentIfExist(BACK, back) ?: add(CardContent(back, BACK))
+        return this.copy(rating = 0, nextReview = Date(), updatedAt = Date())
     }
 
-    fun frontAsTextOrNull() = roster.firstOrNull { c -> c.type == FRONT }?.value
-
-    fun backAsTextOrNull() = roster.firstOrNull { c -> c.type == BACK }?.value
-
-    fun addFrontAsText(text: String) = add(CardContent(text, FRONT))
-
-    fun addBackAsText(text: String) = add(CardContent(text, BACK))
-
-    fun editFrontAsText(newValue: String) = editAsText(newValue, FRONT)
-
-    private fun editAsText(newValue: String, type: CardContentType) =
-        roster.firstOrNull { c -> c.type == type }?.run {
-            roster.remove(this)
-            roster.add(this.copy(value = newValue))
+    private fun updateTextContentIfExist(type: CardContentType, value: String) =
+        firstTextValue(type)?.let { content ->
+            roster.set(roster.indexOf(content), content.copy(value = value))
         }
 
-    fun editBackAsText(newValue: String) = editAsText(newValue, BACK)
-
-    fun copyWithoutContent() = this.copy(roster = Roster())
+    /**
+     * Increment the rating of this card, and set the nextReview in 1 day
+     */
+    fun incrementLearnedLevel(): Card {
+        return this.copy(rating = this.rating + 1, nextReview = oneDayFromNow())
+    }
 
     /**
      * To be eligible for review, a card must have a rating inferior to 5
-     * (5 means the card is learned), and it must have not have been reviewed today
+     * (5 means the card is learned), and its nextReview should be before now
      */
     fun needReview(): Boolean {
-        return ratingLevel() != FAMILIAR && needReviewToday()
+        return ratingLevel() != FAMILIAR && nextReview.before(now)
     }
 
     fun ratingLevel() = when(rating) {
@@ -100,22 +106,10 @@ data class Card (
 
     internal fun hasRatingLevel(ratingLevel: RatingLevel) = ratingLevel() == ratingLevel
 
-    /**
-     * If lastSeen = createdAt, this card can need review
-     * Else, this card only need review if last seen is not today
-     */
-    private fun needReviewToday(): Boolean {
-        if (this.lastSeen == this.createdAt)
-            return true
-        if (this.lastSeen.before(this.createdAt))
-            return true
-        Calendar.getInstance(Locale.getDefault()).let { today: Calendar ->
-            today.set(Calendar.HOUR, 0)
-            today.set(Calendar.MINUTE, 0)
-            today.set(Calendar.SECOND, 0)
-            today.set(Calendar.MILLISECOND, 0)
-            return today.after(Calendar.getInstance(Locale.getDefault()).apply { time = lastSeen })
-        }
+    private val now = Date()
+
+    private fun oneDayFromNow(): Date {
+        return Date(now.time + ONE_DAY_IN_MS)
     }
 
     enum class RatingLevel { NEW, TRAINING, FAMILIAR }

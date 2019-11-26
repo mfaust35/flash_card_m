@@ -7,10 +7,8 @@ import com.faust.m.flashcardm.core.usecase.CardUseCases
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.verbose
 import org.koin.core.KoinComponent
 import org.koin.core.inject
-import java.util.*
 
 
 enum class CardEditionState { EDIT, ADD, CLOSED }
@@ -59,12 +57,10 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
 
     
     override fun addCard(front: String, back: String) {
-        _cardToEdit.value?.let {
-            it.addFrontAsText(front)
-            it.addBackAsText(back)
-            GlobalScope.launch {
-                cardUseCases.addCard(it).also { newCard ->
-                    verbose { "Created a new card: $newCard" }
+        _cardToEdit.value?.let { cardToUpdate ->
+            cardToUpdate.updateTextValues(front, back).let {
+                GlobalScope.launch {
+                    cardUseCases.addCard(it)
                     _cardToEdit.postValue(Card(bookletId = bookletId))
                 }
             }
@@ -72,12 +68,10 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
     }
 
     override fun editCard(front: String, back: String) {
-        _cardToEdit.value?.copy(createdAt = Date())?.let { cardToUpdate ->
-            cardToUpdate.editFrontAsText(front)
-            cardToUpdate.editBackAsText(back)
-            GlobalScope.launch {
-                cardUseCases.updateCardContent(cardToUpdate).also { updatedCard ->
-                    verbose { "Updated a card: $updatedCard" }
+        _cardToEdit.value?.let { cardToUpdate ->
+            cardToUpdate.updateTextValues(front, back).let {
+                GlobalScope.launch {
+                    cardUseCases.updateCardWithContent(it)
                 }
             }
         }

@@ -33,12 +33,12 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         cardCopy
     }
 
-    override fun update(card: Card): Card =
-        cardDao.update(card.toEntityModel()).let { card.copy(id = it.toLong()) }
+    override fun update(card: Card): Card = card.also {
+        cardDao.update(it.toEntityModel())
+    }
 
-    override fun updateCardContent(card: Card): Card = database.runInTransaction<Card> {
-        // TODO: Should also update rating (maybe back to 0, or 4)
-        cardDao.updateCreatedAt(card.createdAt, card.id)
+    override fun updateCardWithContent(card: Card): Card = database.runInTransaction<Card> {
+        cardDao.update(card.toEntityModel())
         card.roster.map { it.toEntityModel() }.toTypedArray().let { params ->
             cardContentDao.updateAll(*params)
         }
@@ -118,8 +118,8 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
             .slice(0 until count.coerceAtMost(totalPossibleCard))
             .forEach { cEntity ->
                 val cardCopy = when(cEntity.rating) {
-                    5 -> cEntity.copy(createdAt = updateAt, rating = 4)
-                    else -> cEntity.copy(createdAt = updateAt)
+                    5 -> cEntity.copy(nextReview = Date(), createdAt = updateAt, rating = 4)
+                    else -> cEntity.copy(nextReview = Date(), createdAt = updateAt)
                 }
                 cardDao.update(cardCopy.toEntityModel())
                 resetCount ++
@@ -133,16 +133,13 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         }
 
     private fun CardEntity.toDomainModel(roster: Roster = Roster()): Card =
-        Card(rating, lastSeen, createdAt, roster = roster, bookletId = bookletId, id = id)
-
-    private fun CardEntity.toDomainModel(): Card =
-        Card(rating, lastSeen, createdAt, bookletId = bookletId, id = id)
+        Card(rating, nextReview, updatedAt, createdAt, roster = roster, bookletId = bookletId, id = id)
 
     private fun CardContentEntity.toDomainModel(): CardContent =
         CardContent(value, type, cardId, id)
 
     private fun Card.toEntityModel(): CardEntity =
-        CardEntity(rating, lastSeen, createdAt, bookletId, id)
+        CardEntity(rating, nextReview, updatedAt, createdAt, bookletId, id)
 
     private fun CardContent.toEntityModel(newCardId: Long = -1): CardContentEntity =
         CardContentEntity(value, type, if (-1L != newCardId) newCardId else cardId, id)

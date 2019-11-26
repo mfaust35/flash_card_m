@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
 import org.koin.core.inject
-import java.util.*
 
 class ReviewViewModel @JvmOverloads constructor(
     private val bookletId: Long,
@@ -67,8 +66,8 @@ class ReviewViewModel @JvmOverloads constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _currentCard?.let { card ->
                 _liveCardKnown.add(card.id)
-                card.copy(rating = card.rating + 1, lastSeen = Date())
-                    .let{ cardUseCases.updateCard(it) }
+                card.incrementLearnedLevel()
+                    .let { cardUseCases.updateCard(it) }
             }
         }
     }

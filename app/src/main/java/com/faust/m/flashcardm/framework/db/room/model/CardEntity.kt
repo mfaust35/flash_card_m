@@ -41,7 +41,8 @@ data class CardContentEntity (
 )
 data class CardEntity (
     @ColumnInfo(name = "rating") val rating: Int,
-    @ColumnInfo(name = "last_seen") val lastSeen: Date,
+    @ColumnInfo(name = "next_review") val nextReview: Date,
+    @ColumnInfo(name = "updated_at") val updatedAt: Date,
     @ColumnInfo(name = "created_at") val createdAt: Date,
     @ColumnInfo(name = "booklet_id") val bookletId: Long,
     @ColumnInfo(name = "card_id")
