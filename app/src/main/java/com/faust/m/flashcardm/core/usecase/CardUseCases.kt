@@ -9,14 +9,14 @@ class CardUseCases private constructor(val addCard: AddCard,
                                        val deleteCards: DeleteCards,
                                        val getLiveDeck: GetLiveDeck,
                                        val updateCard: UpdateCard,
-                                       val updateCardContent: UpdateCardContent) {
+                                       val updateCardWithContent: UpdateCardWithContent) {
 
     constructor(cardRepository: CardRepository): this(
         AddCard(cardRepository),
         DeleteCards(cardRepository),
         GetLiveDeck(cardRepository),
         UpdateCard(cardRepository),
-        UpdateCardContent(cardRepository)
+        UpdateCardWithContent(cardRepository)
     )
 }
 
@@ -43,7 +43,7 @@ class UpdateCard(private val cardRepository: CardRepository) {
     operator fun invoke(card: Card): Card = cardRepository.updateCard(card)
 }
 
-class UpdateCardContent(private val cardRepository: CardRepository) {
+class UpdateCardWithContent(private val cardRepository: CardRepository) {
 
-    operator fun invoke(card: Card): Card = cardRepository.updateCardContent(card)
+    operator fun invoke(card: Card): Card = cardRepository.updateCardWithContent(card)
 }

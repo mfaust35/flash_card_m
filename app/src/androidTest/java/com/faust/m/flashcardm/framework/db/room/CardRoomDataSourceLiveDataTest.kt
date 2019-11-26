@@ -30,7 +30,8 @@ class CardRoomDataSourceLiveDataTest {
     //         + -- CardContentEntity -> id(+ -- 1)
     private val cardEntity = CardEntity(
         rating = 2,
-        lastSeen = Date(3000),
+        nextReview = Date(3000),
+        updatedAt = Date(22),
         createdAt = Date(20),
         bookletId = 20,
         id = 5
@@ -44,7 +45,8 @@ class CardRoomDataSourceLiveDataTest {
     // Corresponding default Card & CardContent
     private val card = Card(
         rating = 2,
-        lastSeen = Date(3000),
+        nextReview = Date(3000),
+        updatedAt = Date(22),
         createdAt = Date(20),
         bookletId = 20,
         id = 5
@@ -121,18 +123,6 @@ class CardRoomDataSourceLiveDataTest {
             }
     }
 
-    @Test
-    fun testDeleteCardsShouldReturnResultFromDaoDeleteAll() {
-        // Given cardDao return 110 when delete cardEntity
-        every { cardDao.deleteAll(cardEntity) } returns 110
-
-        cardRoomDataSource.deleteCards(listOf(card)).let { result ->
-
-            // Then method should return the result from cardDao
-            assertThat(result).isEqualTo(110)
-        }
-    }
-
 
     private fun givenCardDaoReturnListWithDefaultCardEntityForBookletId20() {
         every { cardDao.getLiveCardsForBooklet(20) } returns
@@ -142,7 +132,8 @@ class CardRoomDataSourceLiveDataTest {
     private fun givenCardDaoReturnListWithCardEntityToFilterForBookletId20() {
         val cardEntityToFilter = CardEntity(
             rating = 5,
-            lastSeen = Date(321),
+            nextReview = Date(320),
+            updatedAt = Date(321),
             createdAt = Date(322),
             bookletId = 20,
             id = 12)

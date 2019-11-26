@@ -12,7 +12,7 @@ const val DATABASE_PATH = "flash_database"
 
 @Database(
     entities = [BookletEntity::class, CardEntity::class, CardContentEntity::class],
-    version = 3
+    version = 4
 )
 @TypeConverters(DateConverter::class, CardContentTypeConverter::class)
 abstract class FlashRoomDatabase: RoomDatabase() {
@@ -38,7 +38,7 @@ abstract class FlashRoomDatabase: RoomDatabase() {
 
         private fun buildDatabase(context: Context): FlashRoomDatabase =
             Room.databaseBuilder(context, FlashRoomDatabase::class.java, DATABASE_PATH)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                 .build()
     }
 }

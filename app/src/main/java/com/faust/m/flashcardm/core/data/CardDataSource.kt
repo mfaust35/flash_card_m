@@ -10,7 +10,7 @@ interface CardDataSource {
 
     fun update(card: Card): Card
 
-    fun updateCardContent(card: Card): Card
+    fun updateCardWithContent(card: Card): Card
 
     fun getLiveDeck(): LiveData<Deck>
 

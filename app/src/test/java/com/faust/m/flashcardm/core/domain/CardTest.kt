@@ -145,8 +145,8 @@ class CardTest {
 
     @Test
     fun testCountToReviewCardShouldNotCountCardWithRatingFive() {
-        // Given a deck with a card of rating 5 and dateToday > dateLastSeen > dateCreatedAt
-        val card = Card(rating = 5, lastSeen = Date(30000), createdAt = Date(10))
+        // Given a deck with a card of rating 5 and nextReview yesterday
+        val card = Card(rating = 5, nextReview = yesterday())
         val deck = listOf(card).toDeck()
 
         deck.countToReviewCard().let { result ->
@@ -155,9 +155,9 @@ class CardTest {
     }
 
     @Test
-    fun testCountToReviewCardShouldNotCountCardWithDateLastSeenTodayDifferentFromCreateAt() {
-        // Given a deck with a card of rating 2 and dateLastSeen is today different from createdAt
-        val card = Card(rating = 2, lastSeen = today(), createdAt = Date(300))
+    fun testCountToReviewCardShouldNotCountCardWithNextReviewAfterNow() {
+        // Given a deck with a card of rating 2 and nextReview tomorrow
+        val card = Card(rating = 2, nextReview = tomorrow(), createdAt = Date(300))
         val deck = listOf(card).toDeck()
 
         deck.countToReviewCard().let { result ->
@@ -166,21 +166,9 @@ class CardTest {
     }
 
     @Test
-    fun testCountToReviewCardShouldCountCardWithEqualDateLastSeenAndCreatedAt() {
-        // Given a deck with a card of rating 2 and dateLastSeen = dateCreatedAt
-        val card = Card(rating = 2, lastSeen = Date(300), createdAt = Date(300))
-        val deck = listOf(card).toDeck()
-
-        deck.countToReviewCard().let { result ->
-            assertThat(result).isEqualTo(1)
-        }
-    }
-
-    @Test
-    fun testCountToReviewCardShouldCountCardWithCreatedAtAfterLastSeen() {
-        // Given a deck with card of rating 2 with dateCreatedAt > dateLastSeen
-        // Kind of weird naming here, but it means the card has been modified after begin seen
-        val card = Card(rating = 2, lastSeen = today(), createdAt = now())
+    fun testCountToReviewCardShouldCountCardRatingLowerThanFiveAndNextReviewBeforeNow() {
+        // Given a deck with a card of rating 2 and nextReview yesterday
+        val card = Card(rating = 2, nextReview = yesterday())
         val deck = listOf(card).toDeck()
 
         deck.countToReviewCard().let { result ->
@@ -192,7 +180,8 @@ class CardTest {
     fun testCardEqualsShouldBeTrueWhenRosterContainSameCardContent() {
         val card = Card(
             rating = 2,
-            lastSeen = Date(30),
+            nextReview = Date(30),
+            updatedAt = Date(70),
             createdAt = Date(20),
             roster = mutableListOf(CardContent(
                 value = "to learn",
@@ -205,7 +194,8 @@ class CardTest {
         )
         val identicalCard = Card(
             rating = 2,
-            lastSeen = Date(30),
+            nextReview = Date(30),
+            updatedAt = Date(70),
             createdAt = Date(20),
             roster = mutableListOf(CardContent(
                 value = "to learn",
@@ -224,7 +214,8 @@ class CardTest {
     fun testCardEqualShouldBeFalseWhenRosterContainDifferentCardContent() {
         val card = Card(
             rating = 2,
-            lastSeen = Date(30),
+            nextReview = Date(30),
+            updatedAt = Date(70),
             createdAt = Date(20),
             roster = mutableListOf(CardContent(
                 value = "to learn",
@@ -237,7 +228,8 @@ class CardTest {
         )
         val identicalCard = Card(
             rating = 2,
-            lastSeen = Date(30),
+            nextReview = Date(30),
+            updatedAt = Date(70),
             createdAt = Date(20),
             roster = mutableListOf(CardContent(
                 value = "to learn",
@@ -299,14 +291,100 @@ class CardTest {
         }
     }
 
-    private fun now(): Date = Date()
-    private fun today(): Date =
-        Calendar.getInstance(Locale.getDefault())
-            .apply {
-                set(Calendar.HOUR, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            .time
+    @Test
+    fun testEfficiencyOfMapDeckByBookletIdOnSmallDeck() {
+        // Given a deck with 2 cards without cardContent
+        val deck = listOf(card1B1, card3B3).toDeck()
+
+        val timeStart = System.currentTimeMillis()
+        deck.mapDecksByBookletId()
+        val timeEnd = System.currentTimeMillis()
+        val duration = timeEnd - timeStart
+
+        assertThat(duration).isLessThan(1)
+    }
+
+    @Test
+    fun testEfficiencyOfMapDeckByBookletIdOnLargeDeck() {
+        // Given a deck with 500 cards without cardContent
+        val deck = generateShuffledLargeList(500)
+
+        val timeStart = System.currentTimeMillis()
+        deck.mapDecksByBookletId()
+        val timeEnd = System.currentTimeMillis()
+        val duration = timeEnd - timeStart
+
+        assertThat(duration).isLessThanOrEqualTo(2)
+    }
+
+    @Test
+    fun testEfficiencyOfMapDeckByBookletIdOnVeryLargeDeck() {
+        // Given a deck with 500 cards without cardContent
+        val deck = generateShuffledLargeList(5000)
+
+        val timeStart = System.currentTimeMillis()
+        deck.mapDecksByBookletId()
+        val timeEnd = System.currentTimeMillis()
+        val duration = timeEnd - timeStart
+
+        assertThat(duration).isLessThanOrEqualTo(3)
+    }
+
+    @Test
+    fun testUpdateTextValuesWhenCardHasNoCardContentFrontShouldAddCardContentFront() {
+        val cardWithoutFrontText = Card()
+        cardWithoutFrontText.updateTextValues("new_front", "").let { result ->
+            assertThat(result.firstTextValue(FRONT)?.value).isEqualTo("new_front")
+        }
+    }
+
+    @Test
+    fun testUpdateTextValuesWhenCardHasNoCardContentBackShouldAddCardContentBack() {
+        val cardWithoutFrontText = Card()
+        cardWithoutFrontText.updateTextValues("", "new_back").let { result ->
+            assertThat(result.firstTextValue(BACK)?.value).isEqualTo("new_back")
+        }
+    }
+
+    @Test
+    fun testUpdateTextValuesWhenCardHasCardContentFrontShouldUpdateCardContentValue() {
+        val cardWithCardContent = cardWithCardContent()
+        cardWithCardContent.updateTextValues("new", "").let { result ->
+            assertThat(result.firstTextValue(FRONT)?.value).isEqualTo("new")
+        }
+    }
+
+    @Test
+    fun testUpdateTextValuesWhenCardHasCardContentBackShouldUpdateCardContentValue() {
+        val cardWithCardContent = cardWithCardContent()
+        cardWithCardContent.updateTextValues("", "new").let { result ->
+            assertThat(result.firstTextValue(BACK)?.value).isEqualTo("new")
+        }
+    }
+
+
+    private fun tomorrow() = Date().apply { time += ONE_DAY_IN_MS }
+    private fun yesterday() = Date().apply { time -= ONE_DAY_IN_MS }
+
+    private fun generateShuffledLargeList(largeDefinition: Int): Deck {
+        val result = Deck()
+        repeat(largeDefinition) {
+            result.add(Card(
+                rating = 0,
+                nextReview = Date(30),
+                updatedAt = Date(70),
+                createdAt = Date(2000),
+                bookletId = (it / 10).toLong(),
+                id = it.toLong()
+            ))
+        }
+        result.shuffle()
+        return result
+    }
+
+    private fun cardWithCardContent() =
+        Card(roster = mutableListOf(
+            CardContent(value = "old_front", type = FRONT),
+            CardContent(value = "old_back", type = BACK)
+        ).toRoster())
 }
