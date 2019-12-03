@@ -42,7 +42,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         // Init viewModel
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        with(this.viewLifecycleOwner) {
+        with(viewLifecycleOwner) {
             viewModel.bookletBannerData.observeData(this, ::onBookletChanged)
             viewModel.bookletCards.observeData(this, ::onCardsChanged)
             viewModel.cardRemovalStatus.observeData(this, ::onDeleteCardStateChanged)
@@ -57,7 +57,7 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         }
 
         // Initialize adapter
-        bookletCardAdapter = BookletCardAdapter(onItemClick = ::onEditCard)
+        bookletCardAdapter = BookletCardAdapter(viewModel)
         // Setup adapter in recyclerView
         recycler_view_cards.layoutManager = LinearLayoutManager(activity)
         recycler_view_cards.adapter = bookletCardAdapter
@@ -65,8 +65,6 @@ class FragmentCardList: Fragment(), LiveDataObserver {
         fab_add_card.setNoArgOnClickListener(::onAddCardClicked)
         iv_info.setOnClickListener(::onBookletInfoClicked)
     }
-
-    private fun onEditCard(cardData: BookletCard) = viewModel.startCardEdition(cardData)
 
     private fun onBookletChanged(booklet: BookletBannerData) {
         bookletBannerBinding.booklet = booklet
@@ -91,21 +89,16 @@ class FragmentCardList: Fragment(), LiveDataObserver {
     private fun animateUIToSelectingStateOn() {
         bookletBannerBinding.animateToCancelButton()
         fab_add_card.animateToConfirmDeleteFAB()
-        bookletCardAdapter.onItemClick = ::onSelectItem
     }
 
     private fun animateUIToSelectionStateOff() {
         bookletBannerBinding.animateToInfoButton()
         fab_add_card.animateToAddCardFAB()
-        bookletCardAdapter.onItemClick = ::onEditCard
     }
 
     private fun onCancelDeleteClicked() = viewModel.stopRemoveCard()
 
     private fun onConfirmDeleteClicked() = viewModel.deleteSelectedBookletCards()
-
-    private fun onSelectItem(cardData: BookletCard) =
-        viewModel.switchBookletCardForRemoval(cardData)
 
     private fun onAddCardClicked() = viewModel.startCardAddition()
 

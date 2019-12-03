@@ -59,7 +59,7 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
         // Init viewModel
         viewModel =
             getKoin().get<BookletViewModelFactory>().createViewModelFrom(this)
-        with(this.viewLifecycleOwner) {
+        with(viewLifecycleOwner) {
             viewModel.reviewCard.observeData(this, ::onCurrentCardChanged)
             viewModel.bookletBannerData.observeData(this, ::onBookletChanged)
         }

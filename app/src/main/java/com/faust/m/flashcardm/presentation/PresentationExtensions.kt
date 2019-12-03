@@ -91,16 +91,27 @@ class Event<out T>(private val content: T) {
     fun peekContent(): T = content
 }
 
-open class MutableLiveList<T>: MutableLiveData<MutableList<T>>() {
+/**
+ * MutableLiveSet is a mutable list that can be used as a MutableLiveData. Observers will be called
+ * on add or remove.
+ * Only add(element) or remove(element) are surcharged. Any other add / remove method, like addAll,
+ * will no trigger an observer call. Probably could be refactored, when I need it.
+ */
+class LiveMutableList<T> private constructor(private val inner: MutableList<T>) :
+    LiveData<MutableList<T>>(inner), MutableList<T> by inner {
 
-    fun add(value: T) {
-        this.value?.add(value)
-        postValue(this.value)
+    constructor() : this(mutableListOf())
+
+    override fun add(element: T): Boolean {
+        val result = inner.add(element)
+        if (result) postValue(value)
+        return result
     }
 
-    fun remove(value: T) {
-        this.value?.remove(value)
-        postValue(this.value)
+    override fun remove(element: T): Boolean {
+        val result = inner.remove(element)
+        if (result) postValue(value)
+        return result
     }
 }
 

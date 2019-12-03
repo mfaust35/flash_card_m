@@ -39,7 +39,7 @@ class FragmentEditCard: Fragment(), LiveDataObserver, AnkoLogger {
         super.onViewCreated(view, savedInstanceState)
 
         initializeViewModel()
-        with(this.viewLifecycleOwner) {
+        with(viewLifecycleOwner) {
             viewModel.cardEditionState.observeData(this, ::onCardEditionStateChanged)
             viewModel.cardToEdit.observeData(this, ::onCardChanged)
         }

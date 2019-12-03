@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.faust.m.flashcardm.databinding.RecyclerViewBookletCardsBinding
 
 
-class BookletCardAdapter(var onItemClick: ((value: BookletCard) -> Unit)? = null):
+class BookletCardAdapter(var viewModel: BookletViewModel):
         ListAdapter<BookletCard, BookletCardAdapter.Holder>(diffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
@@ -25,10 +25,8 @@ class BookletCardAdapter(var onItemClick: ((value: BookletCard) -> Unit)? = null
 
         fun bindCard(cardData: BookletCard) {
             binding.card = cardData
+            binding.viewModel = viewModel
             binding.executePendingBindings()
-            // TODO there is probably a way to set onClickListener with dataBinding
-            // Look into this for another refactor
-            itemView.setOnClickListener { onItemClick?.invoke(cardData) }
         }
     }
 }
