@@ -71,7 +71,14 @@ class BookletViewModel @JvmOverloads constructor(
         get() = _showRatingLevel
 
 
-    fun startCardEdition(bookletCard: BookletCard) =
+    fun onCardClicked(card: BookletCard) {
+        when (cardRemovalStatus.value) {
+            SELECTING -> switchBookletCardForRemoval(card)
+            else -> startCardEdition(card)
+        }
+    }
+
+    private fun startCardEdition(bookletCard: BookletCard) =
         delegateEditCard.startCardEdition(_cards.value?.find { it.id == bookletCard.id })
 
     fun startRemoveCards() {

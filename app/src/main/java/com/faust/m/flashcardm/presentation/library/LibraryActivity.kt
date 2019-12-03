@@ -111,7 +111,7 @@ class LibraryActivity: AppCompatActivity(), LiveDataObserver {
         viewModel.reviewBooklet(booklet)
     }
 
-    private fun onBookletsChanged(booklets: MutableList<BookletBannerData>) {
+    private fun onBookletsChanged(booklets: List<BookletBannerData>) {
         bookletAdapter.replaceBooklets(booklets)
         showEmptyRecyclerView(booklets.isEmpty())
     }

@@ -1,9 +1,6 @@
 package com.faust.m.flashcardm.presentation.library
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.core.domain.Booklet
 import com.faust.m.flashcardm.core.usecase.BookletOutline
@@ -12,7 +9,6 @@ import com.faust.m.flashcardm.core.usecase.OutlinedBooklet
 import com.faust.m.flashcardm.core.usecase.OutlinedLibrary
 import com.faust.m.flashcardm.presentation.Event
 import com.faust.m.flashcardm.presentation.MutableLiveEvent
-import com.faust.m.flashcardm.presentation.MutableLiveList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
@@ -30,8 +26,8 @@ class LibraryViewModel: ViewModel(), KoinComponent, AnkoLogger {
     private val bookletUseCases: BookletUseCases by inject()
 
 
-    private val _booklets: MutableLiveList<BookletBannerData> = MutableLiveList()
-    val booklets: LiveData<MutableList<BookletBannerData>> =
+    private val _booklets: MutableLiveData<List<BookletBannerData>> = MutableLiveData()
+    val booklets: LiveData<List<BookletBannerData>> =
         Transformations.switchMap(bookletUseCases.getLiveOutlinedLibrary()) { outlinedLibrary ->
             _booklets.postValue(outlinedLibrary.toSortedBookletBanners())
             _booklets
