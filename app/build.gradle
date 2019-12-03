@@ -25,7 +25,12 @@ android {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
     buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+        }
         release {
+            versionNameSuffix "-release"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
