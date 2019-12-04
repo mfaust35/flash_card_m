@@ -2,18 +2,17 @@ package com.faust.m.flashcardm.framework.db.room
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
-import com.faust.m.flashcardm.core.domain.Card
-import com.faust.m.flashcardm.core.domain.CardContent
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.faust.m.flashcardm.core.domain.*
 import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
-import com.faust.m.flashcardm.core.domain.toRoster
+import com.faust.m.flashcardm.core.domain.Filter.Numeric
+import com.faust.m.flashcardm.core.domain.FilterType.EQUAL
 import com.faust.m.flashcardm.framework.db.room.definition.FlashRoomDatabase
 import com.faust.m.flashcardm.framework.db.room.model.CardContentDao
 import com.faust.m.flashcardm.framework.db.room.model.CardContentEntity
 import com.faust.m.flashcardm.framework.db.room.model.CardDao
 import com.faust.m.flashcardm.framework.db.room.model.CardEntity
-import io.mockk.clearMocks
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -61,6 +60,9 @@ class CardRoomDataSourceLiveDataTest {
     private val database: FlashRoomDatabase = mockk()
     private val cardDao: CardDao = mockk()
     private val cardContentDao: CardContentDao = mockk()
+    private val filterState: FilterState = mockk()
+    private val query: SupportSQLiteQuery = mockk()
+    private val slotFilterDeclaration = slot<FilterDeclaration>()
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -70,10 +72,10 @@ class CardRoomDataSourceLiveDataTest {
 
     @Before
     fun setup() {
-        every { database.cardDao() } returns cardDao
-        every { database.cardContentDao() } returns cardContentDao
-        cardRoomDataSource = CardRoomDataSource(database)
+        setupCardRoomDataSourceFromDatabase()
+        setupMockkFilterStateToReturnQuery()
     }
+
 
     @After
     fun tearDown() {
@@ -86,21 +88,21 @@ class CardRoomDataSourceLiveDataTest {
         givenCardDaoReturnListWithDefaultCardEntityForBookletId20()
 
         cardRoomDataSource
-            .getLiveDeckForBooklet(20, attachCardContent = false, filterToReviewCard = false)
+            .getLiveDeckForBooklet(20, attachCardContent = false, filterState = filterState)
             .observeOnce(oneTimeRule) { result ->
 
-                // Then result should contain a deck with default card
+                // Then result should contain a deck with default cardEntity transformed to card
                 assertThat(result).containsExactly(card)
             }
     }
 
     @Test
-    fun testGetLiveDeckForBookletWithAttachTrueShouldReturnDeckWithRoster() {
+    fun testGetLiveDeckForBookletWithAttachCardContentTrueShouldReturnDeckWithRoster() {
         givenCardDaoReturnListWithDefaultCardEntityForBookletId20()
         givenCardContentDaoReturnListWithDefaultCardContentEntityForBooklet20()
 
         cardRoomDataSource
-            .getLiveDeckForBooklet(20, attachCardContent = true)
+            .getLiveDeckForBooklet(20, attachCardContent = true, filterState = filterState)
             .observeOnce(oneTimeRule) { result ->
 
                 // Then result should contain a deck with one card with values matching the cardEntity
@@ -111,38 +113,55 @@ class CardRoomDataSourceLiveDataTest {
     }
 
     @Test
-    fun testGetLiveDeckForBookletWithFilterTrueShouldReturnDeckWithoutFilteredCard() {
-        givenCardDaoReturnListWithCardEntityToFilterForBookletId20()
+    fun testGetLiveDeckForBookletShouldAddBookletIdFilterToFilterState() {
+        givenCardDaoReturnListWithDefaultCardEntityForBookletId20()
 
-        cardRoomDataSource
-            .getLiveDeckForBooklet(20, filterToReviewCard = true)
-            .observeOnce(oneTimeRule) { result ->
+        cardRoomDataSource.getLiveDeckForBooklet(20, filterState = filterState)
 
-                // Then result should not contain any card
-                assertThat(result).hasSize(0)
-            }
+        // Then the filter that was added to filterState is a bookletIdFilter
+        slotFilterDeclaration.verifyFilterAdded { filter: Filter ->
+            assertThat(filter).isEqualTo(Numeric(Card::bookletId, 20L, EQUAL))
+        }
     }
 
+    @Test
+    fun testGetLiveDeckForBookletShouldAddFilterToFilterStateBeforeBuildingRoomQuery() {
+        givenCardDaoReturnListWithDefaultCardEntityForBookletId20()
+
+        // When I get liveDeckForBooklet
+        cardRoomDataSource.getLiveDeckForBooklet(20, filterState = filterState)
+
+        // Then filterState + bookletIdFilter happens before filterState.toRoomQuery
+        verifyOrder {
+            filterState + any()
+            filterState.toRoomQuery()
+        }
+    }
+
+
+    private fun setupCardRoomDataSourceFromDatabase() {
+        every { database.cardDao() } returns cardDao
+        every { database.cardContentDao() } returns cardContentDao
+        cardRoomDataSource = CardRoomDataSource(database)
+    }
+
+    private fun setupMockkFilterStateToReturnQuery() {
+        mockkStatic("com.faust.m.flashcardm.framework.db.room.CardRoomFilterKt")
+        every { filterState + capture(slotFilterDeclaration) } returns filterState
+        every { filterState.toRoomQuery() } returns query
+    }
 
     private fun givenCardDaoReturnListWithDefaultCardEntityForBookletId20() {
-        every { cardDao.getLiveCardsForBooklet(20) } returns
+        every { cardDao.getLiveCardsFilteredViaQuery(query) } returns
                 MutableLiveData(listOf(cardEntity))
-    }
-
-    private fun givenCardDaoReturnListWithCardEntityToFilterForBookletId20() {
-        val cardEntityToFilter = CardEntity(
-            rating = 5,
-            nextReview = Date(320),
-            updatedAt = Date(321),
-            createdAt = Date(322),
-            bookletId = 20,
-            id = 12)
-        every { cardDao.getLiveCardsForBooklet(20) } returns
-                MutableLiveData(listOf(cardEntityToFilter))
     }
 
     private fun givenCardContentDaoReturnListWithDefaultCardContentEntityForBooklet20() {
         every { cardContentDao.getLiveCardContentsForBooklet(20) } returns
                 MutableLiveData(listOf(contentEntity))
+    }
+
+    private fun CapturingSlot<FilterDeclaration>.verifyFilterAdded(verify: (actualFilter : Filter) -> Unit) {
+        verify(captured())
     }
 }

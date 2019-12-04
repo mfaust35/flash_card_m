@@ -7,6 +7,7 @@ import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
 import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.core.domain.FilterState
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.*
@@ -49,7 +50,7 @@ class BookletViewModel @JvmOverloads constructor(
         cardUseCases.getLiveDeck(
             bookletId,
             attachCardContent = true,
-            filterToReviewCard = false)
+            filterState = FilterState())
 
     // State of deletion process
     private val _cardRemovalStatus: MutableLiveData<CardRemovalStatus> = MutableLiveData()

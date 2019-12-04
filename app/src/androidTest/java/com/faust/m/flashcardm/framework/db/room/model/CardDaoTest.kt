@@ -1,6 +1,7 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import com.faust.m.flashcardm.core.domain.CardContentType.BACK
 import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
@@ -62,38 +63,6 @@ class CardDaoTest: BaseDaoTest() {
         cardContentDao = cardContentDao()
     }
 
-
-    @Test
-    fun testGetAllCardsShouldReturnInsertedCard() {
-        givenABookletInDatabase()
-
-        // When inserting a new cardEntity in the database
-        cardDao.add(cardEntity)
-
-        cardDao.getAllCards().let { result ->
-
-            // The cardEntity can be retrieved
-            assertThat(result).`as`("Card from cursor").containsExactly(cardEntity)
-        }
-    }
-
-    @Test
-    fun testGetCardContentsForCardShouldReturnInsertedCardContent() {
-        // Given a booklet and some cardEntity content in the database
-        givenABookletInDatabase()
-        cardDao.add(cardEntity)
-
-        // When inserting a new cardContentEntity in the database
-        cardContentDao.add(cardContentEntity)
-
-        cardContentDao.getAllCardContentsForCard(cardEntity.id).let { result ->
-
-            // The cardEntity can be retrieved
-            assertThat(result)
-                .`as`("Card content from cursor")
-                .containsExactly(cardContentEntity)
-        }
-    }
 
     @Test
     fun testGetAllCardShellForBookletIds() {
@@ -174,6 +143,38 @@ class CardDaoTest: BaseDaoTest() {
         }
     }
 
+    @Test
+    fun testGetLiveCardFilteredViaQueryOnBookletIdShouldReturnOnlyCardsWithCorrectId() {
+        // Given the default triple Booklet (42) / Card (42-10) / CardContent in database (42-10-25)
+        // along with another triple Booklet (1) / Card (1-4) / CardContent (1-4-2)
+        defaultTriple.saveInDatabase()
+        generateDistinctTriple().saveInDatabase()
+
+        // When I get live card via raw query WHERE booklet_id = ?
+        val query = SimpleSQLiteQuery("SELECT * FROM $CardTableName WHERE booklet_id = ?", arrayOf(42))
+        cardDao.getLiveCardsFilteredViaQuery(query).observeOnce(oneTimeRule) { result ->
+
+            // I should find ONLY the cardEntity (42-10-25)
+            assertThat(result).containsExactly(cardEntity)
+        }
+    }
+
+    @Test
+    fun testGetLiveCardsFilteredViaQueryOnRatingShouldReturnOnlyCardsWithCorrectRating() {
+        // Given the default triple Booklet (42) / Card (42-10) / CardContent in database (42-10-25)
+        // along with another triple Booklet (1) / Card (1-4) / CardContent (1-4-2)
+        defaultTriple.saveInDatabase()
+        generateDistinctTriple(withCardRating = 5).saveInDatabase()
+
+        // When I get live cards via raw query WHERE rating = ?
+        val query = SimpleSQLiteQuery("SELECT * FROM $CardTableName WHERE rating < ?", arrayOf(5))
+        cardDao.getLiveCardsFilteredViaQuery(query).observeOnce(oneTimeRule) { result ->
+
+            // I should find ONLY the cardEntity with rating < 5
+            assertThat(result).containsExactly(cardEntity)
+        }
+    }
+
     private fun givenABookletInDatabase() {
         bookletDao.add(bookletEntity)
     }
@@ -190,8 +191,10 @@ class CardDaoTest: BaseDaoTest() {
 
     private fun countCardForDefaultBooklet(): Int {
         var result = -1
+        val query =
+            SimpleSQLiteQuery("SELECT * FROM $CardTableName WHERE booklet_id = ?", arrayOf(42))
         cardDao
-            .getLiveCardsForBooklet(42)
+            .getLiveCardsFilteredViaQuery(query)
             .observeOnce(oneTimeRule) { contentEntities ->
                 result = contentEntities.size
             }
@@ -208,7 +211,7 @@ class CardDaoTest: BaseDaoTest() {
         return result
     }
 
-    private fun generateDistinctTriple(): Triple<BookletEntity, CardEntity, CardContentEntity> {
+    private fun generateDistinctTriple(withCardRating: Int = 2): Triple<BookletEntity, CardEntity, CardContentEntity> {
         val distinctBookletEntity =
             BookletEntity(
                 name = "The only second booklet",
@@ -216,7 +219,7 @@ class CardDaoTest: BaseDaoTest() {
             )
         val distinctCardEntity =
             CardEntity(
-                rating = 2,
+                rating = withCardRating,
                 nextReview = Date(20000),
                 updatedAt = Date(70000),
                 createdAt = Date(30000),

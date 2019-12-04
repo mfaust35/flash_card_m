@@ -158,7 +158,7 @@ class CardRoomDataSourceTest {
 
         cardRoomDataSource.add(card).let { result ->
 
-            assertThat(result.first().cardId).isEqualTo(25)
+            assertThat(result.roster.first().cardId).isEqualTo(25)
         }
     }
 

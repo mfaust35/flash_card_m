@@ -1,8 +1,8 @@
 package com.faust.m.flashcardm.presentation.review
 
 import androidx.lifecycle.*
-import com.faust.m.flashcardm.core.domain.Card
-import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.core.domain.*
+import com.faust.m.flashcardm.core.domain.FilterType.INFERIOR
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.MutableLiveSet
@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import java.util.*
 
 class ReviewViewModel @JvmOverloads constructor(
     private val bookletId: Long,
@@ -44,7 +45,12 @@ class ReviewViewModel @JvmOverloads constructor(
 
     // Current deck of cards to review for booklet
     private val _liveDeck =
-        cardUseCases.getLiveDeck(bookletId, attachCardContent = true, filterToReviewCard = true)
+        cardUseCases.getLiveDeck(
+            bookletId,
+            attachCardContent = true,
+            filterState = declareFilterState {
+                with { Filter.Timestamp(Card::nextReview, Date(), INFERIOR) }
+            })
     // List of id of cards that have been marked as reviewLater
     private val _liveCardsToRepeat: MutableLiveSet<Long> = MutableLiveSet()
     // List of id of cards that have been marked as know for today

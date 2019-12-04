@@ -3,6 +3,7 @@ package com.faust.m.flashcardm.core.data
 import androidx.lifecycle.LiveData
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.core.domain.FilterState
 
 class CardRepository(private val dataSource: CardDataSource) {
 
@@ -16,8 +17,8 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun getLiveDeckForBooklet(bookletId: Long,
                               attachCardContent: Boolean = false,
-                              filterToReviewCard: Boolean = false): LiveData<Deck> =
-        dataSource.getLiveDeckForBooklet(bookletId, attachCardContent, filterToReviewCard)
+                              filters: FilterState = FilterState()): LiveData<Deck> =
+        dataSource.getLiveDeckForBooklet(bookletId, attachCardContent, filters)
 
     fun resetForReview(count: Int, bookletId: Long): Int = dataSource.resetForReview(count, bookletId)
 

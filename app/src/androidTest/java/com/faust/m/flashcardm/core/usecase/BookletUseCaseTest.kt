@@ -38,7 +38,8 @@ class BookletUseCaseTest {
 
         // Given cardRepository returns a LiveMock deck without any cards:
         deckMockk = mockkDeck(0, 0, 0, 0, 0)
-        every { cardRepo.getLiveDeckForBooklet(bookletId) } returns MutableLiveData(deckMockk)
+        every { cardRepo.getLiveDeckForBooklet(bookletId, false, any()) } returns
+                MutableLiveData(deckMockk)
 
         // When I get liveOutlinedBooklet for bookletId
         bookletUseCases.getLiveOutlinedBooklet(bookletId).observeOnce(oneTimeRule) { result ->
@@ -61,7 +62,8 @@ class BookletUseCaseTest {
         val familiar = 5
         val toReview = 4
         deckMockk = mockkDeck(total, new, training, familiar, toReview)
-        every { cardRepo.getLiveDeckForBooklet(bookletId) } returns MutableLiveData(deckMockk)
+        every { cardRepo.getLiveDeckForBooklet(bookletId, false, any()) } returns
+                MutableLiveData(deckMockk)
 
         // When I get liveOutlinedBooklet for bookletId
         bookletUseCases.getLiveOutlinedBooklet(bookletId).observeOnce(oneTimeRule) { result ->

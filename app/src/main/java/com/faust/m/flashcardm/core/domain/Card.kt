@@ -66,20 +66,20 @@ data class Card (
     val roster: Roster = Roster(),
     val bookletId: Long = 0,
     val id: Long = 0
-): IRoster by roster {
+) {
 
-    fun frontAsTextOrNull() = firstTextValue(FRONT)?.value
+    fun frontAsTextOrNull() = roster.firstTextValue(FRONT)?.value
 
-    fun backAsTextOrNull() = firstTextValue(BACK)?.value
+    fun backAsTextOrNull() = roster.firstTextValue(BACK)?.value
 
     fun updateTextValues(front: String, back: String): Card {
-        updateTextContentIfExist(FRONT, front) ?: add(CardContent(front, FRONT))
-        updateTextContentIfExist(BACK, back) ?: add(CardContent(back, BACK))
+        updateTextContentIfExist(FRONT, front) ?: roster.add(CardContent(front, FRONT))
+        updateTextContentIfExist(BACK, back) ?: roster.add(CardContent(back, BACK))
         return this.copy(rating = 0, nextReview = Date(), updatedAt = Date())
     }
 
     private fun updateTextContentIfExist(type: CardContentType, value: String) =
-        firstTextValue(type)?.let { content ->
+        roster.firstTextValue(type)?.let { content ->
             roster.set(roster.indexOf(content), content.copy(value = value))
         }
 
