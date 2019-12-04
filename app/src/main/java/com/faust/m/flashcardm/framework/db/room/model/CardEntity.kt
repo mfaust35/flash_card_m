@@ -1,7 +1,10 @@
 package com.faust.m.flashcardm.framework.db.room.model
 
 import androidx.room.*
+import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.CardContentType
+import com.faust.m.flashcardm.framework.db.room.NameForProperty
+import com.faust.m.flashcardm.framework.db.room.mapPropertyToName
 import java.util.*
 
 const val CardContentTableName = "card_contents"
@@ -47,4 +50,15 @@ data class CardEntity (
     @ColumnInfo(name = "booklet_id") val bookletId: Long,
     @ColumnInfo(name = "card_id")
     @PrimaryKey(autoGenerate = true) val id: Long = 0
-)
+) {
+    companion object {
+        val nameForProperty: NameForProperty = mapPropertyToName(
+            Card::rating to "rating",
+            Card::nextReview to "next_review",
+            Card::updatedAt to "updated_at",
+            Card::createdAt to "created_at",
+            Card::bookletId to "booklet_id",
+            Card::id to "card_id"
+        )
+    }
+}
