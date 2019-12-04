@@ -1,9 +1,8 @@
 package com.faust.m.flashcardm.core.usecase
 
-import androidx.lifecycle.LiveData
 import com.faust.m.flashcardm.core.data.CardRepository
 import com.faust.m.flashcardm.core.domain.Card
-import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.core.domain.FilterState
 
 class CardUseCases private constructor(val addCard: AddCard,
                                        val deleteCards: DeleteCards,
@@ -33,9 +32,9 @@ class DeleteCards(private val cardRepository: CardRepository) {
 class GetLiveDeck(private val cardRepository: CardRepository) {
 
     operator fun invoke(bookletId: Long,
-                        attachCardContent: Boolean = false,
-                        filterToReviewCard: Boolean = false): LiveData<Deck> =
-        cardRepository.getLiveDeckForBooklet(bookletId, attachCardContent, filterToReviewCard)
+                        attachCardContent: Boolean,
+                        filterState: FilterState = FilterState()) =
+        cardRepository.getLiveDeckForBooklet(bookletId, attachCardContent, filterState)
 }
 
 class UpdateCard(private val cardRepository: CardRepository) {

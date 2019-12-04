@@ -3,12 +3,11 @@ package com.faust.m.flashcardm.framework.db.room.model
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.sqlite.db.SupportSQLiteQuery
 
 @Dao
 interface CardContentDao: BaseDao<CardContentEntity> {
-
-    @Query("SELECT * FROM $CardContentTableName WHERE card_id = :cardId")
-    fun getAllCardContentsForCard(cardId: Long): List<CardContentEntity>
 
     @Query("""SELECT *
         FROM $CardContentTableName
@@ -25,20 +24,10 @@ interface CardContentDao: BaseDao<CardContentEntity> {
 interface CardDao: BaseDao<CardEntity> {
 
     @Query("SELECT * FROM $CardTableName")
-    fun getAllCards(): List<CardEntity>
-
-    @Query("SELECT * FROM $CardTableName")
     fun getLiveCards(): LiveData<List<CardEntity>>
 
-    @Query("""SELECT *
-        FROM $CardTableName
-        WHERE booklet_id = :bookletId""")
-    fun getLiveCardsForBooklet(bookletId: Long): LiveData<List<CardEntity>>
-
-    @Query("""SELECT *
-        FROM $CardTableName
-        WHERE booklet_id = :bookletId""")
-    fun getAllCardsForBooklet(bookletId: Long): List<CardEntity>
+    @RawQuery(observedEntities = [CardEntity::class])
+    fun getLiveCardsFilteredViaQuery(query: SupportSQLiteQuery): LiveData<List<CardEntity>>
 
     @Query("""SELECT *
         FROM $CardTableName

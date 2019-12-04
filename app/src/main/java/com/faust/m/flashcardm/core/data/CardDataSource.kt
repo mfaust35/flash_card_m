@@ -3,6 +3,7 @@ package com.faust.m.flashcardm.core.data
 import androidx.lifecycle.LiveData
 import com.faust.m.flashcardm.core.domain.Card
 import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.core.domain.FilterState
 
 interface CardDataSource {
 
@@ -16,7 +17,7 @@ interface CardDataSource {
 
     fun getLiveDeckForBooklet(bookletId: Long,
                               attachCardContent: Boolean = false,
-                              filterToReviewCard: Boolean = false): LiveData<Deck>
+                              filterState: FilterState = FilterState()): LiveData<Deck>
 
     fun resetForReview(count: Int, bookletId: Long): Int
 

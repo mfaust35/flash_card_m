@@ -2,6 +2,8 @@ package com.faust.m.flashcardm.core.domain
 
 import com.faust.m.flashcardm.core.domain.CardContentType.BACK
 import com.faust.m.flashcardm.core.domain.CardContentType.FRONT
+import com.faust.m.flashcardm.tomorrow
+import com.faust.m.flashcardm.yesterday
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import java.util.*
@@ -146,7 +148,7 @@ class CardTest {
     @Test
     fun testCountToReviewCardShouldNotCountCardWithRatingFive() {
         // Given a deck with a card of rating 5 and nextReview yesterday
-        val card = Card(rating = 5, nextReview = yesterday())
+        val card = Card(rating = 5, nextReview = yesterday)
         val deck = listOf(card).toDeck()
 
         deck.countToReviewCard().let { result ->
@@ -157,7 +159,7 @@ class CardTest {
     @Test
     fun testCountToReviewCardShouldNotCountCardWithNextReviewAfterNow() {
         // Given a deck with a card of rating 2 and nextReview tomorrow
-        val card = Card(rating = 2, nextReview = tomorrow(), createdAt = Date(300))
+        val card = Card(rating = 2, nextReview = tomorrow, createdAt = Date(300))
         val deck = listOf(card).toDeck()
 
         deck.countToReviewCard().let { result ->
@@ -168,7 +170,7 @@ class CardTest {
     @Test
     fun testCountToReviewCardShouldCountCardRatingLowerThanFiveAndNextReviewBeforeNow() {
         // Given a deck with a card of rating 2 and nextReview yesterday
-        val card = Card(rating = 2, nextReview = yesterday())
+        val card = Card(rating = 2, nextReview = yesterday)
         val deck = listOf(card).toDeck()
 
         deck.countToReviewCard().let { result ->
@@ -334,7 +336,7 @@ class CardTest {
     fun testUpdateTextValuesWhenCardHasNoCardContentFrontShouldAddCardContentFront() {
         val cardWithoutFrontText = Card()
         cardWithoutFrontText.updateTextValues("new_front", "").let { result ->
-            assertThat(result.firstTextValue(FRONT)?.value).isEqualTo("new_front")
+            assertThat(result.roster.firstTextValue(FRONT)?.value).isEqualTo("new_front")
         }
     }
 
@@ -342,7 +344,7 @@ class CardTest {
     fun testUpdateTextValuesWhenCardHasNoCardContentBackShouldAddCardContentBack() {
         val cardWithoutFrontText = Card()
         cardWithoutFrontText.updateTextValues("", "new_back").let { result ->
-            assertThat(result.firstTextValue(BACK)?.value).isEqualTo("new_back")
+            assertThat(result.roster.firstTextValue(BACK)?.value).isEqualTo("new_back")
         }
     }
 
@@ -350,7 +352,7 @@ class CardTest {
     fun testUpdateTextValuesWhenCardHasCardContentFrontShouldUpdateCardContentValue() {
         val cardWithCardContent = cardWithCardContent()
         cardWithCardContent.updateTextValues("new", "").let { result ->
-            assertThat(result.firstTextValue(FRONT)?.value).isEqualTo("new")
+            assertThat(result.roster.firstTextValue(FRONT)?.value).isEqualTo("new")
         }
     }
 
@@ -358,13 +360,10 @@ class CardTest {
     fun testUpdateTextValuesWhenCardHasCardContentBackShouldUpdateCardContentValue() {
         val cardWithCardContent = cardWithCardContent()
         cardWithCardContent.updateTextValues("", "new").let { result ->
-            assertThat(result.firstTextValue(BACK)?.value).isEqualTo("new")
+            assertThat(result.roster.firstTextValue(BACK)?.value).isEqualTo("new")
         }
     }
 
-
-    private fun tomorrow() = Date().apply { time += ONE_DAY_IN_MS }
-    private fun yesterday() = Date().apply { time -= ONE_DAY_IN_MS }
 
     private fun generateShuffledLargeList(largeDefinition: Int): Deck {
         val result = Deck()
