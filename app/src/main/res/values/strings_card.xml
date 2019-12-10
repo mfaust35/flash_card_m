@@ -13,6 +13,10 @@
     <string name="menu_action_delete_cards">Delete cards</string>
     <string name="menu_action_show_learning_stage">Show rating</string>
     <string name="menu_action_hide_learning_stage">Hide rating</string>
+    <string name="menu_action_show_familiar">Show familiar</string>
+    <string name="menu_action_hide_familiar">Hide familiar</string>
+    <string name="menu_action_show_next_review_later">Show "Review later"</string>
+    <string name="menu_action_hide_next_review_later">Hide "Review later"</string>
     <string name="menu_action_edit_cards">Edit this card</string>
 
     <string name="empty_card_list">"You don't have any card in this booklet. Try adding one with the bottom left button"</string>

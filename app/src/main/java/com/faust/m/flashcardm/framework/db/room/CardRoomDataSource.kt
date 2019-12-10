@@ -126,10 +126,14 @@ class CardRoomDataSource(private val database: FlashRoomDatabase,
         return resetCount
     }
 
-    override fun deleteCards(cards: List<Card>): Int =
-        cards.map { c -> c.toEntityModel() }.toTypedArray().let { cardEntities ->
+    override fun deleteCards(cardIds: Set<Long>): Int =
+        cardIds.map { id ->
+            val emptyDate = Date(0)
+            CardEntity(0, emptyDate, emptyDate, emptyDate, 0, id)
+        }.toTypedArray().let { cardEntities ->
             return cardDao.deleteAll(*cardEntities)
         }
+
 
     private fun CardEntity.toDomainModel(roster: Roster = Roster()): Card =
         Card(rating, nextReview, updatedAt, createdAt, roster = roster, bookletId = bookletId, id = id)

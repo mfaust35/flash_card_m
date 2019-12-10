@@ -144,6 +144,16 @@ class CardDaoTest: BaseDaoTest() {
     }
 
     @Test
+    fun deleteFakeCardWithOnlyIdShouldDeleteCard() {
+        defaultTriple.saveInDatabase()
+
+        cardDao.deleteAll(fakeCardWithId(cardEntity.id)).let { result ->
+
+            assertThat(result).isEqualTo(1)
+        }
+    }
+
+    @Test
     fun testGetLiveCardFilteredViaQueryOnBookletIdShouldReturnOnlyCardsWithCorrectId() {
         // Given the default triple Booklet (42) / Card (42-10) / CardContent in database (42-10-25)
         // along with another triple Booklet (1) / Card (1-4) / CardContent (1-4-2)
@@ -175,9 +185,6 @@ class CardDaoTest: BaseDaoTest() {
         }
     }
 
-    private fun givenABookletInDatabase() {
-        bookletDao.add(bookletEntity)
-    }
 
     private fun given2BookletsAnd3CardsInDatabase() {
         defaultTriple.saveInDatabase()
@@ -242,5 +249,9 @@ class CardDaoTest: BaseDaoTest() {
         cardDao.add(second)
         cardContentDao.add(third)
         return this
+    }
+
+    private fun fakeCardWithId(id: Long) = Date(0).let { fakeDate ->
+        CardEntity(0, fakeDate, fakeDate, fakeDate, 0, id)
     }
 }
