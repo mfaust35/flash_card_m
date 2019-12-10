@@ -121,6 +121,14 @@ class FragmentCardList: Fragment(), LiveDataObserver {
                 if (viewModel.showRatingLevel) R.string.menu_action_hide_learning_stage
                 else R.string.menu_action_show_learning_stage
             )
+            menu.findItem(R.id.menu_action_switch_filter_out_familiar).setTitle(
+                if (viewModel.familiarFilteredOut) R.string.menu_action_show_familiar
+                else R.string.menu_action_hide_familiar
+            )
+            menu.findItem(R.id.menu_action_switch_filter_out_next_review_later).setTitle(
+                if (viewModel.nextReviewLaterFilteredOut) R.string.menu_action_show_next_review_later
+                else R.string.menu_action_hide_next_review_later
+            )
             show()
         }
     }
@@ -133,6 +141,14 @@ class FragmentCardList: Fragment(), LiveDataObserver {
             }
             R.id.menu_action_switch_show_rating_level -> {
                 viewModel.switchShowRatingLevel()
+                true
+            }
+            R.id.menu_action_switch_filter_out_familiar -> {
+                viewModel.switchFilterOutFamiliar()
+                true
+            }
+            R.id.menu_action_switch_filter_out_next_review_later -> {
+                viewModel.switchFilterOutNextReviewLater()
                 true
             }
             else -> false

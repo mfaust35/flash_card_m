@@ -3,11 +3,9 @@ package com.faust.m.flashcardm.presentation.booklet
 import android.view.View
 import androidx.lifecycle.*
 import com.faust.m.flashcardm.R
-import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.domain.*
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.NEW
 import com.faust.m.flashcardm.core.domain.Card.RatingLevel.TRAINING
-import com.faust.m.flashcardm.core.domain.Deck
-import com.faust.m.flashcardm.core.domain.FilterState
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.booklet.CardRemovalStatus.*
@@ -20,6 +18,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import java.util.*
 
 
 class BookletViewModel @JvmOverloads constructor(
@@ -44,32 +43,50 @@ class BookletViewModel @JvmOverloads constructor(
             _bookletBannerData
         }
 
+    // State of deletion process
+    private val _cardRemovalStatus: MutableLiveData<CardRemovalStatus> = MutableLiveData()
+    val cardRemovalStatus: LiveData<CardRemovalStatus> =_cardRemovalStatus
 
     // List of cards in booklet
-    private val _cards: LiveData<Deck> =
+    private var _cards: LiveData<Deck> =
         cardUseCases.getLiveDeck(
             bookletId,
             attachCardContent = true,
             filterState = FilterState())
 
-    // State of deletion process
-    private val _cardRemovalStatus: MutableLiveData<CardRemovalStatus> = MutableLiveData()
-    val cardRemovalStatus: LiveData<CardRemovalStatus> =_cardRemovalStatus
+    // State of card filtering
+    private val _filterState: MutableLiveData<FilterState> = MutableLiveData(
+        FilterState()
+    )
+    // Filters that may be applied
+    private val filterOutFamiliar = Filter.Numeric(Card::rating, 5, FilterType.INFERIOR)
+    private var filterOutNextReviewLater = Filter.Timestamp(Card::nextReview, Date(), FilterType.INFERIOR)
 
     // Card display data
-    val bookletCards: MutableLiveData<MutableList<BookletCard>> = MediatorLiveData<MutableList<BookletCard>>()
-        .apply {
-            addSource(_cards) { deck ->
-                this.value = deck
-                    .map { c -> c.toBookletCard(showRatingLevel) }
-                    .toMutableList()
+    val bookletCards: MutableLiveData<MutableList<BookletCard>> =
+        MediatorLiveData<MutableList<BookletCard>>().apply {
+            addSource(_cards) { mediateDeck(it) }
+            addSource(_filterState) { filters ->
+                removeSource(_cards)
+                _cards = cardUseCases
+                    .getLiveDeck(bookletId, attachCardContent = true, filterState = filters)
+                addSource(_cards) { mediateDeck(it) }
             }
     }
 
-    // Display or hide an indicator of ratingLevel
+    // Used to display or hide an indicator of ratingLevel & show correct menu title
+    // for show/hide indicator
     private var _showRatingLevel = false
     val showRatingLevel: Boolean
         get() = _showRatingLevel
+
+    // Used to show the correct menu title for hide/show familiar cards
+    val familiarFilteredOut: Boolean
+        get() = _filterState.value?.contains(filterOutFamiliar) ?: false
+
+    // Used to show the correct menu title for hide/show reviewLater cards
+    val nextReviewLaterFilteredOut: Boolean
+        get() = _filterState.value?.contains(filterOutNextReviewLater) ?: false
 
 
     fun onCardClicked(card: BookletCard) {
@@ -104,32 +121,14 @@ class BookletViewModel @JvmOverloads constructor(
         }
     }
 
-    /**
-     * Mark bookletCard as selected or not and trigger a redraw of card
-     */
-    fun switchBookletCardForRemoval(bookletCard: BookletCard) {
-        bookletCards.value?.let { oldBookletCards ->
-            oldBookletCards
-                .toMutableList()
-                .replaceBookletCardWithCopy(bookletCard, bookletCard.switchSelection())
-                .let { bookletCards.postValue(it) }
-        }
-    }
-
-    private fun MutableList<BookletCard>.replaceBookletCardWithCopy(oldValue: BookletCard, copy :BookletCard) :
-            MutableList<BookletCard> = this.apply {
-        val indexOfCard = indexOf(oldValue)
-        set(indexOfCard, copy)
-    }
-
     fun deleteSelectedBookletCards() {
         bookletCards.value?.let { tBookletCards ->
-            val idsToDelete = tBookletCards.filter { it.isSelected }.map { it.id }.toSet()
-            val cardsToRemove = _cards.value?.filter { idsToDelete.contains(it.id) } ?: return
-
-            // Remove cards from database
             viewModelScope.launch(Dispatchers.IO) {
-                cardUseCases.deleteCards(cardsToRemove)
+                tBookletCards
+                    .filter { it.isSelected }
+                    .map { it.id }
+                    .toSet()
+                    .let { cardUseCases.deleteCards(it) }
             }
 
             _cardRemovalStatus.postValue(DELETED)
@@ -139,6 +138,13 @@ class BookletViewModel @JvmOverloads constructor(
     fun switchShowRatingLevel() {
         _showRatingLevel = !_showRatingLevel
         bookletCards.postCopyForEach { it.copy(showRating = _showRatingLevel) }
+    }
+
+    fun switchFilterOutFamiliar() = switchFilter(filterOutFamiliar)
+
+    fun switchFilterOutNextReviewLater() {
+        refreshDateOnNextReviewLaterFilterWhenSwitchOn()
+        switchFilter(filterOutNextReviewLater)
     }
 
     override fun onBackPressed(): Boolean =
@@ -154,6 +160,49 @@ class BookletViewModel @JvmOverloads constructor(
             }
             else -> false
         }
+
+
+    private fun mediateDeck(deck: Deck) {
+        bookletCards.value = deck
+            .map { c -> c.toBookletCard(showRatingLevel) }
+            .toMutableList()
+    }
+
+    /**
+     * Mark bookletCard as selected or not and trigger a redraw of card
+     */
+    private fun switchBookletCardForRemoval(bookletCard: BookletCard) {
+        bookletCards.value?.let { oldBookletCards ->
+            oldBookletCards
+                .toMutableList()
+                .replaceBookletCardWithCopy(bookletCard, bookletCard.switchSelection())
+                .let { bookletCards.postValue(it) }
+        }
+    }
+
+    private fun MutableList<BookletCard>.replaceBookletCardWithCopy(oldValue: BookletCard,
+                                                                    copy :BookletCard) =
+        this.apply {
+            val indexOfCard = indexOf(oldValue)
+            set(indexOfCard, copy)
+    }
+
+    private fun switchFilter(filter: Filter) {
+        _filterState.value?.let { filterState ->
+            when (filterState.contains(filter)) {
+                true -> _filterState.postValue(filterState - { filter } )
+                false -> _filterState.postValue(filterState + { filter } )
+            }
+        }
+    }
+
+    private fun refreshDateOnNextReviewLaterFilterWhenSwitchOn() {
+        val filterState = _filterState.value ?: return
+        if (!filterState.contains(filterOutNextReviewLater)) {
+            filterOutNextReviewLater =
+                Filter.Timestamp(Card::nextReview, Date(), FilterType.INFERIOR)
+        }
+    }
 }
 
 data class BookletCard(val front: String,

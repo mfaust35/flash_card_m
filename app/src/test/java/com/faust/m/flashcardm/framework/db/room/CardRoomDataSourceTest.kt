@@ -89,11 +89,15 @@ class CardRoomDataSourceTest {
 
 
     @Test
-    fun testDeleteCardsShouldReturnResultFromDaoDeleteAll() {
-        // Given cardDao return 110 when delete cardEntity
-        every { cardDao.deleteAll(cardEntity) } returns 110
+    fun testDeleteCardsByIdShouldDeleteCards() {
+        // Given cardDao return 110 when delete cardEntity with correct Id
+        val slotCardEntity = slot<CardEntity>()
+        every { cardDao.deleteAll(capture(slotCardEntity)) } answers {
+            val capturedId = slotCardEntity.captured.id
+            if (capturedId == card.id) 110 else 0
+        }
 
-        cardRoomDataSource.deleteCards(listOf(card)).let { result ->
+        cardRoomDataSource.deleteCards(setOf(card.id)).let { result ->
 
             // Then method should return the result from cardDao
             assertThat(result).isEqualTo(110)

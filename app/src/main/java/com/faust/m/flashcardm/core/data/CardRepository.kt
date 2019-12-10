@@ -22,5 +22,5 @@ class CardRepository(private val dataSource: CardDataSource) {
 
     fun resetForReview(count: Int, bookletId: Long): Int = dataSource.resetForReview(count, bookletId)
 
-    fun deleteCards(cards: List<Card>): Int = dataSource.deleteCards(cards)
+    fun deleteCards(cardIds: Set<Long>): Int = dataSource.deleteCards(cardIds)
 }

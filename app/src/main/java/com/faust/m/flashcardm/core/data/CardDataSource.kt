@@ -21,5 +21,5 @@ interface CardDataSource {
 
     fun resetForReview(count: Int, bookletId: Long): Int
 
-    fun deleteCards(cards: List<Card>): Int
+    fun deleteCards(cardIds: Set<Long>): Int
 }

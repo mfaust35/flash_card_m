@@ -15,4 +15,16 @@
         android:title="@string/menu_action_show_learning_stage"
         app:showAsAction="ifRoom" />
 
+    <item
+        android:id="@+id/menu_action_switch_filter_out_familiar"
+        android:orderInCategory="3"
+        android:title="@string/menu_action_hide_learning_stage"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_action_switch_filter_out_next_review_later"
+        android:orderInCategory="4"
+        android:title="@string/menu_action_hide_next_review_later"
+        app:showAsAction="ifRoom" />
+
 </menu>

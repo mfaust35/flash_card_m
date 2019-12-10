@@ -26,7 +26,7 @@ class AddCard(private val cardRepository: CardRepository) {
 
 class DeleteCards(private val cardRepository: CardRepository) {
 
-    operator fun invoke(cards: List<Card>): Int = cardRepository.deleteCards(cards)
+    operator fun invoke(cardIds: Set<Long>): Int = cardRepository.deleteCards(cardIds)
 }
 
 class GetLiveDeck(private val cardRepository: CardRepository) {
