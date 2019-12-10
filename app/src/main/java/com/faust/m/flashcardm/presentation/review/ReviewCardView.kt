@@ -3,6 +3,7 @@ package com.faust.m.flashcardm.presentation.review
 import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.widget.ImageView
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.databinding.BindingAdapter
@@ -29,6 +30,12 @@ class ReviewCardView @JvmOverloads constructor(context: Context,
         isFillViewport = true
         elevation = resources.getDimension(R.dimen.small_margin)
         translationZ = resources.getDimension(R.dimen.small_margin)
+
+        initForwardPerformClickToParent()
+    }
+
+    private fun initForwardPerformClickToParent() {
+        find<ImageView>(R.id.iv_review_card_listen).setOnClickListener { performClick() }
     }
 }
 

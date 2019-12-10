@@ -6,10 +6,6 @@
     <string name="confirm_edit_card">Edit</string>
     <string name="close_new_card">Close</string>
 
-    <string name="show_card_answer">Show answer</string>
-    <string name="ask_again">Ask again</string>
-    <string name="i_knew">I knew</string>
-
     <string name="menu_action_delete_cards">Delete cards</string>
     <string name="menu_action_show_learning_stage">Show rating</string>
     <string name="menu_action_hide_learning_stage">Hide rating</string>
