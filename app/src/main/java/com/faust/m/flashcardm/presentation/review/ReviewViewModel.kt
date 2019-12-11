@@ -1,8 +1,11 @@
 package com.faust.m.flashcardm.presentation.review
 
 import androidx.lifecycle.*
-import com.faust.m.flashcardm.core.domain.*
+import com.faust.m.flashcardm.core.domain.Card
+import com.faust.m.flashcardm.core.domain.Deck
+import com.faust.m.flashcardm.core.domain.Filter
 import com.faust.m.flashcardm.core.domain.FilterType.INFERIOR
+import com.faust.m.flashcardm.core.domain.declareFilterState
 import com.faust.m.flashcardm.core.usecase.BookletUseCases
 import com.faust.m.flashcardm.core.usecase.CardUseCases
 import com.faust.m.flashcardm.presentation.MutableLiveSet
@@ -10,11 +13,11 @@ import com.faust.m.flashcardm.presentation.fragment_edit_card.DelegateEditCard
 import com.faust.m.flashcardm.presentation.fragment_edit_card.ViewModelEditCard
 import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.library.toBookletBanner
+import com.faust.m.flashcardm.presentation.notifyObserver
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.RATING
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
 import org.koin.core.inject
 import java.util.*
@@ -24,8 +27,7 @@ class ReviewViewModel @JvmOverloads constructor(
     private val delegateEditCard: DelegateEditCard = DelegateEditCard(bookletId)
 ): ViewModel(),
     KoinComponent,
-    ViewModelEditCard by delegateEditCard,
-    AnkoLogger {
+    ViewModelEditCard by delegateEditCard {
 
     private val bookletUseCases: BookletUseCases by inject()
     private val cardUseCases: CardUseCases by inject()
@@ -64,6 +66,9 @@ class ReviewViewModel @JvmOverloads constructor(
         addSource(_liveCardKnown) { postReviewCards() }
     }
 
+    private val _textToSpeak: MutableLiveData<String> = MutableLiveData()
+    val textToSpeak: LiveData<String> = _textToSpeak
+
 
     fun flipCurrentCard() =
         reviewCard.value?.copy(state = RATING, animate = true).let { reviewCard.postValue(it) }
@@ -84,6 +89,18 @@ class ReviewViewModel @JvmOverloads constructor(
 
     fun startEditCard() {
         delegateEditCard.startCardEdition(_currentCard)
+    }
+
+    fun onTextToSpeechInitialized() {
+        _textToSpeak.notifyObserver()
+    }
+
+    fun onCardFrontClicked(reviewCard: ReviewCard) {
+        _textToSpeak.postValue(reviewCard.front)
+    }
+
+    fun onCardBackClicked(reviewCard: ReviewCard) {
+        _textToSpeak.postValue(reviewCard.back)
     }
 
 

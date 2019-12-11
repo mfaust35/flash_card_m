@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="show_card_answer">Show answer</string>
+    <string name="ask_again">Ask again</string>
+    <string name="i_knew">I knew</string>
+
+    <string name="initialize_text_to_speech">Waiting for Google Text-to-speech output</string>
+
+</resources>

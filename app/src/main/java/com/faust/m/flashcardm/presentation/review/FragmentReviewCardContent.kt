@@ -64,6 +64,7 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             viewModel.bookletBannerData.observeData(this, ::onBookletChanged)
         }
 
+        cardBinding.viewModel = viewModel
         iv_info.setOnClickListener(::onBookletInfoClicked)
     }
 
