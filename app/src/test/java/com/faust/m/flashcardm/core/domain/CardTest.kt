@@ -27,6 +27,8 @@ class CardTest {
     private val content2B1: CardContent = CardContent(cardId = 1, id = 2)
     private val content3B3: CardContent = CardContent(cardId = 3, id = 3)
 
+    private val nextReview = Date(10)
+
 
     @Test
     fun testMapDecksGivenEmptyDeckShouldReturnEmptyMap() {
@@ -334,34 +336,50 @@ class CardTest {
 
     @Test
     fun testUpdateTextValuesWhenCardHasNoCardContentFrontShouldAddCardContentFront() {
-        val cardWithoutFrontText = Card()
-        cardWithoutFrontText.updateTextValues("new_front", "").let { result ->
-            assertThat(result.roster.firstTextValue(FRONT)?.value).isEqualTo("new_front")
-        }
+        val cardWithoutContent = Card()
+        cardWithoutContent
+            .updateTextValuesForNextReview("new_front", "", nextReview)
+            .let { result ->
+                assertThat(result.roster.firstTextValue(FRONT)?.value).isEqualTo("new_front")
+            }
     }
 
     @Test
     fun testUpdateTextValuesWhenCardHasNoCardContentBackShouldAddCardContentBack() {
-        val cardWithoutFrontText = Card()
-        cardWithoutFrontText.updateTextValues("", "new_back").let { result ->
-            assertThat(result.roster.firstTextValue(BACK)?.value).isEqualTo("new_back")
-        }
+        val cardWithoutContent = Card()
+        cardWithoutContent
+            .updateTextValuesForNextReview("", "new_back", nextReview)
+            .let { result ->
+                assertThat(result.roster.firstTextValue(BACK)?.value).isEqualTo("new_back")
+            }
     }
 
     @Test
     fun testUpdateTextValuesWhenCardHasCardContentFrontShouldUpdateCardContentValue() {
-        val cardWithCardContent = cardWithCardContent()
-        cardWithCardContent.updateTextValues("new", "").let { result ->
-            assertThat(result.roster.firstTextValue(FRONT)?.value).isEqualTo("new")
-        }
+        cardWithContent()
+            .updateTextValuesForNextReview("new", "", nextReview)
+            .let { result ->
+                assertThat(result.roster.firstTextValue(FRONT)?.value).isEqualTo("new")
+            }
     }
 
     @Test
     fun testUpdateTextValuesWhenCardHasCardContentBackShouldUpdateCardContentValue() {
-        val cardWithCardContent = cardWithCardContent()
-        cardWithCardContent.updateTextValues("", "new").let { result ->
-            assertThat(result.roster.firstTextValue(BACK)?.value).isEqualTo("new")
-        }
+        cardWithContent()
+            .updateTextValuesForNextReview("", "new", nextReview)
+            .let { result ->
+                assertThat(result.roster.firstTextValue(BACK)?.value).isEqualTo("new")
+            }
+    }
+
+    @Test
+    fun testUpdateTextValuesShouldUpdateNextReviewDate() {
+        val cardWithoutContent = Card()
+        cardWithoutContent
+            .updateTextValuesForNextReview("new_front", "", nextReview)
+            .let { result ->
+                assertThat(result.nextReview).isEqualTo(nextReview)
+            }
     }
 
 
@@ -381,7 +399,7 @@ class CardTest {
         return result
     }
 
-    private fun cardWithCardContent() =
+    private fun cardWithContent() =
         Card(roster = mutableListOf(
             CardContent(value = "old_front", type = FRONT),
             CardContent(value = "old_back", type = BACK)

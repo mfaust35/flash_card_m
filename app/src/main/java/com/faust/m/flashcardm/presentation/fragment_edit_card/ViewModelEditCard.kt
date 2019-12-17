@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.anko.AnkoLogger
 import org.koin.core.KoinComponent
 import org.koin.core.inject
+import java.util.*
 
 
 enum class CardEditionState { EDIT, ADD, CLOSED }
@@ -43,7 +44,9 @@ interface ViewModelEditCard {
 }
 
 
-class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComponent, AnkoLogger {
+class DelegateEditCard(private val bookletId: Long,
+                       private val keepNextReviewOnEdition: Boolean = false) :
+    ViewModelEditCard, KoinComponent, AnkoLogger {
 
     private val cardUseCases: CardUseCases by inject()
 
@@ -58,7 +61,7 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
     
     override fun addCard(front: String, back: String) {
         _cardToEdit.value?.let { cardToUpdate ->
-            cardToUpdate.updateTextValues(front, back).let {
+            cardToUpdate.updateTextValuesForNextReview(front, back, Date()).let {
                 GlobalScope.launch {
                     cardUseCases.addCard(it)
                     _cardToEdit.postValue(Card(bookletId = bookletId))
@@ -69,7 +72,10 @@ class DelegateEditCard(private val bookletId: Long): ViewModelEditCard, KoinComp
 
     override fun editCard(front: String, back: String) {
         _cardToEdit.value?.let { cardToUpdate ->
-            cardToUpdate.updateTextValues(front, back).let {
+            val nextReview =
+                if (keepNextReviewOnEdition) cardToUpdate.nextReview
+                else Date()
+            cardToUpdate.updateTextValuesForNextReview(front, back, nextReview).let {
                 GlobalScope.launch {
                     cardUseCases.updateCardWithContent(it)
                 }
