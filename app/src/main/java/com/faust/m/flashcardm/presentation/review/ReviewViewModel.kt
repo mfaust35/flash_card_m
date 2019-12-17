@@ -24,7 +24,8 @@ import java.util.*
 
 class ReviewViewModel @JvmOverloads constructor(
     private val bookletId: Long,
-    private val delegateEditCard: DelegateEditCard = DelegateEditCard(bookletId)
+    private val delegateEditCard: DelegateEditCard =
+        DelegateEditCard(bookletId, keepNextReviewOnEdition = true)
 ): ViewModel(),
     KoinComponent,
     ViewModelEditCard by delegateEditCard {
@@ -70,8 +71,9 @@ class ReviewViewModel @JvmOverloads constructor(
     val textToSpeak: LiveData<String> = _textToSpeak
 
 
-    fun flipCurrentCard() =
-        reviewCard.value?.copy(state = RATING, animate = true).let { reviewCard.postValue(it) }
+    fun flipCurrentCard() = _currentCard?.let {
+        reviewCard.postValue(ReviewCard(it, RATING, true))
+    }
 
     fun validateCurrentCard() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -104,12 +106,6 @@ class ReviewViewModel @JvmOverloads constructor(
     }
 
 
-    /*
-     * Cranky mechanic of choosing which card to review in the deck and
-     * how to update reviewCard value. I intend to change it once I add a `nextReviewDate` on Card.
-     * Bug: For now, sometimes the interface display cards without animation (last card if there
-     * are cards to repeat)
-     */
     private fun postReviewCards() {
         val deck = _liveDeck.value ?: return
         val nextCardInLine = nextCardFromDeck(deck)
@@ -145,32 +141,40 @@ class ReviewViewModel @JvmOverloads constructor(
 
     private fun updateReviewCardValueFromCurrentCard() = reviewCard.value?.let { reviewCardValue ->
         if (reviewCardValue.needUpdateFrom(_currentCard)) {
-            reviewCardValue
+            reviewCard.value = reviewCardValue
                 .copy(
                     front = _currentCard?.frontAsTextOrNull() ?: "",
                     back = _currentCard?.backAsTextOrNull() ?: "",
                     animate = false
                 )
-                .let { reviewCard.value = it }
         }
     }
 
-    private fun ReviewCard?.needUpdateFrom(card: Card?): Boolean {
-        return this != null && card != null &&
+    private fun ReviewCard.needUpdateFrom(card: Card?): Boolean {
+        return card != null &&
                 (front != card.frontAsTextOrNull() || back != card.backAsTextOrNull())
     }
 
     private fun animateUpdateReviewCardValueFrom(card: Card?) {
         _currentCard = card
-        reviewCardFrom(card, reviewCard.value).let { reviewCard.value = it }
+        reviewCard.value = reviewCardFrom(card, reviewCard.value)
     }
 
-    private fun reviewCardFrom(card: Card?, previousReviewCard: ReviewCard?): ReviewCard =
-        when {
-            card == null -> ReviewCard.EMPTY
-            previousReviewCard.isFinished() -> ReviewCard(card, ASKING, true)
-            else -> previousReviewCard!!.copy(state = RATING, animate = true)
+    // When showing a new review card (ASKING), there is an animation,
+    // so we must keep the old card back while updating the card front
+    private fun reviewCardFrom(card: Card?, previousReviewCard: ReviewCard?): ReviewCard {
+        if (card == null) {
+            return ReviewCard.EMPTY
         }
+        if (previousReviewCard == null) { // Create new card without animation
+            return ReviewCard(card, ASKING, false)
+        }
+        if (previousReviewCard.state == RATING) { // Show new card, update card front but keep card back
+            return ReviewCard(card.frontAsTextOrEmpty(), previousReviewCard.back, ASKING, true)
+        }
+        // Equivalent to flip card
+        return ReviewCard(card, RATING, true)
+    }
 }
 
 /**
@@ -183,8 +187,8 @@ data class ReviewCard(val front: String,
                       val animate: Boolean) {
 
     constructor(card: Card, state: State, animate: Boolean): this(
-        card.frontAsTextOrNull() ?: "??",
-        card.backAsTextOrNull() ?: "??",
+        card.frontAsTextOrEmpty(),
+        card.backAsTextOrEmpty(),
         state,
         animate
     )
@@ -196,5 +200,3 @@ data class ReviewCard(val front: String,
 
     enum class State { ASKING, RATING }
 }
-
-fun ReviewCard?.isFinished(): Boolean = ((this == null) || (state == RATING))

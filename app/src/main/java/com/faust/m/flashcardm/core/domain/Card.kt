@@ -70,12 +70,16 @@ data class Card (
 
     fun frontAsTextOrNull() = roster.firstTextValue(FRONT)?.value
 
+    fun frontAsTextOrEmpty() = frontAsTextOrNull() ?: ""
+
     fun backAsTextOrNull() = roster.firstTextValue(BACK)?.value
 
-    fun updateTextValues(front: String, back: String): Card {
+    fun backAsTextOrEmpty() = backAsTextOrNull() ?: ""
+
+    fun updateTextValuesForNextReview(front: String, back: String, nextReview: Date): Card {
         updateTextContentIfExist(FRONT, front) ?: roster.add(CardContent(front, FRONT))
         updateTextContentIfExist(BACK, back) ?: roster.add(CardContent(back, BACK))
-        return this.copy(rating = 0, nextReview = Date(), updatedAt = Date())
+        return this.copy(rating = 0, nextReview = nextReview, updatedAt = Date())
     }
 
     private fun updateTextContentIfExist(type: CardContentType, value: String) =

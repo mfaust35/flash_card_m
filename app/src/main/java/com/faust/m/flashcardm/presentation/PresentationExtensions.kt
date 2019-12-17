@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.view.KeyEvent
 import android.view.View
+import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
@@ -139,4 +140,14 @@ class MutableLiveEvent<T>: MutableLiveData<Event<T>>() {
     fun postEvent(event: T) {
         postValue(Event(event))
     }
+}
+
+class EndAnimationListener(private val animationEndListener: () -> Unit): Animation.AnimationListener {
+
+    override fun onAnimationEnd(animation: Animation?) {
+        animationEndListener.invoke()
+    }
+
+    override fun onAnimationStart(animation: Animation?) {}
+    override fun onAnimationRepeat(animation: Animation?) {}
 }

@@ -5,15 +5,14 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.TranslateAnimation
 import android.widget.PopupMenu
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.Fragment
-import androidx.transition.TransitionManager
 import com.faust.m.flashcardm.R
 import com.faust.m.flashcardm.databinding.FragmentReviewCardContentBinding
 import com.faust.m.flashcardm.databinding.ViewBookletBannerBinding
 import com.faust.m.flashcardm.presentation.BookletViewModelFactory
+import com.faust.m.flashcardm.presentation.EndAnimationListener
 import com.faust.m.flashcardm.presentation.LiveDataObserver
 import com.faust.m.flashcardm.presentation.library.BookletBannerData
 import com.faust.m.flashcardm.presentation.review.ReviewCard.State.ASKING
@@ -30,6 +29,13 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
     private lateinit var bookletBannerBinding: ViewBookletBannerBinding
     private lateinit var viewModel: ReviewViewModel
     private lateinit var cardBinding: FragmentReviewCardContentBinding
+    private var _rootWidth = 0f
+    private val _translationXShown = 0f
+    private val _translationXHidden: Float
+        get() = _rootWidth.times(-1)
+    private val _toXDeltaIn: Float
+        get() = _rootWidth
+    private val _animationDuration = 200L
 
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -50,8 +56,20 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
                     booklet = BookletBannerData.LOADING
                 }
 
+        // Initialize listener on layout change to reset translationX on cards outside of screen
+        translateCardsOutsideViewOnLayoutChange(cardBinding.root)
+
         return cardBinding.root
     }
+
+    private fun translateCardsOutsideViewOnLayoutChange(root: View) =
+        root.addOnLayoutChangeListener{ _, left, _, right, _, _, _, _, _ ->
+            _rootWidth = (right - left).toFloat()
+            if (tv_card_back.isNotDisplayed()) tv_card_back.translationX = _translationXHidden
+            if (tv_card_front.isNotDisplayed()) tv_card_front.translationX = _translationXHidden
+        }
+
+    private fun ReviewCardView.isNotDisplayed() = this.translationX != _translationXShown
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -100,23 +118,42 @@ class FragmentReviewCardContent: Fragment(), LiveDataObserver {
             return
         }
         when(reviewCard.state) {
-            RATING -> animateView { it.setVisibility(R.id.tv_card_back, View.VISIBLE) }
-            ASKING -> {
-                tv_card_front.visibility = View.INVISIBLE
-                tv_card_back.visibility = View.INVISIBLE
-                animateView { it.setVisibility(R.id.tv_card_front, View.VISIBLE) }
-            }
+            RATING -> animateShowRating()
+            ASKING -> animateShowAsking()
         }
     }
 
-    private fun animateView(constraint: (constraintSet: ConstraintSet) -> Unit) {
-        (view as ConstraintLayout).let {
-            TransitionManager.beginDelayedTransition(it)
-            ConstraintSet().apply {
-                clone(it)
-                constraint.invoke(this)
-                applyTo(it)
-            }
+    private fun animateShowRating() {
+        tv_card_front.run {
+            // Need to manually remove animationListener because clearAnimation stop the animation
+            // but the endAnimationListener still get called, which is not useful in this case
+            animation?.setAnimationListener(null)
+            clearAnimation()
+            translationX = _translationXHidden
         }
+        tv_card_back.translationX = _translationXShown
+    }
+
+    private fun animateShowAsking() =
+        tv_card_front.startAnimation(
+            TranslateAnimation(0f, _toXDeltaIn, 0f, 0f).apply {
+                duration = _animationDuration
+                fillAfter = true // Need fillAfter to avoid a glitch in the UI
+                // But it will be removed immediately in the endAnimationListener
+                // We do need to remove it in the listener or else the button on cardReview
+                // is unclickable
+                setEndAnimationListener {
+                    tv_card_front.run {
+                        animation?.setAnimationListener(null)
+                        clearAnimation()
+                        translationX = _translationXShown
+                    }
+                    tv_card_back.translationX = _translationXHidden
+                }
+            }
+        )
+
+    private fun TranslateAnimation.setEndAnimationListener(listener: () -> Unit) {
+        setAnimationListener(EndAnimationListener(listener))
     }
 }
